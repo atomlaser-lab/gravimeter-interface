@@ -74,8 +74,13 @@ classdef RemoteControl < handle
                 self.conn = tcpclient(self.remoteAddress,self.remotePort);
                 self.conn.configureTerminator('CR/LF');
                 self.conn.configureCallback('terminator',@(src,event) self.resp(src,event))
-                self.conn.OutputBufferSize = 2^24;
-                self.conn.InputBufferSize = 2^24;
+                R = version('-release');
+                release_year = regexp(R,'\d+','match');
+                release_year = str2double(release_year{1});
+                if contains(R,'2022b') || (release_year > 2022)
+                    self.conn.InputBufferSize = 2^20;
+                    self.conn.OutputBufferSize = 2^20;
+                end
                 fprintf(1,'Connection successful!\n');
                 self.connected = true;
             end
