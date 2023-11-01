@@ -2,32 +2,30 @@ function Callback_MeasureMWFreq(r)
 
 if r.isInit()
     
-    r.data.df = const.randomize(-5:0.5:5); %in kHz
-%     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + r.data.df*1e-3;
-    r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 - 1.722e-3;
-    r.data.freq2 = const.f_Rb_groundHFS/1e6 + r.data.df*1e-3;
-%     r.data.freq2 = const.f_Rb_groundHFS/1e6*ones(size(r.data.df));
+    r.data.df = const.randomize(0:0.5:9); %in kHz %broad scan
+%     r.data.df = const.randomize(-2:0.25:2); %in kHz %small scan
+
+    r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + r.data.df*1e-3;
+%     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3  + 4.5e-3*ones(size(r.data.df));
+%     r.data.freq2 = const.f_Rb_groundHFS/1e6 + r.data.df*1e-3;
+    r.data.freq2 = const.f_Rb_groundHFS/1e6*ones(size(r.data.df));
     
     r.c.setup('var',r.data.df);
 elseif r.isSet()
     
-%     r.make(r.devices.opt);
-    
-%     r.make;
-%     r.make(0,217.5e-3,1.3,0.13850,0,0e-3,1250e-6);
-    r.upload;
+    r.make(r.devices.opt,'tof',217e-3).upload;
     %
     % These commands are for list-mode operation
     %
 %     r.devices.rs.writeList([r.data.freq1(r.c(1))/2,r.data.freq2/2],[6,6]);
 %     r.devices.rs.writeState('on');
-    r.devices.mku.writeList(r.data.freq1/2*1e6,r.data.freq2(r.c(1))/2*1e6);
+    r.devices.mku.writeList(r.data.freq1(r.c(1))/2*1e6,r.data.freq2(r.c(1))/2*1e6);
     fprintf(1,'Run %d/%d, F = %.6f kHz\n',r.c.now,r.c.total,...
         r.data.df(r.c(1)));
     
 elseif r.isAnalyze()
     i1 = r.c(1);
-    pause(0.1);
+    pause(0.1 + 0.5*rand);
     
     
     img = Abs_Analysis('last');
@@ -36,6 +34,10 @@ elseif r.isAnalyze()
         % Checks for an error in loading the files (caused by a missed
         % image) and reruns the last sequence
         %
+        r.c.decrement;
+        return;
+    elseif r.c.now > 1 && strcmpi(r.data.files{r.c.now - 1},img.raw.files.name)
+        pause(10);
         r.c.decrement;
         return;
     end
@@ -102,7 +104,7 @@ elseif r.isAnalyze()
         xplot = linspace(min(nlf.x),max(nlf.x),1e2);
         plot(xplot*1e3,nlf.f(xplot),'-');
         hold off;
-
+% 
 %         nlf = nonlinfit(r.data.freq2 - const.f_Rb_groundHFS/1e6,r.data.N/max(r.data.N));
 %         nlf.setFitFunc(@(A,R,x0,x) A*4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*215/2).^2);
 %         [~,idx] = max(nlf.y);

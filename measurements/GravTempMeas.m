@@ -2,16 +2,13 @@ function GravTempMeas(r)
 
 if r.isInit()
     %Initialize run
-%     r.data.tof = 216.2e-3:.4e-3:217.8e-3; 
-     r.data.tof = 25e-3:5e-3:35e-3; 
-%     r.data.param = const.randomize(1);
-    r.data.param= 1:50;
+    r.data.tof = 25e-3:5e-3:35e-3; 
+    r.data.param= 1:50; 
     r.c.setup('var',r.data.tof,r.data.param);
     
 elseif r.isSet()
     r.make('detuning',0,'tof',r.data.tof(r.c(1)),'dipole',2.25,'power',0.,'T',10e-3,'camera','drop 1');
-%     r.make(0,r.data.tof(r.c(1)),1.58,0,0,0,0);
-%     r.make(8,r.data.tof(r.c(1)),2,0,0,0,0);
+
     r.upload;
 
     %Print information about current run

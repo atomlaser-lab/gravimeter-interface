@@ -18,6 +18,9 @@ classdef RunConversions < handle
 %             V = -detuning*0.472/6.065 + 8.533;
             func = @(x) (82.6202 - 8.7259*x + 2.0478*x.^2 - 0.0827*x.^3);
             f = (detuning + 211.79)/2;
+
+%             func = @(x) (8.7236-.8121*x+0.0075*x.^2 -0.0031*x.^3);
+%             f = (detuning + 105.9828)*2;
             xx = linspace(0,10,101);
             V = interp1(func(xx),xx,f,'pchip');
         end

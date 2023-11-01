@@ -1,37 +1,51 @@
 classdef SequenceOptions < SequenceOptionsAbstract
     %SEQUENCEOPTIONS Defines a class for passing options to the
     %make sequence function
-    
+
     properties
         %
         % Preparation properties. These are native properties to this set
         % of sequence options
         %
-        detuning        %Detuning of imaging light
-        dipoles         %Final power for the two dipole beams
-        tof             %Time-of-flight
+        detuning        %Detuning of imaging light in MHz
+        dipoles         %Final power for the two dipole beams in W
+        tof             %Time-of-flight in ms
         imaging_type    %Imaging system to use (drop 1, 2, 3, or 4)
         params          %Additional parameters for optimisation
+        MOT_LoadTime    %MOT load time in seconds
         %
+
+
+        MOT_status
+        CMOT_status
+        PGC_status
+        LoadMagTrap_status
+        MagEvaporation_status
+        LoadOpticalTrap_status
+        OpticalEvaporation_status
+        BECCompression_status
+        MagneticInsensitive_status
         % These are sub-groupings of options
         %
         raman
         bragg
         mw
+        misc
     end
-   
-    
+
+
     methods
         function self = SequenceOptions(varargin)
             %SEQUENCEOPTIONS Create a SequenceOptions object
             self.raman = RamanSequenceOptions;
             self.bragg = BraggSequenceOptions;
             self.mw = MicrowaveSequenceOptions;
-            
+            self.misc = MiscSequenceOptions;
+
             self.setDefaults;
             self = self.set(varargin{:});
         end
-        
+
         function self = setDefaults(self)
             %SETDEFAULTS Set default property values
             self.detuning = 0;
@@ -39,11 +53,24 @@ classdef SequenceOptions < SequenceOptionsAbstract
             self.tof = 216.5e-3;
             self.imaging_type = 'drop 2';
             self.params = [];
+            self.MOT_LoadTime = 4;
+
+            self.MOT_status =1 ;
+            self.CMOT_status =1 ;
+            self.PGC_status =1;
+            self.LoadMagTrap_status =1 ;
+            self.MagEvaporation_status = 1;
+            self.LoadOpticalTrap_status = 1;
+            self.OpticalEvaporation_status = 1;
+            self.BECCompression_status = 0;
+            self.MagneticInsensitive_status = 0;
+
             self.raman.setDefaults;
             self.bragg.setDefaults;
             self.mw.setDefaults;
+            self.misc.setDefaults;
         end
-        
+
         function self = set(self,varargin)
             %SET Sets the options
             %
@@ -51,7 +78,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
             %   name/value pairs.  For nested options, use name/value pairs
             %   as 'bragg',{'name',value,'name2',value2,...}
             set@SequenceOptionsAbstract(self,varargin{:});
-            
+
             if mod(numel(varargin),2) ~= 0
                 error('Arguments must be in name/value pairs');
             else
@@ -80,7 +107,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
                 end
             end
         end
-        
+
     end
-    
+
 end

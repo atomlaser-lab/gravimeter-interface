@@ -4,6 +4,7 @@ classdef RamanSequenceOptions < SequenceOptionsAbstract
         width
         power
         df
+        OnOff
     end
 
     methods
@@ -16,6 +17,7 @@ classdef RamanSequenceOptions < SequenceOptionsAbstract
             self.width = 10e-6;
             self.power = 0.5;
             self.df = 0;
+            self.OnOff = 0;
         end
     end
 end

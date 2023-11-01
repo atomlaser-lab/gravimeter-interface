@@ -37,11 +37,11 @@ function sq = initSequence
     sq.digital(32).setDefault(0);
     
     %% Name analog channels
-    sq.analog(1).setName('2D MOT Freq','AO/0').setDefault(7.65);
+    sq.analog(1).setName('2D MOT Freq','AO/0').setDefault(7.65); %7.65
     sq.analog(2).setName('3D MOT Freq','AO/1').setDefault(6.5);
     sq.analog(3).setName('Imaging Freq','AO/2').setDefault(8.5);
-    sq.analog(4).setName('Push Freq','AO/3').setDefault(9.5);
-    sq.analog(5).setName('Repump Freq','AO/4').setDefault(4.3);
+    sq.analog(4).setName('Push Freq','AO/3').setDefault(9.5); %9.5
+    sq.analog(5).setName('Repump Freq','AO/4').setDefault(4.3); %4.3
     sq.analog(6).setName('50W Amp','AO/5').setDefault(5);
     sq.analog(7).setName('25W Amp','AO/6').setDefault(5);
     sq.analog(8).setName('Fiber laser power','AO/7').setDefault(0);
@@ -50,7 +50,7 @@ function sq = initSequence
     sq.analog(11).setName('MW Freq','BO/2').setDefault(6.8);
     sq.analog(12).setName('MW Amp','BO/3').setDefault(0);
     sq.analog(13).setName('Repump Amp','BO/4').setDefault(9);
-    sq.analog(14).setName('Liquid Crystal Repump','BO/5').setDefault(-2.22);
+    sq.analog(14).setName('Liquid Crystal Repump','BO/5').setDefault(7); % was-2.22
     sq.analog(15).setName('Drop Repump Freq','BO/6').setDefault(4.3);
     sq.analog(16).setName('RF Frequency','BO/7').setDefault(0);
     sq.analog(17).setName('Raman Amp','CO/0').setDefault(0);

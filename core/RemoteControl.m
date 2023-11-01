@@ -52,7 +52,7 @@ classdef RemoteControl < handle
             self.connected = false;
             self.mode = self.INIT;
             self.status = self.STOPPED;
-            self.makerCallback = @SequenceBuilder;
+            self.makerCallback = @makeBEC_toerase;
             self.c = RolloverCounter();
             self.err = RemoteControlErrorHandler;
             self.reset;
@@ -82,10 +82,14 @@ classdef RemoteControl < handle
             end
         end %end open
         
-        function setFunc(self)
+        function setFunc(self,cb)
             %SETFUNC Sets the BytesAvailableFcn to self.resp()
             self.open;
-            self.conn.configureCallback('terminator',@(src,event) self.resp(src,event))
+            if nargin < 2
+                self.conn.configureCallback('terminator',@(src,event) self.resp(src,event));
+            else
+                self.conn.configureCallback('terminator',@(~,~) cb());
+            end
         end
         
         function r = read(self)
@@ -306,18 +310,37 @@ classdef RemoteControl < handle
             %   callback to the function handle CB()
             %
             self.open;
+            self.conn.flush;
             if nargin > 1
                 self.conn.configureCallback('terminator',@(~,~) cb());
             end
             self.conn.writeline(self.startWord);
         end %end run
-        
-        function urun(self,varargin)
+
+        %Multicallback function 
+        function multi_callback(self, callbacks)
+            for k = 1:length(callbacks)
+                feval(callbacks{k});
+            end
+        end
+
+        function urun(self, varargin)
             %URUN Uploads current sequence and starts a run
             self.upload;
-            self.run(varargin{:});
+            self.run(@() self.multi_callback(varargin));
         end
+
+
+
         
+%         function urun(self,varargin)
+%             %URUN Uploads current sequence and starts a run
+%             self.upload;
+%             self.run(varargin{:});
+%         end
+        
+
+
         function loop(self,cb)
             %LOOP Starts a perpetual loop using a supplied callback
             %function
@@ -366,6 +389,20 @@ classdef RemoteControl < handle
                     self.analyze;
                     % Stop
                     self.stop;
+                    %Send a trigger to the app managing (only works with
+                    %the app
+                
+                    appHandle = findall(0, 'Type', 'Figure', 'Name', 'Gravimeter Control Interface');
+                    if isempty(appHandle)
+%if no app is open nothing happens!
+                    else
+                        % An instance of the app already exists, so use
+                        % that...
+                        app = get(appHandle, 'UserData');
+                    end
+                    % Now we can send the trigger
+                    app.triggerFromOutside();
+
                 else
                     % Analyze
                     self.analyze;
@@ -422,6 +459,10 @@ classdef RemoteControl < handle
             self.mode = self.INIT;
         end
         
+        function r = isRunning(self)
+            %ISRUNNING Returns true if the status is RUNNING
+            r = strcmpi(self.status,self.RUNNING);
+        end
     end %end methods
 
 end %end classdef

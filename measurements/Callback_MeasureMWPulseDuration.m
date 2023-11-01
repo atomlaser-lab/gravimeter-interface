@@ -7,17 +7,14 @@ if r.isInit()
     r.c.setup('var',r.data.pulse);
 elseif r.isSet()
     
-    r.make(r.devices.opt.set('params',r.data.pulse(r.c(1))));
-%     r.make(r.devices.opt.set('params',r.data.pulse(r.c(1))));
-    
-%     r.make(0,217.25e-3,1.3,0.13850,0,0e-3,1250e-6);
+    r.make(r.devices.opt,'params',r.data.pulse(r.c(1)));
     r.upload;
     fprintf(1,'Run %d/%d, F = %.3f us\n',r.c.now,r.c.total,...
         r.data.pulse(r.c(1))*1e6);
     
 elseif r.isAnalyze()
     i1 = r.c(1);
-    pause(0.1);
+    pause(0.1 + 0.25*rand);
     img = Abs_Analysis('last');
     if ~img.raw.status.ok()
         %
@@ -43,8 +40,8 @@ elseif r.isAnalyze()
     subplot(1,3,1)
     plot(r.data.pulse(1:i1)*1e6,r.data.R(1:i1,:),'o');
     plot_format('Freq [MHz]','Population','',12);
-    h = legend('m = -1','m = 0');
-    set(h,'Location','West');
+%     h = legend('m = -1','m = 0');
+%     set(h,'Location','West');
     title(' Raman frequency using fit over OD')
     grid on
     hold on;
@@ -53,8 +50,8 @@ elseif r.isAnalyze()
     plot(r.data.pulse(1:i1)*1e6,r.data.Rsum(1:i1,:),'sq');
     hold off;
     plot_format('Freq [MHz]','Population','',12);
-    h = legend('m = -1','m = 0');
-    set(h,'Location','West');
+%     h = legend('m = -1','m = 0');
+%     set(h,'Location','West');
     title(' Raman frequency using ROI')
     grid on;
     if r.c.done
@@ -66,8 +63,8 @@ elseif r.isAnalyze()
     subplot(1,3,3)
     plot(r.data.pulse(1:i1)*1e6,r.data.Nsum(1:i1,:),'o');
     plot_format('Freq [MHz]','Population','',12);
-    h = legend('m = -1','m = 0');
-    set(h,'Location','West');
+%     h = legend('m = -1','m = 0');
+%     set(h,'Location','West');
     title(' Raman frequency using fit over OD')
     grid on
     hold on;

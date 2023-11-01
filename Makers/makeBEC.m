@@ -30,7 +30,7 @@ UD = @(x) x* -0.2031 + 2.707; %this converts the input value in amps to the appr
 % UDreverse = @(y) y*-4.924 + 13.33; %This is just the inverted function to get the amps out of the voltage in case needed.
 
 sq.find('Imaging Freq').set(convert.imaging(opt.detuning));
-sq.find('3D MOT Freq').set(convert.mot_freq(-25));    %Use -25 MHz for 4 s loading times, -27.5 MHz for 6 s
+sq.find('3D MOT Freq').set(convert.mot_freq(-23));    %Use -25 MHz for 4 s loading times, -27.5 MHz for 6 s
 sq.find('Repump freq').set(convert.repump_freq(-2));
 sq.find('50w ttl').set(1);
 sq.find('25w ttl').set(1);
@@ -53,8 +53,8 @@ sq.find('push amp ttl').before(10e-3,0);
 
 %Increase the cooling and repump detunings to reduce re-radiation
 %pressure, and weaken the trap
-sq.find('3D MOT freq').set(convert.mot_freq(-35));
-sq.find('repump freq').set(convert.repump_freq(-9.5));
+sq.find('3D MOT freq').set(convert.mot_freq(-25));
+sq.find('repump freq').set(convert.repump_freq(-6));
 sq.find('3D coils').set(convert.mot_coil(1.38));
 sq.find('bias e/w').set(5*0);
 sq.find('bias n/s').set(7*0);
@@ -63,7 +63,7 @@ sq.find('bias u/d').set(1.75*0);
 Tcmot = 12.5e-3;                      %10 ms CMOT stage
 sq.delay(Tcmot);                    %Wait for time Tcmot
 %% PGC stage
-Tpgc = 15e-3;
+Tpgc = 25e-3;
 %Define a function giving a 100 point smoothly varying curve
 t = linspace(0,Tpgc,50);
 f = @(vi,vf) sq.linramp(t,vi,vf);
@@ -75,27 +75,27 @@ sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),convert.mot_coil(0
 sq.find('repump freq').set(convert.repump_freq(-9.25));
 
 sq.delay(Tpgc);
-%Turn off the repump field for optical pumping - 1 ms
+% Turn off the repump field for optical pumping - 1 ms
 T = 1e-3;
 sq.find('repump amp ttl').set(0);
-sq.find('Top repump shutter').set(1);
-sq.find('liquid crystal repump').set(7);
+% sq.find('Top repump shutter').set(1);
+sq.find('liquid crystal repump').set(-2.22);
 sq.find('bias u/d').set(0);
 sq.find('bias e/w').set(0);
 sq.find('bias n/s').set(7.5*0);
 sq.delay(T);
 
-%% Load into magnetic trap
+% Load into magnetic trap
 sq.find('liquid crystal bragg').set(-3);
 sq.find('3D mot amp ttl').set(0);
 sq.find('MOT coil ttl').set(1);
-sq.find('3D coils').set(convert.mot_coil(11));
-% sq.delay(3.0);
+sq.find('3D coils').set(convert.mot_coil(6));
+% sq.delay(2.50);
 
-%% Microwave evaporation
-%
-% Provide detunings in MHz from the Rb hyperfine splitting
-%
+% %% Microwave evaporation
+% %
+% % Provide detunings in MHz from the Rb hyperfine splitting
+% %
 sq.delay(20e-3);
 evapRate = 15;
 evapStart = 55;
@@ -106,7 +106,7 @@ sq.find('mw freq').after(t,convert.microwave(sq.linramp(t,evapStart,evapEnd)));
 sq.find('mw amp ttl').set(1);
 sq.delay(Tevap);
 sq.find('mw amp ttl').set(0);
-
+% sq.delay(3);
 %% Weaken trap while MW frequency fixed
 % Trampcoils = 180e-3;
 % t = linspace(0,Trampcoils,50);
@@ -116,27 +116,27 @@ sq.find('mw amp ttl').set(0);
 % sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),-0.12*0));
 % sq.delay(Trampcoils);
 
-Trampcoils = 0.5/2;
-t = linspace(0,Trampcoils,50);
-sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
-sq.find('bias e/w').after(t,sq.linramp(t,sq.find('bias e/w').values(end),0));
-sq.find('bias n/s').after(t,sq.linramp(t,sq.find('bias n/s').values(end),0));
-sq.find('bias u/d').after(t,sq.linramp(t,sq.find('bias u/d').values(end),0));
-sq.delay(Trampcoils);
-sq.find('mot coil ttl').set(0);
-
-%% Optical evaporation
-%
-% Ramp down magnetic trap in 1 s
-%
-% Trampcoils = 1;
-% t = linspace(0,Trampcoils,101);
+% Trampcoils = 0.5/2;
+% t = linspace(0,Trampcoils,50);
 % sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
-% sq.find('mw amp ttl').anchor(sq.find('3d coils').last).before(100e-3,0);
-% sq.find('mot coil ttl').at(sq.find('3d coils').last,0);
-%
-% At the same time, start optical evaporation
-%
+% sq.find('bias e/w').after(t,sq.linramp(t,sq.find('bias e/w').values(end),0));
+% sq.find('bias n/s').after(t,sq.linramp(t,sq.find('bias n/s').values(end),0));
+% sq.find('bias u/d').after(t,sq.linramp(t,sq.find('bias u/d').values(end),0));
+% sq.delay(Trampcoils);
+% sq.find('mot coil ttl').set(0);
+
+% % Optical evaporation
+% 
+% % Ramp down magnetic trap in 1 s
+% 
+Trampcoils = 1;
+t = linspace(0,Trampcoils,101);
+sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
+sq.find('mw amp ttl').anchor(sq.find('3d coils').last).before(100e-3,0);
+sq.find('mot coil ttl').at(sq.find('3d coils').last,0);
+% 
+% % At the same time, start optical evaporation
+% 
 sq.delay(30e-3);
 Tevap = 2;
 t = linspace(0,Tevap,200);
@@ -149,5 +149,7 @@ sq.find('bias u/d').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias u/d').value
 sq.delay(Tevap);
 
 % sq.delay(opt.params(1));
+
+
 
 end

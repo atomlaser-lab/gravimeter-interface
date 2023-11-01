@@ -56,7 +56,7 @@ switch lower(imgType)
         camChannel = 'cam trig';
         imgType = 0;
         if isempty(pulseTime)
-            pulseTime = 5e-6;
+            pulseTime = 17e-6;
         end
     case {'drop 2'}
         camChannel = 'drop 1 camera trig';
@@ -76,7 +76,7 @@ sq.find('Top repump shutter').before(10e-3,0);
 %If manifold is set to image F = 1 state, enable repump. Otherwise,
 %disable repumping
 if imgType == 0 && manifold == 1
-    sq.find('liquid crystal repump').set(-2.22);
+    sq.find('liquid crystal repump').set(7);%was -2.22
     sq.find('repump amp ttl').after(tof-repumpTime-repumpDelay,1);
     sq.find('repump amp ttl').after(repumpTime,0);
     if ~isempty(repumpFreq)
@@ -118,6 +118,7 @@ if includeDarkImage
     sq.anchor(sq.latest);
     sq.find('fiber switch repump').set(0);
 end
-    
+
+
 
 end
