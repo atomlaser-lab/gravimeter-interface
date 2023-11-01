@@ -146,8 +146,19 @@ classdef DDSChannel < TimingControllerChannel
         function rf = opticalToRF(P,varargin)
             if numel(varargin) == 1 && isstruct(varargin{1})
                 data = varargin{1};
+
+                if isfield(data,'Pmax') == 0
+                    data.Pmax = max(data.optical_power);
+                end
                 P = P*data.Pmax;
-                rf = interp1(data.Popt,data.Prf,P,'pchip');
+                if isfield(data,"Popt")
+                    rf = interp1(data.Popt,data.Prf,P,'pchip');
+                else
+                    rf = interp1(data.optical_power,data.amp,P,'pchip');
+                end
+                % manually set zeros
+                rf(P==0) = 1e-6;
+
             elseif numel(varargin) == 2
                 Pmax = varargin{1};
                 rfmax = varargin{2};
