@@ -52,7 +52,7 @@ classdef RemoteControl < handle
             self.connected = false;
             self.mode = self.INIT;
             self.status = self.STOPPED;
-            self.makerCallback = @makeBEC_toerase;
+            self.makerCallback = @makeBEC_scratch;
             self.c = RolloverCounter();
             self.err = RemoteControlErrorHandler;
             self.reset;
@@ -218,15 +218,18 @@ classdef RemoteControl < handle
             
             % Reduce instruction sizes and make sure both tables have
             % instructions at the same time
+% % % % %  Use this for Gaussian Pulses
+%             tb(1).reduce;
+%             if sum(tb(1).sync) == 1
+%                 tb(2).reduce;
+%                 tb(1).reduce(tb(2).sync);
+%             else
+%                 tb(2).reduce(tb(1).sync);
+%             end
+% % % % % Use this for Square Pulses
             tb(1).reduce;
-%             tb(2).reduce;
-            if sum(tb(1).sync) == 1
-                tb(2).reduce;
-                tb(1).reduce(tb(2).sync);
-            else
-                tb(2).reduce(tb(1).sync);
-            end
-            
+            tb(2).reduce;
+% % % % %             
             % Send commands to device
             for nn = 1:numel(tb)
                 self.mog.cmd('mode,%d,%s',tb(nn).channel,tb(nn).MODE);
@@ -388,7 +391,10 @@ classdef RemoteControl < handle
                     % Analyze
                     self.analyze;
                     % Stop
-                    self.stop;
+                    pause(0.1);
+                    self.conn.flush();
+                    self.status = self.STOPPED;
+                    fprintf('Run finished\n');
                     %Send a trigger to the app managing (only works with
                     %the app
                 
