@@ -218,17 +218,17 @@ classdef RemoteControl < handle
             
             % Reduce instruction sizes and make sure both tables have
             % instructions at the same time
-% % % % %  Use this for Gaussian Pulses
-%             tb(1).reduce;
-%             if sum(tb(1).sync) == 1
-%                 tb(2).reduce;
-%                 tb(1).reduce(tb(2).sync);
-%             else
-%                 tb(2).reduce(tb(1).sync);
-%             end
-% % % % % Use this for Square Pulses
             tb(1).reduce;
-            tb(2).reduce;
+            if sum(tb(1).sync) == 1
+                tb(2).reduce;
+                tb(1).reduce(tb(2).sync);
+            else
+                tb(2).reduce(tb(1).sync);
+            end
+% % % % % If having issues with synchronising the channels, try reducing
+% % % % % independently
+%             tb(1).reduce;
+%             tb(2).reduce;
 % % % % %             
             % Send commands to device
             for nn = 1:numel(tb)

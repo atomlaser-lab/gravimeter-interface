@@ -118,12 +118,22 @@ end
 
 
 %% Create Time Vector
-tPulse = (-width/2 : dt :width/2)';
-tPulse = [tPulse(1) - 1e-6;  tPulse; tPulse(end) + 1e-6];
-% I've add extra points between pulses to explicitly set power to zero
+% % % Check for DDS Errors
+if dt < 1e-6
+    error('DDS error: instructions duration less than 1 us')
+elseif mod(T,1e-6) < 1e-6 && mod(T,1e-6)~= 0
+    error('DDS error: Pulse separation time requires DDS instruction less than 1 us')
+elseif mod(width,1e-6) < 1e-6 && mod(width,1e-6) ~= 0
+    error('DDS error: Pulse duration requires DDS instruction less than 1 us')    
+end
+
+OffInstructionDuration = 1e-6;
+tPulse = (0: dt :width)';
+tPulse = [0;  tPulse + OffInstructionDuration; tPulse(end) + 2*OffInstructionDuration];
 t = repmat(tPulse,1,numPulses);
+
 for  nn = 1:numPulses
-    t(:,nn) = t(:,nn) + t0 + (nn-1)*T;
+    t(:,nn) = t(:,nn) + t0 + (nn-1)*T + (nn~=3)*(nn-1)*width + (nn==3)*(nn-1)*width;
 end
 t = t(:);
 
@@ -153,16 +163,16 @@ I_factor = I_Ramp_factor.*I_Noise_factor;
 %
 [P,ph,freq] = deal(zeros(numel(t),2));
 for nn = 1:numPulses
-    tc = t0 + (nn-1)*T;
+    t_RisingEdge = t0 + (nn-1)*T + (nn~=3)*(nn-1)*width + (nn==3)*(nn-1)*width;
     %
     % Set powers
     %
     if strcmpi(PulseType,'Gaussian') == 1
-        P(:,1) = P(:,1) + power1(nn).*I_factor(:,1).*exp(-(t - tc).^2/fwhm.^2);
-        P(:,2) = P(:,2) + power2(nn).*I_factor(:,1).*exp(-(t - tc).^2/fwhm.^2);
+        P(:,1) = P(:,1) + power1(nn).*I_factor(:,1).*exp(-(t - t_RisingEdge).^2/fwhm.^2);
+        P(:,2) = P(:,2) + power2(nn).*I_factor(:,1).*exp(-(t - t_RisingEdge).^2/fwhm.^2);
     elseif strcmpi(PulseType,'Square') == 1
-        PulseEnd = find(abs(t-(tc + 1*width/2)) < dt/2,1,'first');
-        PulseStart = find(abs(t-(tc - 1*width/2)) < dt/2,1,'last');
+        PulseStart = find(abs(t - (t_RisingEdge + OffInstructionDuration)) < dt/2,1,'last');
+        PulseEnd = find(abs(t - (t_RisingEdge + width + OffInstructionDuration)) < dt/2,1,'first');        
         SquareShape = zeros(length(t),1);
         SquareShape(PulseStart:PulseEnd) = 1;
         idx = SquareShape == 1;
@@ -184,17 +194,20 @@ for nn = 1:numPulses
 end
 
 freq(freq == 0) = DDSChannel.DEFAULT_FREQ;
+% freq(freq ~= 0) = 50;
 
 %% Populate DDS values
 for nn = 1:numel(dds)
     if nn == 1
-        dds(nn).after(t - 1e-6,freq(:,nn),P(:,nn),ph(:,nn));
+        dds(nn).after(t,freq(:,nn),P(:,nn),ph(:,nn));        
     elseif nn == 2
+%         dds(nn).after(t+1e-6,freq(:,nn),P(:,nn),ph(:,nn));
         dds(nn).after(t,freq(:,nn),P(:,nn),ph(:,nn));
     end
 end
+
 % Require two off values to actually turn the pulse off
-dds(1).after(1e-6,110,0,0);
-dds(2).after(1e-6,110,0,0);
+% dds(1).after(1e-6,110,0,0);
+% dds(2).after(1e-6,110,0,0);
 
 end
