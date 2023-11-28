@@ -58,16 +58,8 @@ end
 
 %% Initialise Sequence: Set default values
 sq = initSequence;
+% sq.find('Raman DDS Trig').set(1); %% DDS triggers on falling edge, so start on
 
-% % % The Raman DDS uses version 1.81 while Bragg DDS uses version 1.82
-%  Insert new calibration data
-% sq.dds(1).calibrationData.amp = ;
-% sq.dds(1).calibraitonData.optical_power = ;
-
-
-% % Version 1.81 requiers 
-% sq.dds(1).rfscale = 3.1;
-% sq.dds(2).rfscale = 2.15;
 % Bragg Calibration data used in initSequence.
 % For now I will simply load/set my own calibration data here. I'll create
 % another object later
@@ -77,21 +69,23 @@ calibData = load('RamanAOMData_formatted.mat');
 sq.dds(1).calibrationData = calibData.data_ch1;
 sq.dds(2).calibrationData = calibData.data_ch2;
 
-Ch1_PMax = 59e-3; % @ 33 dBm
-Ch2_PMax = 36.5e-3; % @ 33 dBm
+Ch1_PMax = 64e-3; % @ 33 dBm, Half waveplate @ 8 deg, Amp @
+Ch2_PMax = 64e-3; % @ 33 dBm, Half waveplate @ 303 deg, Amp @
 
 I_ratio = 1;
 Ch1_PDesire = 10e-3;
+Ch1_PDesire = Ch1_PMax;
 
 Ch2_PDesire = Ch1_PDesire*I_ratio;
 Ch1_Pratio = Ch1_PDesire/Ch1_PMax;
 Ch2_Pratio = Ch2_PDesire/Ch2_PMax;
-
 if Ch1_PDesire > Ch1_PMax || Ch1_PDesire > Ch2_PMax
     error('You want more Raman power than you have')
 end
 
 %% Common Run options/functions
+
+
 % functions
 convert = RunConversions;
 UD = @(x) x* -0.2031 + 2.707; %this converts the input value in amps to the appropriate voltage
@@ -349,17 +343,17 @@ if opt.mw.enable(1) == 1
     sq.anchor(timeAtDrop);
 
     % Inputs
-        % microwave frequencies set out of run
-        % no amplitude control
-    MicrowaveDelay = 8e-3; %8
+    % microwave frequencies set out of run
+    % no amplitude control
+    MicrowaveDelay = 0e-3; %8
     MicrowaveDuration = 350*1e-6; %372,620
-    
+
     % Set bias
     Delay = 500*1e-3;
     sq.find('bias e/w').before(Delay,10);
     sq.find('bias u/d').before(Delay,0); %%% This could be wrong. Previous operation was at zero VOLTS not amps
     sq.find('bias n/s').set(0);
-    
+
     % Microwave Transfer
     sq.find('R&S list step trig').set(1);
     sq.delay(MicrowaveDelay); % delay to prevent state-changing collisions
@@ -371,100 +365,107 @@ if opt.mw.enable(1) == 1
     sq.find('bias e/w').after(1e-3,0);
 end
 
+%% Raman Alignment
+RamanAlignment = 0;
+if RamanAlignment == 1 && opt.raman.OnOff ~= 1
+    Ch2_Pratio = 0;
+    Ch1_Pratio = 1;
 
 
-%% Interfeormetry
-
-% % % if opt.raman.OnOff == 1
-% % %     TimeBeforeDrop = 1.5;
-% % % 
-% % %     % Move the timing anchor
-% % %     sq.anchor(timeAtDrop - TimeBeforeDrop);
-% % % 
-% % %     % timing
-% % %     InterferometryDelay = 200e-3;        
-% % %     PulseWidth = 100e-3;    
-% % %     dt = 20e-3;
-% % %     T_int = 200e-3;
-% % %     
-% % % 
-% % %     % Trigger DDS 
-% % %     TriggerDelay = 10e-3;
-% % % %     sq.find('dds trig').before(TriggerDelay,1);
-% % % %     sq.find('dds trig').after(TriggerDelay,0); %MOGLabs DDS triggers on falling edge
-% % % %     sq.find('dds trig').after(TriggerDelay,1);
-% % %     sq.find('Raman DDS Trig').before(TriggerDelay,1);
-% % %     sq.find('Raman DDS Trig').after(TriggerDelay,0); %MOGLabs DDS triggers on falling edge
-% % %     sq.find('Raman DDS Trig').after(TriggerDelay,1);
-% % %     sq.ddsTrigDelay = timeAtDrop - TimeBeforeDrop;
-% % % 
-% % % 
-% % %     % Inputs
-% % %     Closer = 8e-3 - InterferometryDelay;    
-% % %     chirp = 25.106258428e6;
-% % %     Tasym =0;
-% % %     k = 22.731334388721734;
-% % % 
-% % % %     delta = opt.params;
-% % %     delta = -4.05;
-% % %     
-% % %     MakePulseSequence_Rhys_new(sq.dds,'k',k,'t0',InterferometryDelay,'T',T_int,'width',PulseWidth,'dt',dt,...
-% % %         'phase',[0,0,0],'chirp',chirp,'delta',delta,...
-% % %         'power1',1*[Ch1_Pratio,0,0],'power2',1*[Ch2_Pratio,0,0],'PulseType','Square','NumPulseWidths',1,'I_factor',1,'I_ratio',I_ratio);
-% % % 
-% % % end
-
-if opt.raman.OnOff == 1
     % % % Inputs
-    % Timing     
-    Closer = 0e-3;
+    % Timing
+    TriggerDuration = 10e-3; % minimum of 10 ms needed
+    triggerDelay = 1e-3; % minimum delay of 1 ms required
+    Closer = 7e-3;
     InterferometryDelay = 8e-3 - Closer;
     T_int = 1e-3;
-    PulseWidth = 500e-3;    
-    dt = 50e-3;
+
+    TimeBeforeDrop = 20e-3;    
+    PulseWidth = TimeBeforeDrop;
+    dt = 1e-3;
+    % Pulse Parameters
+    chirp = 25.106258428e6;
+    k = 22.731334388721734;
+    delta = 5;
+
+    % Set bias
+    sq.anchor(timeAtDrop);
+    Delay = 500*1e-3;
+    sq.find('bias e/w').before(Delay,10);
+    sq.find('bias u/d').before(Delay,0);
+    sq.find('bias n/s').set(0);
+
+    % Trigger DDS
+    if mod(triggerDelay,1e-6) < 1e-6 && mod(triggerDelay,1e-6) ~= 0
+        error('DDS Error: Trigger Delay requires DDS timing resolution less than 1 us')
+    end
+    sq.anchor(timeAtDrop + InterferometryDelay - triggerDelay);
+    sq.find('Raman DDS Trig').before(TriggerDuration,1);
+    sq.find('Raman DDS Trig').after(TriggerDuration,0);
+    sq.ddsTrigDelay = timeAtDrop + InterferometryDelay - triggerDelay - TimeBeforeDrop;
+
+    sq.anchor(timeAtDrop);
+    MakePulseSequence_Rhys(sq.dds,'k',k,'t0',InterferometryDelay - TimeBeforeDrop,'T',T_int,'width',PulseWidth,'dt',dt,...
+        'phase',[0,0,0],'chirp',chirp,'delta',delta,...
+        'power1',1*[Ch1_Pratio,0,0],'power2',1*[Ch2_Pratio,0,0],'PulseType','Square');
+
+
+end
+
+
+
+%% Interferometry
+if opt.raman.OnOff == 1
+%     Ch2_Pratio = 0.1;
+%     Ch1_Pratio = 0.1;
+%         Ch2_Pratio = 0.;
+%         Ch1_Pratio = 0.;
+Ch1_Pratio = opt.params;
+Ch2_Pratio = opt.params;
+delta = 4.750;
+% % % Need to re-calibrate channels
+% % % Ch1_Pratio = Ch1_Pratio - 0.005; 
+% % % Ch2_Pratio = Ch2_Pratio - 0.015;
+% This will give 10 mW in each channel
+
+
+    % % % Inputs
+    % Timing
+    TriggerDuration = 10e-3; % minimum of 10 ms needed
+    triggerDelay = 1e-3; % minimum delay of 1 ms required
+    Closer = 8e-3;
+    InterferometryDelay = 8e-3 - Closer;
+    T_int = 1e-3;
+    PulseWidth = 10e-6;
+    dt = 1e-6;
     % Pulse Parameters
     chirp = 25.106258428e6;
     k = 22.731334388721734;
     delta = opt.params;
-%     delta = 4;
-
-    % Move the timing anchor
-    sq.anchor(timeAtDrop);
 
     % Set bias
+    sq.anchor(timeAtDrop);
     Delay = 500*1e-3;
     sq.find('bias e/w').before(Delay,10);
-    sq.find('bias u/d').before(Delay,0); %%% This could be wrong. Previous operation was at zero VOLTS not amps
+    sq.find('bias u/d').before(Delay,0);
     sq.find('bias n/s').set(0);
 
     % Trigger DDS
-    TriggerDelay = 10e-3;
-    sq.find('Raman DDS Trig').before(TriggerDelay,1);
-    sq.find('Raman DDS Trig').after(TriggerDelay,0); %MOGLabs DDS triggers on falling edge
-    sq.find('Raman DDS Trig').after(TriggerDelay,1);
-    sq.ddsTrigDelay = timeAtDrop;
-    
+    if mod(triggerDelay,1e-6) < 1e-6 && mod(triggerDelay,1e-6) ~= 0
+        error('DDS Error: Trigger Delay requires DDS timing resolution less than 1 us')
+    end
+    sq.anchor(timeAtDrop + InterferometryDelay - triggerDelay);
+    sq.find('Raman DDS Trig').before(TriggerDuration,1);
+    sq.find('Raman DDS Trig').after(TriggerDuration,0);
+    sq.ddsTrigDelay = timeAtDrop + InterferometryDelay - triggerDelay;
 
-    % % % Add Intensity Noise
-    I_factor = MakeIntensityNoise('type','acceleration','amp',0,'width',30e-6,'dt',1e-6,'NumPulseWidths',1);
-    I_factor = 1;
-
-    MakePulseSequence_Rhys_new(sq.dds,'k',k,'t0',InterferometryDelay,'T',T_int,'width',PulseWidth,'dt',dt,...
+    sq.anchor(timeAtDrop);
+    MakePulseSequence_Rhys(sq.dds,'k',k,'t0',InterferometryDelay,'T',T_int,'width',PulseWidth,'dt',dt,...
         'phase',[0,0,0],'chirp',chirp,'delta',delta,...
-        'power1',1*[Ch1_Pratio,0,0],'power2',1*[Ch2_Pratio,0,0],'PulseType','Square','NumPulseWidths',1,'I_factor',1,'I_ratio',I_ratio);
+        'power1',1*[Ch1_Pratio,0,0],'power2',1*[Ch2_Pratio,0,0],'PulseType','Square');
 
     sq.find('bias e/w').after(Delay + InterferometryDelay + 1e-3,0);
 
-
-    % % %     Test to see DDS is turning on
-%         % Ch1 turn on for 1 second
-%         sq.dds(1).set(110,1,0);
-%         sq.dds(1).after(1,110,1,0);
-%         sq.dds(1).after(1e-6,110,0,0);
-%         % Ch 2 turn on for 1 second
-%         sq.dds(2).set(110,0,0);
-%         sq.dds(2).after(1,110,0,0);
-%         sq.dds(2).after(1e-6,110,0,0);
 end
 
 
@@ -479,21 +480,21 @@ if opt.mw.enable_sg == 1
     end
 
     % inputs
-    Tsg = 20e-3;    
+    Tsg = 20e-3;
     SternGerlachDelay = 2e-3;
-    MaxCurrent = 4*1.5;
-    
+    MaxCurrent = 1.5;
+
     sq.anchor(timeAtDrop + Delay + SternGerlachDelay);
 
-    
+
     t = linspace(0,Tsg/2,20);
-    
+
     sq.find('mot coil ttl').set(1);
     sq.find('3d coils').after(t,convert.mot_coil(sq.linramp(t,0,MaxCurrent))); % ramp on
     sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0))); % ramp off
     sq.delay(Tsg);
     sq.find('mot coil ttl').set(0);
-%     sq.find('3d coils').set(convert.mot_coil(0));
+    %     sq.find('3d coils').set(convert.mot_coil(0));
     sq.find('3d coils').set(0);
 
 end
@@ -511,6 +512,7 @@ end
 % imaging pulse occurs
 %
 Abs_Analysis_parameters.camera = evalin('base', 'Abs_Analysis_parameters.camera');
+% Abs_Analysis_parameters.camera = opt.imaging_type;
 sq.anchor(timeAtDrop);
 sq.camDelay = timeAtDrop - 2;   %Set camera acquisition delay to be 2 s less than when image is taken
 if strcmpi(Abs_Analysis_parameters.camera,'in-trap') || strcmpi(Abs_Analysis_parameters.camera,'drop 2')

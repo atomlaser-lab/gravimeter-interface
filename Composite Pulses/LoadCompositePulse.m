@@ -2,10 +2,12 @@ clear;clc
 % % % Inputs
 BS_FileName = '20230509T030947_raman_beamsplitter.hdf5';
 M_FileName = '20230511T094824_raman_mirror.hdf5';
-% 
-% SPD = 6.8e9;
-% w0 = 12.5e-3;
-% I2OnI1 = 1;
+
+SPD = 6.8e9;
+w0 = 12.5e-3;
+I2OnI1 = 1;
+
+FigNum = 10;
 
 %% Import Beam splitter pulse
 BSdata = Loadhdf5File(BS_FileName);
@@ -62,7 +64,7 @@ M_Phase = atan2(BSdata.rabis.i,BSdata.rabis.r);
 
 
 %%
-figure(2);clf
+figure(FigNum+1);clf
 subplot(3,1,1)
 plot(BS_time*1e6,BS_I2Peak,'r')
 hold on
@@ -89,7 +91,7 @@ ylabel('AOM Phase (rad)','Interpreter','latex')
 xlabel('Time ($\mu s$)', 'Interpreter','latex')
 
 %% Plot Pulse
-figure(1);clf
+figure(FigNum);clf
 subplot(3,2,1)
 plot(BS_time*1e6,BS_RabiAmp*1e-3/(2*pi))
 ylabel('$|\Omega_R|$ / $2\pi$ (kHz)','Interpreter','latex')

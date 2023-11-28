@@ -75,7 +75,7 @@ d = 1.731e-29;
 Coeff = d^2/(const.hbar^2*const.eps0*const.c);
 
 Rabi = abs(Coeff*(sqrt(I1)*sqrt(I2)/SPD));
-PulseArea = Rabi*tau;
+PulseArea = Rabi*tau/pi;
 AproxAOMOffset = (TPD_Estimate - TPD)/1e6/4;
 
 
@@ -112,7 +112,7 @@ NKT_k2 = 2*pi*NKT_F2/const.c;
 NKT_k_eff = abs(NKT_k1-NKT_k2);
 
 NKT_Rabi = abs(Coeff*(sqrt(I1)*sqrt(I2)/NKT_SPD));
-NKT_PulseArea = NKT_Rabi*tau;
+NKT_PulseArea = NKT_Rabi*tau/pi;
 NKT_AproxAOMOffset = (TPD_Estimate - 2*F_Mod_Set)/1e6/4;
  
 

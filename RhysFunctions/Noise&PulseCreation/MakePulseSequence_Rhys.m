@@ -113,7 +113,7 @@ if T < width && numPulses>1
     error('Pulse separation time is less than the pulse duration: pulses are not separated')
 end
 if t0 < width
-    warning('initial drop time less than pulse width: pulse starts before the desired initial drop time')
+%     warning('initial drop time less than pulse width: pulse starts before the desired initial drop time')
 end
 
 
