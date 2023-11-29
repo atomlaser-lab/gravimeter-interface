@@ -10,7 +10,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
         detuning        %Detuning of imaging light in MHz
         dipoles         %Final power for the two dipole beams in W
         tof             %Time-of-flight in ms
-        imaging_type    %Imaging system to use (drop 1, 2, 3, or 4)
+%         imaging_type    %Imaging system to use (drop 1, 2, 3, or 4)
         params          %Additional parameters for optimisation
         MOT_LoadTime    %MOT load time in seconds
         %
@@ -51,7 +51,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
             self.detuning = 0;
             self.dipoles = 1.35;
             self.tof = 216.5e-3;
-            self.imaging_type = 'drop 2';
+%             self.imaging_type = 'drop 2';
             self.params = [];
             self.MOT_LoadTime = 4;
 

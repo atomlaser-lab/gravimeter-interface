@@ -92,7 +92,9 @@ if evalin('base', 'exist(''Abs_Analysis_parameters'', ''var'')')
 end
 
 % Open/reopen 
-% Abs_Analysis_GUI;
+Abs_Analysis_GUI;
+set(figure(2),'WindowStyle','Docked');
+% DockPosition = [0.0038    0.0049    0.9924    0.6044];
 
 % disp('Abs Anaclysis for Absorption Imaging Initialized')
 

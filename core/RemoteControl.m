@@ -407,7 +407,7 @@ classdef RemoteControl < handle
                         app = get(appHandle, 'UserData');
                     end
                     % Now we can send the trigger
-                    app.triggerFromOutside();
+%                     app.triggerFromOutside();
 
                 else
                     % Analyze

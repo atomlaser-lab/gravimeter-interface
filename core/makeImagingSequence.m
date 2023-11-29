@@ -56,7 +56,7 @@ switch lower(imgType)
         camChannel = 'cam trig';
         imgType = 0;
         if isempty(pulseTime)
-            pulseTime = 17e-6;
+            pulseTime = 13e-6; % was 17e-6 on the 19/11/23
         end
     case {'drop 2'}
         camChannel = 'drop 1 camera trig';
