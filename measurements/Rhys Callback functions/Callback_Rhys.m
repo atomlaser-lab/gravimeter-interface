@@ -13,7 +13,7 @@ FigNum = 334;
 TOF = 20e-3;
 
 Title = 'MOT 2 s Load';
-Param = sort(unique((-16:2:-12)));
+Param = sort(unique((0:2:10)));
 ParamName = 'Detuning';
 Unit = 'MHz';  %do not forget to put a space before the unit
 
@@ -26,7 +26,6 @@ if r.isInit()
     r.c.setup('var',r.data.param);
 
 elseif r.isSet()
-    r.devices.opt.detuning = r.data.param(r.c(1));
     r.make(r.devices.opt,'params',r.data.param(r.c(1)), 'tof', TOF).upload;
 
     fprintf(1,'Run  %d/%d, %s = %.3f %s\n',r.c.now,r.c.total,r.data.ParamName,r.data.param(r.c(1)),r.data.ParamUnits);

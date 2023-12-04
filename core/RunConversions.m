@@ -14,6 +14,12 @@ classdef RunConversions < handle
             V = (current - 0.45)/6;
         end
         
+        function I = mot_coil_reverse(V)
+%             V = (current - 0.3)/6;
+%             V(current == 0) = -0.075;
+            I = 6*V + 0.45;
+        end
+
         function V = imaging(detuning)
 % % %             V = -detuning*0.472/6.065 + 8.533;
 % %             func = @(x) (82.6202 - 8.7259*x + 2.0478*x.^2 - 0.0827*x.^3);

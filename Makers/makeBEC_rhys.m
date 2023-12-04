@@ -301,7 +301,7 @@ if opt.OpticalEvaporation_status == 1
     sq.delay(30e-3);
     Tevap = 3;
     t = linspace(0,Tevap,200);
-    FinalPower = 5.2;
+    FinalPower = 4.8;
     sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(FinalPower),0.5)); %4.8
     sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(FinalPower+0.25),0.5));
 
@@ -346,12 +346,12 @@ if opt.mw.enable(1) == 1
     % microwave frequencies set out of run
     % no amplitude control
     MicrowaveDelay = 0e-3; %8
-    MicrowaveDuration = 350*1e-6; %372,620
+    MicrowaveDuration = 350*1e-6; %372,620, 350
+    MagDelay = 500*1e-3;
 
     % Set bias
-    Delay = 500*1e-3;
-    sq.find('bias e/w').before(Delay,10);
-    sq.find('bias u/d').before(Delay,0); %%% This could be wrong. Previous operation was at zero VOLTS not amps
+    sq.find('bias e/w').before(MagDelay,10);
+    sq.find('bias u/d').before(MagDelay,0); %%% This could be wrong. Previous operation was at zero VOLTS not amps
     sq.find('bias n/s').set(0);
 
     % Microwave Transfer
@@ -390,9 +390,9 @@ if RamanAlignment == 1 && opt.raman.OnOff ~= 1
 
     % Set bias
     sq.anchor(timeAtDrop);
-    Delay = 500*1e-3;
-    sq.find('bias e/w').before(Delay,10);
-    sq.find('bias u/d').before(Delay,0);
+    MagDelay = 500*1e-3;
+    sq.find('bias e/w').before(MagDelay,10);
+    sq.find('bias u/d').before(MagDelay,0);
     sq.find('bias n/s').set(0);
 
     % Trigger DDS
@@ -445,9 +445,9 @@ delta = 4.750;
 
     % Set bias
     sq.anchor(timeAtDrop);
-    Delay = 500*1e-3;
-    sq.find('bias e/w').before(Delay,10);
-    sq.find('bias u/d').before(Delay,0);
+    MagDelay = 500*1e-3;
+    sq.find('bias e/w').before(MagDelay,10);
+    sq.find('bias u/d').before(MagDelay,0);
     sq.find('bias n/s').set(0);
 
     % Trigger DDS
@@ -464,7 +464,7 @@ delta = 4.750;
         'phase',[0,0,0],'chirp',chirp,'delta',delta,...
         'power1',1*[Ch1_Pratio,0,0],'power2',1*[Ch2_Pratio,0,0],'PulseType','Square');
 
-    sq.find('bias e/w').after(Delay + InterferometryDelay + 1e-3,0);
+    sq.find('bias e/w').after(MagDelay + InterferometryDelay + 1e-3,0);
 
 end
 
@@ -472,19 +472,19 @@ end
 %% Stern-Gerlach
 if opt.mw.enable_sg == 1
     if opt.mw.enable(1) == 1
-        Delay = MicrowaveDelay;
+        MagDelay = MicrowaveDelay;
     elseif opt.raman.OnOff == 1
-        Delay = InterferometryDelay + Closer;
+        MagDelay = InterferometryDelay + Closer;
     else
-        Delay = 8e-3;
+        MagDelay = 8e-3;
     end
 
     % inputs
     Tsg = 20e-3;
     SternGerlachDelay = 2e-3;
-    MaxCurrent = 1.5;
+    MaxCurrent = 2*1.5;
 
-    sq.anchor(timeAtDrop + Delay + SternGerlachDelay);
+    sq.anchor(timeAtDrop + MagDelay + SternGerlachDelay);
 
 
     t = linspace(0,Tsg/2,20);
