@@ -102,39 +102,47 @@ RamanImagingSequence = 0; % do you want to use a 2-state imaging sequence?
 Manifold = 1; %do you want to count atoms in the F=1 or F=2 state?
 
 %% MOT
-% Goal: Collect as many atoms as possible
-
 sq.find('Imaging Freq').set(convert.imaging(opt.detuning));
+% Start with dipoles on if loading into dipoles
+if opt.LoadOpticalTrap_status == 1
+    sq.find('50w ttl').set(1);
+    sq.find('25w ttl').set(1);
+    sq.find('50w amp').set(convert.dipole50(25.5)); % 22
+    sq.find('25w amp').set(convert.dipole25(20)); % 19
+else
+    sq.find('50w ttl').set(0);
+    sq.find('25w ttl').set(0);
+end
 
-% % % 2D MOT Light
+% Goal: Collect as many atoms as possible
+% % % % 2D MOT Light
 sq.find('2D MOT Amp TTL').set(1);
 sq.find('Push Amp TTL').set(1);
 
-sq.find('2D MOT Freq').set(7.75);
-sq.find('Push Freq').set(9.5);
+sq.find('2D MOT Freq').set(7.75); % 7.75, 7.3
+sq.find('Push Freq').set(9.5); % 9.4
 
-% % % 3D MOT Light
+% % % % 3D MOT Light
 sq.find('3D MOT Amp TTL').set(1);
 sq.find('Repump Amp TTL').set(1);
 sq.find('MOT Coil TTL').set(1);
-% Trapping
-sq.find('3D MOT Freq').set(convert.mot_freq(-15));
+% % Trapping
+sq.find('3D MOT Freq').set(convert.mot_freq(-17)); % -16,-19
 sq.find('3D MOT Amp').set(5);
 sq.find('Liquid crystal Bragg').set(3);
-% Repump
-sq.find('Repump Freq').set(convert.repump_freq(-1.5));
+% % Repump
+sq.find('Repump Freq').set(convert.repump_freq(-1.5)); %-1.5
 sq.find('Repump Amp').set(9);
 sq.find('Liquid Crystal Repump').set(7);
-
-% % % Mag Field
+%
+% % % % Mag Field
 sq.find('Bias E/W').set(0);
 sq.find('Bias N/S').set(0);
-sq.find('Bias U/D').set(0.0667);
-sq.find('3D Coils').set(convert.mot_coil(1.6));
+sq.find('Bias U/D').set(0);
+sq.find('3D Coils').set(convert.mot_coil(1.5)); %1.6
 
 % Duration
 sq.delay(opt.MOT_LoadTime);
-
 
 %% CMOT
 if opt.CMOT_status == 1
@@ -144,78 +152,138 @@ if opt.CMOT_status == 1
     sq.find('push amp ttl').before(10e-3,0);
 
     % % % Reduce Re-radiation Pressure
-    sq.find('3D MOT freq').set(convert.mot_freq(-25)); % 26
+    sq.find('3D MOT freq').set(convert.mot_freq(-25));
     sq.find('3D MOT Amp').set(4.5);
 
-    sq.find('repump freq').set(convert.repump_freq(-5)); %-8
+    sq.find('repump freq').set(convert.repump_freq(-5)); %-8,-5
     sq.find('Repump Amp').set(9); %9
 
     % % % Increase Mag Field
-    sq.find('3D Coils').set(convert.mot_coil(convert.mot_coil_reverse(sq.find('3D Coils').values(end)) - 0.3));
+    sq.find('3D Coils').set(convert.mot_coil(convert.mot_coil_reverse(sq.find('3D Coils').values(end)) - 0)); % -0.3
     sq.find('Bias E/W').set(0);
     sq.find('Bias N/S').set(0);
-    sq.find('Bias U/D').set(0.0667);
+    sq.find('Bias U/D').set(0);
 
     % % %Duration
-    sq.delay(10e-3); 
+    sq.delay(10*1e-3);
 end
 
 
 %% PGC
 if opt.PGC_status == 1
-    % Goal: Produce cloud cold (with minimal atom loss) enough to be loaded into mag trap
-    PGC_Time = sq.time;
-    % Durations
-    tStep = 0.5e-3;
-    t_TrappingRamp = 40e-3;
-    t_RepumpRamp = 5e-3;
-    t_MagRamp = opt.params*1e-3;
-    t_MagDelay = 0*1e-3;
+    % Duration/Ramp
+    Tpgc = 40*1e-3;
+    t = linspace(0,Tpgc,100);
+    f = @(vi,vf) sq.linramp(t,vi,vf);
 
-    % % % Set magnetic field to zero
-    sq.anchor(PGC_Time - t_MagDelay);
-    t = linspace(0,t_MagRamp,100);
-    sq.find('Bias E/W').after(t,sq.linramp(t,sq.find('Bias E/W').values(end),0));
-    sq.find('Bias N/S').after(t,sq.linramp(t,sq.find('Bias N/S').values(end),0));
-    sq.find('Bias U/D').after(t,sq.linramp(t,sq.find('Bias U/D').values(end),2.707));
-    sq.find('3D Coils').after(t,sq.linramp(t,sq.find('3D Coils').values(end),convert.mot_coil(0)));
-    sq.delay(t_MagRamp);
+    % Detune/reduce light
+    sq.find('3D MOT Amp').after(t,f(sq.find('3D MOT Amp').values(end),4.5)); %3.9
+    sq.find('3D MOT Freq').after(t,f(sq.find('3D MOT Freq').values(end),convert.mot_freq(-71.5))); %-71
+    sq.find('Repump Amp').set(7); %7
+    sq.find('repump freq').set(convert.repump_freq(-8.5)); %-9
 
-    % % % Reduce heating 
-    sq.anchor(PGC_Time);
-    t = linspace(0,t_RepumpRamp,round(t_RepumpRamp/tStep,0));
-    sq.find('Repump Amp').after(t,sq.linramp(t,sq.find('Repump Amp').values(end),7));
-    sq.find('repump freq').after(t,sq.linramp(t,sq.find('repump freq').values(end),convert.repump_freq(-8.75))); 
-    sq.delay(t_RepumpRamp);
- 
-    sq.anchor(PGC_Time);
-    t = linspace(0,t_TrappingRamp,round(t_TrappingRamp/tStep,0));
-    sq.find('3D MOT Amp').after(t,sq.linramp(t,sq.find('3D MOT Amp').values(end),3.9));
-    sq.find('3D MOT Freq').after(t,sq.linramp(t,sq.find('3D MOT Freq').values(end),convert.mot_freq(-70)));
-    sq.delay(t_TrappingRamp);
+    % Have B = 0 at the atoms
+    sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),0));
+    sq.find('bias u/d').set(0);
+    sq.find('bias e/w').set(0); %optimum in negatives
+    sq.find('bias n/s').set(0); %optimum in negatives
+
+    sq.delay(Tpgc);
+    if RamanF1PumpTest == 0 && opt.LoadMagTrap_status == 0
+        sq.find('repump amp ttl').set(0);
+    end
 end
 
 %% Mag Load
 if opt.LoadMagTrap_status == 1
-    % % % Pump into |F=1, mf = -1>
-    % Repump off
-    sq.find('Repump Amp TTL').set(0);
-    sq.find('Top repump shutter').set(1);
-    sq.find('liquid crystal repump').set(-2.22);
-    % Trapping amplitude
-    sq.find('3D MOT Freq').set(convert.mot_freq(-70)); %-71
-    sq.find('3D MOT Amp').set(4.5); %3.9
-
-    sq.delay(2e-3);
-
-    % % % Ramp on Mag Field
+        % % % Pump into |F=1, mf = -1>
+        % Repump off
+        sq.find('Repump Amp TTL').set(0);
+        sq.find('Top repump shutter').set(1);
+        sq.find('liquid crystal repump').set(-2.22);
+        % Trapping amplitude
+        sq.find('3D MOT Freq').set(convert.mot_freq(-70));
+        sq.find('3D MOT Amp').set(4.5);
+        sq.delay(0.6*1e-3);
     
-
-    % % % Turn Light Off
-
-
+        % % % Ramp on Mag Field
+        t = linspace(0,2*1e-3,100);
+        f = @(vi,vf) sq.linramp(t,vi,vf);
+    
+        sq.find('MOT coil ttl').set(1);
+        sq.find('3D coils').after(t,f(convert.mot_coil(5),convert.mot_coil(6.5)));
+        sq.find('bias e/w').set(0);
+        sq.find('bias n/s').set(0);
+        sq.find('bias u/d').set(5);
+    
+        % % % Turn Trapping light Light Off
+        sq.find('3D MOT Amp TTL').set(0);
+        sq.find('Liquid crystal Bragg').set(-3.9);
+    
+        if opt.MagEvaporation_status == 0
+            sq.delay(200e-3);
+        end
 end
 
+
+
+%% Mag Evap
+if opt.MagEvaporation_status == 1
+    InitialFreq = 33;
+    FinalFreq = 4;
+    Rate = 10; % 13
+    t_evap = (InitialFreq - FinalFreq)/Rate;
+
+    t = linspace(0,t_evap,100);
+    f = @(vi,vf) sq.linramp(t,vi,vf);
+
+    sq.find('mw amp ttl').set(1);
+    sq.find('mw freq').after(t,f(convert.microwave(InitialFreq),convert.microwave(FinalFreq)));
+    sq.delay(t_evap);
+    sq.find('mw amp ttl').set(0);
+end
+
+if opt.LoadOpticalTrap_status == 1
+    % Loosen mag trap
+    t_loosen = 200*1e-3;
+    t = linspace(0,t_loosen,100);
+    f = @(vi,vf) sq.minjerk(t,vi,vf);
+    sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),convert.mot_coil(1)));
+    sq.find('bias e/w').after(t,f(sq.find('bias e/w').values(end),0));
+    sq.find('bias n/s').after(t,f(sq.find('bias n/s').values(end),0));
+    sq.find('bias u/d').after(t,f(sq.find('bias u/d').values(end),0));
+    sq.delay(t_loosen);
+    % hold in dipoles
+    if opt.OpticalEvaporation_status == 0
+        sq.find('MOT Coil TTL').set(0);
+        sq.find('3D coils').set(0);
+        sq.delay(100e-3);
+    end
+end
+
+if opt.OpticalEvaporation_status == 1
+    % Ramp down magnetic trap in 1 s
+    Trampcoils = .8;
+    t = linspace(0,Trampcoils,101);
+    sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
+    sq.find('mw amp ttl').anchor(sq.find('3d coils').last).before(100e-3,0);
+    sq.find('mot coil ttl').at(sq.find('3d coils').last,0);
+    % %
+    % % At the same time, start optical evaporation
+    % %
+    sq.delay(30e-3);
+    Tevap = 3;
+    t = linspace(0,Tevap,200);
+    FinalPower = 4.8;
+    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(FinalPower),0.5)); %4.8
+    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(FinalPower+0.25),0.5));
+
+    sq.find('bias e/w').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias e/w').values(end),0)); %10 as end value?
+    sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),0));
+    sq.find('bias u/d').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias u/d').values(end),0));
+    sq.delay(Tevap);
+
+end
 
 %% Drop
 timeAtDrop = sq.time; %Store the time when the atoms are dropped for later
@@ -236,6 +304,32 @@ sq.find('25w ttl').set(0);
 sq.find('50w ttl').set(0);
 sq.find('50w amp').set(convert.dipole50(0));
 sq.find('25w amp').set(convert.dipole25(0));
+
+%% Stern-Gerlach
+if opt.mw.enable_sg == 1
+    if opt.mw.enable(1) == 1
+        MagDelay = MicrowaveDelay;
+    elseif opt.raman.OnOff == 1
+        MagDelay = InterferometryDelay + Closer;
+    else
+        MagDelay = 8e-3;
+    end
+
+    % inputs
+    Tsg = 20e-3;
+    SternGerlachDelay = 2e-3;
+    MaxCurrent = 2*1.5;
+
+    sq.anchor(timeAtDrop + MagDelay + SternGerlachDelay);
+    t = linspace(0,Tsg/2,20);
+    sq.find('mot coil ttl').set(1);
+    sq.find('3d coils').after(t,convert.mot_coil(sq.linramp(t,0,MaxCurrent))); % ramp on
+    sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0))); % ramp off
+    sq.delay(Tsg);
+
+    sq.find('mot coil ttl').set(0);
+    sq.find('3d coils').set(0);
+end
 
 
 %% image
