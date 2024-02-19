@@ -8,14 +8,16 @@ function Callback_Rhys(r)
 
 % % % Inputs
 ClearImage = 0;
-FigNum = 334;
+FigNum = 5;
 % TOF = 216.5e-3;
 TOF = 20e-3;
 
-Title = 'MOT 2 s Load';
-Param = sort(unique((0:2:10)));
-ParamName = 'Detuning';
-Unit = 'MHz';  %do not forget to put a space before the unit
+Title = 'PGC';
+Param = sort(unique(((-3:0.5:2))));
+% Param = [100 25 50];
+% Param = sort([Param,Param,Param,Param]);
+ParamName = 'MOT Load Time';
+Unit = 's';  %do not forget to put a space before the unit
 
 
 if r.isInit()
@@ -78,10 +80,10 @@ elseif r.isAnalyze()
     MakePlot(r.data.param,r.data.ywidth,'Width (mm)',3,r.data.ParamName,r.data.ParamUnits,'b',i1,['x';'y'])
 
     %     MakePlot(r.data.param,r.data.becFrac,'BEC Frac',4,r.data.ParamName,r.data.ParamUnits,'r',i1)
-    %     MakePlot(r.data.param,r.data.T(1)*1e6,'Temperature (uK)',4,r.data.ParamName,r.data.ParamUnits,'b',i1)
-    %     MakePlot(r.data.param,r.data.T(2)*1e6,'Temperature (uK)',4,r.data.ParamName,r.data.ParamUnits,'b',i1,['x';'y'])
-    MakePlot(r.data.param,r.data.xPos*1.0285/5.5e-6,'Pixel Number',4,r.data.ParamName,r.data.ParamUnits,'r',i1)
-    MakePlot(r.data.param,r.data.yPos*1.0285/5.5e-6,'Pixel Number',4,r.data.ParamName,r.data.ParamUnits,'b',i1,['x';'y'])
+    MakePlot(r.data.param,r.data.T(:,1)*1e6,'Temperature (uK)',4,r.data.ParamName,r.data.ParamUnits,'r',i1)
+    MakePlot(r.data.param,r.data.T(:,2)*1e6,'Temperature (uK)',4,r.data.ParamName,r.data.ParamUnits,'b',i1,['x';'y'])
+%     MakePlot(r.data.param,r.data.xPos*1.0285/5.5e-6,'Pixel Number',4,r.data.ParamName,r.data.ParamUnits,'r',i1)
+%     MakePlot(r.data.param,r.data.yPos*1.0285/5.5e-6,'Pixel Number',4,r.data.ParamName,r.data.ParamUnits,'b',i1,['x';'y'])
 
 end
 

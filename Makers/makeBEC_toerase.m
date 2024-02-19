@@ -62,7 +62,7 @@ MagneticInsensitive_status = opt.MagneticInsensitive_status;
 
 %% Create a conversion object to handle conversions to volts
 convert = RunConversions;
-imageVoltage = convert.imaging(opt.detuning - 1.8);
+imageVoltage = convert.imaging(opt.detuning);
 
 %% Initialize sequence - defaults should be handled here
 sq = initSequence;
@@ -75,16 +75,16 @@ sq.find('Top repump shutter').set(0);
 
 sq.find('Imaging Freq').set(convert.imaging(opt.detuning));
 sq.find('3D MOT Freq').set(convert.mot_freq(-19));    %Use -25 MHz for 4 s loading times, -27.5 MHz for 6 s
-sq.find('Repump freq').set(convert.repump_freq(-2)); %2
-sq.find('50w ttl').set(0);
-sq.find('25w ttl').set(0);
-sq.find('50w amp').set(convert.dipole50(0)); %22
-sq.find('25w amp').set(convert.dipole25(0)); %17
+sq.find('Repump freq').set(convert.repump_freq(-1.5)); %2
+% sq.find('50w ttl').set(0);
+% sq.find('25w ttl').set(0);
+% sq.find('50w amp').set(convert.dipole50(0)); %22
+% sq.find('25w amp').set(convert.dipole25(0)); %17
 
 %% Set up the MOT loading values                
 
 sq.find('MOT coil TTL').set(1);     %Turn on the MOT coils
-sq.find('3d coils').set(.38); %42
+sq.find('3d coils').set(.18); %42
 sq.find('bias u/d').set(0);
 sq.find('bias e/w').set(0);
 sq.find('bias n/s').set(0);
@@ -101,15 +101,15 @@ sq.find('push amp ttl').before(10e-3,0);
 
 %Increase the cooling and repump detunings to reduce re-radiation
 %pressure, and weaken the trap
-sq.find('3D MOT freq').set(convert.mot_freq(-25));
-sq.find('repump freq').set(convert.repump_freq(-6));
-sq.find('3D coils').set(.4);
+sq.find('3D MOT freq').set(convert.mot_freq(-20));
+sq.find('repump freq').set(convert.repump_freq(-8));
+sq.find('3D coils').set(.12);
 sq.find('bias e/w').set(5*0);
 sq.find('bias n/s').set(7*0);
 sq.find('bias u/d').set(1.75*0);
 
 % 
-Tcmot = 12e-3;                      %12.5 ms CMOT stage
+Tcmot = 15e-3;                      %12.5 ms CMOT stage
 sq.delay(Tcmot);                    %Wait for time Tcmot
 
 end
@@ -123,14 +123,14 @@ t = linspace(0,Tpgc,50);
 f = @(vi,vf) sq.linramp(t,vi,vf);
 
 %Smooth ramps for these parameters
-sq.find('3D MOT Amp').after(t,f(5,3.2));
-sq.find('3D MOT Freq').after(t,f(sq.find('3D MOT Freq').values(end),convert.mot_freq(-65)));
-sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),convert.mot_coil(0.55)));
+sq.find('3D MOT Amp').after(t,f(5,3.6));
+sq.find('3D MOT Freq').after(t,f(sq.find('3D MOT Freq').values(end),convert.mot_freq(-72)));
+sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),convert.mot_coil(0)));
 sq.find('repump freq').set(convert.repump_freq(-9.25));
 
 sq.delay(Tpgc);
 % Turn off the repump field for optical pumping - 1 ms
-T = 1e-3;
+T = .0e-3;
 sq.find('repump amp ttl').set(0);
 sq.find('Top repump shutter').set(1);
 sq.find('liquid crystal repump').set(-2.22);

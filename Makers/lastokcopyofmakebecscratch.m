@@ -68,8 +68,6 @@ dipoleposition_test = 0;
 convert = RunConversions;
 % imageVoltage = convert.imaging(opt.detuning - 1.8);
 imageVoltage = convert.imaging(opt.detuning);
-P25 = @(x) (x + 39.3e-3)/2.6165;
-P50 = @(x) (x + 66.9e-3)/4.9909;
 
 UD = @(x) x* -0.2031 + 2.707; %this converts the input value in amps to the appropriate voltage
 % UDreverse = @(y) y*-4.924 + 13.33; %This is just the inverted function to get the amps out of the voltage in case needed.
@@ -85,22 +83,23 @@ if MOT_status == 1
     sq.find('Push Freq').set(9.45);
     sq.find('liquid crystal repump').set(7);
     sq.find('Imaging Freq').set(convert.imaging(opt.detuning));
-    sq.find('3D MOT Freq').set(convert.mot_freq(-20));    %Use -25 MHz for 4 s loading times, -27.5 MHz for 6 s
-    sq.find('Repump Amp').set(9.8);
+    sq.find('3D MOT Freq').set(convert.mot_freq(-19));    %Use -25 MHz for 4 s loading times, -27.5 MHz for 6 s
+    sq.find('Repump Amp').set(9);
     sq.find('Repump freq').set(convert.repump_freq(-1.625));
-    sq.find('50w ttl').set(1);
+    sq.find('50w ttl').set(0);
     sq.find('25w ttl').set(0);
-    sq.find('50w amp').set(convert.dipole50(0)); % 22
-    sq.find('25w amp').set(convert.dipole25(0)); % 17
+%     sq.find('50w amp').set(convert.dipole50(27));
+%     sq.find('25w amp').set(convert.dipole25(23.5));
+
 
     %% Set up the MOT loading values
 
     sq.find('MOT coil TTL').set(1);     %Turn on the MOT coils
-    sq.find('3d coils').set(convert.mot_coil(1.8)); %2.2
+    sq.find('3d coils').set(convert.mot_coil(2.2)); %2.2
 
     %     sq.find('bias u/d').set(UD(13.5)); %13.4285
     sq.find('bias u/d').set(0); %13.4285
-    sq.find('bias e/w').set(0);
+    sq.find('bias e/w').set(1);
     sq.find('bias n/s').set(2);
 
     Tmot = opt.MOT_LoadTime;                           %6 s MOT loading time
@@ -152,37 +151,35 @@ if PGC_status == 1
     sq.delay(Tpgc);
 
 %     %      Turn off the repump field for optical pumping - 1 ms
-%     Tdepump = 1e-3;
-%     sq.find('repump amp ttl').set(0);
+    Tdepump = 1e-3;
+    sq.find('repump amp ttl').set(0);
 %     sq.find('Top repump shutter').set(1);
-%     sq.find('liquid crystal repump').set(-2.22);
-%     
-%     sq.find('bias u/d').set(0);
-% %     sq.find('bias u/d').set(UD(0));
-%     sq.find('bias e/w').set(0);
-%     sq.find('bias n/s').set(0);
-%     sq.delay(Tdepump);
+    sq.find('liquid crystal repump').set(-2.22);
+    
+    sq.find('bias u/d').set(0);
+%     sq.find('bias u/d').set(UD(0));
+    sq.find('bias e/w').set(0);
+    sq.find('bias n/s').set(0);
+    sq.delay(Tdepump);
 
 end %end PGC
 
 
 %% Load into magnetic trap
 if LoadMagTrap_status == 1
-    sq.find('liquid crystal bragg').set(-3.9);
+    sq.find('liquid crystal bragg').set(-3);
     sq.find('3D mot amp ttl').set(0);
     sq.find('MOT coil ttl').set(1);
-%     sq.find('3D coils').set(.7);
-
+    sq.find('3D coils').set(.7);
     load_ramp = 5e-3;
     t = linspace(0,load_ramp,100);
     f = @(vi,vf) sq.linramp(t,vi,vf);
-%     sq.find('3D coils').after(t,f(.7,1));
-    sq.find('3D coils').after(t,f(convert.mot_coil(5),convert.mot_coil(6.5)));
+    sq.find('3D coils').after(t,f(.7,1.4));
 
     sq.find('MOT coil ttl').set(1);
 
     sq.find('bias e/w').set(0);
-    sq.find('bias n/s').set(1.9);
+    sq.find('bias n/s').set(0);
 %     sq.find('bias u/d').set(UD(0));
     sq.find('bias u/d').set(0);
 
@@ -197,9 +194,9 @@ end
 
 %% Microwave evaporation
 if MagEvaporation_status ==1 % Provide etunings in MHz from the Rb hyperfine splitting
-    evapRate = 10;
+    evapRate = 16;
     evapStart = 40;
-    evapEnd = 10;
+    evapEnd = 5;
     Tevap = (evapStart-evapEnd)/evapRate;
     t = linspace(0,Tevap,120);
     sq.find('mw freq').after(t,convert.microwave(sq.linramp(t,evapStart,evapEnd)));
@@ -211,44 +208,37 @@ end %end MagEvaporation
 
 if LoadOpticalTrap_status == 1 % Weaken trap while MW frequency fixed
 if dipoleposition_test ==0
-%     Trampcoils = 300e-3;
-%     t = linspace(0,Trampcoils,100);
-%     sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),-.09));
-%     sq.find('bias e/w').after(t,sq.minjerk(t,sq.find('bias e/w').values(end),0));
-%     sq.find('bias n/s').after(t,sq.minjerk(t,sq.find('bias n/s').values(end),1.9));
-%     sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),0));
+    Trampcoils = 180e-3;
+    t = linspace(0,Trampcoils,100);
+    sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),0));
+    sq.find('bias e/w').after(t,sq.minjerk(t,sq.find('bias e/w').values(end),00));
+    sq.find('bias n/s').after(t,sq.minjerk(t,sq.find('bias n/s').values(end),00));
+    sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),0));
 %     sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),UD(14)));
 
-%     sq.delay(Trampcoils);
+    sq.delay(Trampcoils);
 
-    Trampcoils = .83;
-    t = linspace(0,Trampcoils,100);
-                sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),0)); %usualy 0.025
-                sq.find('mw amp ttl').anchor(sq.find('3d coils').last).before(100e-3,0);
-                sq.find('mot coil ttl').at(sq.find('3d coils').last,0);            
-                
-                
+  
 elseif dipoleposition_test == 1
     Trampcoils = 180e-3;
     t = linspace(0,Trampcoils,100);
     sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),0.6));
     sq.delay(Trampcoils);
     sq.find('3d coils').set(-.075);
-    sq.delay(22.5e-3);
+    sq.delay(27.5e-3);
 end
 
 end
 %% Optical evaporation
 if OpticalEvaporation_status == 1
-% sq.delay(30e-3);
-Tevap = 2.5;
-t = linspace(0,Tevap,300);
+sq.delay(30e-3);
+Tevap = 3;
+t = linspace(0,Tevap,250);
+sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(5.57),.4));
+sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(4.65),.4));
 
-    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(5.5),0.5)); %4.8
-    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(5.2),0.8));
-
-sq.find('bias e/w').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias e/w').values(end),0));
-sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),2.1));
+% sq.find('bias e/w').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias e/w').values(end),0));
+% sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),0));
 sq.find('bias u/d').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias u/d').values(end),0));
 sq.delay(Tevap);
 
@@ -267,6 +257,7 @@ sq.find('3D mot amp ttl').set(0);
 % sq.find('bias u/d').before(200e-3,0);
 
 sq.find('bias e/w').before(10e-3,0);
+
 sq.find('bias n/s').before(10e-3,0);
 sq.find('bias u/d').before(10e-3,0);
 
@@ -277,7 +268,7 @@ sq.find('25w ttl').set(0);
 sq.find('50w ttl').set(0);
 sq.find('50w amp').set(convert.dipole50(0));
 sq.find('25w amp').set(convert.dipole25(0));
-sq.find('Top repump shutter').after(10e-3,0);
+sq.find('Top repump shutter').set(0);
 %% Imaging stage
 %
 % Image the atoms.  Reset the pointer for the whole sequence to when
