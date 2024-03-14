@@ -12,6 +12,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
         tof             %Time-of-flight in ms
 %         imaging_type    %Imaging system to use (drop 1, 2, 3, or 4)
         params          %Additional parameters for optimisation
+        extraparams
         MOT_LoadTime    %MOT load time in seconds
         %
 
@@ -25,6 +26,8 @@ classdef SequenceOptions < SequenceOptionsAbstract
         OpticalEvaporation_status
         BECCompression_status
         MagneticInsensitive_status
+
+        JustMOT
         % These are sub-groupings of options
         %
         raman
@@ -54,6 +57,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
 %             self.imaging_type = 'drop 2';
             self.params = [];
             self.MOT_LoadTime = 4;
+            self.extraparams = [];
 
             self.MOT_status =1 ;
             self.CMOT_status =1 ;
@@ -64,6 +68,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
             self.OpticalEvaporation_status = 1;
             self.BECCompression_status = 0;
             self.MagneticInsensitive_status = 0;
+            self.JustMOT = 0;
 
             self.raman.setDefaults;
             self.bragg.setDefaults;

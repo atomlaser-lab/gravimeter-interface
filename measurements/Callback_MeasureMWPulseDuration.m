@@ -3,7 +3,6 @@ function Callback_MeasureMWPulseDuration(r)
 if r.isInit()
     
     r.data.pulse = [20,50:50:1000]*1e-6;
-    
     r.c.setup('var',r.data.pulse);
 elseif r.isSet()
     
@@ -15,15 +14,15 @@ elseif r.isSet()
 elseif r.isAnalyze()
     i1 = r.c(1);
     pause(0.1 + 0.25*rand);
-    img = Abs_Analysis('last');
-    if ~img.raw.status.ok()
-        %
-        % Checks for an error in loading the files (caused by a missed
-        % image) and reruns the last sequence
-        %
-        r.c.decrement;
-        return;
-    end
+    img = Abs_Analysis_GUI('last');
+%     if ~img.raw.status.ok()
+%         %
+%         % Checks for an error in loading the files (caused by a missed
+%         % image) and reruns the last sequence
+%         %
+%         r.c.decrement;
+%         return;
+%     end
     %
     % Store raw data
     %

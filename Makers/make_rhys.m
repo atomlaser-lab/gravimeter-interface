@@ -1,7 +1,4 @@
 function sq = make_rhys(varargin)
-% opt.LoadMagTrap_status = 0; opt.LoadOpticalTrap_status =0; opt.OpticalEvaporation_status = 0; opt.MagEvaporation_status = 0;
-% opt.LoadMagTrap_status = 1; opt.LoadOpticalTrap_status =1; opt.OpticalEvaporation_status = 1; opt.MagEvaporation_status = 1;
-
 % Check if any variable is an instance of SequenceOptions
 % Get all variable names in the workspace
 allVarNames = evalin('base', 'who');
@@ -60,23 +57,33 @@ end
 sq = initSequence;
 % sq.find('Raman DDS Trig').set(1); %% DDS triggers on falling edge, so start on
 
+
+Ch1_PMax = 30e-3; % @ 33 dBm,
+Ch2_PMax = 120e-3; % @ 33 dBm, 
+
 % Bragg Calibration data used in initSequence.
 % For now I will simply load/set my own calibration data here. I'll create
 % another object later
 sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
 sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
 calibData = load('RamanAOMData_formatted.mat');
-sq.dds(1).calibrationData = calibData.data_ch1;
-sq.dds(2).calibrationData = calibData.data_ch2;
 
-Ch1_PMax = 64e-3; % @ 33 dBm, Half waveplate @ 8 deg, Amp @
-Ch2_PMax = 64e-3; % @ 33 dBm, Half waveplate @ 303 deg, Amp @
+
+% % % calibData = load('ramanPowerCalib.mat');
+% % % calibData.data_ch1.optical_power = calibData.data_ch1.OpticalPower/max(calibData.data_ch1.OpticalPower);
+% % % calibData.data_ch2.optical_power = calibData.data_ch2.OpticalPower/max(calibData.data_ch2.OpticalPower);
+% % % calibData.data_ch1.amp = calibData.data_ch1.amp_W*1e3;
+% % % calibData.data_ch2.amp= calibData.data_ch2.amp_W*1e3;
+% % % 
+% % % sq.dds(1).calibrationData = calibData.data_ch1;
+% % % sq.dds(2).calibrationData = calibData.data_ch2;
+
+
 
 I_ratio = 1;
-Ch1_PDesire = 10e-3;
-Ch1_PDesire = Ch1_PMax;
-
+Ch1_PDesire = 20e-3;
 Ch2_PDesire = Ch1_PDesire*I_ratio;
+
 Ch1_Pratio = Ch1_PDesire/Ch1_PMax;
 Ch2_Pratio = Ch2_PDesire/Ch2_PMax;
 if Ch1_PDesire > Ch1_PMax || Ch1_PDesire > Ch2_PMax
@@ -103,7 +110,7 @@ Manifold = 1; %do you want to count atoms in the F=1 or F=2 state?
 %% MOT
 sq.find('Imaging Freq').set(convert.imaging(opt.detuning));
 % Start with dipoles on if loading into dipoles
-if opt.LoadOpticalTrap_status == 1
+if opt.LoadOpticalTrap_status == 1 && opt.JustMOT ~= 1
     sq.find('50w ttl').set(1);
     sq.find('25w ttl').set(1);
     sq.find('50w amp').set(convert.dipole50(24.5)); % 22
@@ -195,7 +202,7 @@ if opt.PGC_status == 1
 end
 
 %% Mag Load
-if opt.LoadMagTrap_status == 1
+if opt.LoadMagTrap_status == 1 && opt.JustMOT ~= 1
     % % % Pump into |F=1, mf = -1>
     % Repump off
     sq.find('Repump Amp TTL').set(0);
@@ -228,7 +235,7 @@ end
 
 
 %% Mag Evap
-if opt.MagEvaporation_status == 1
+if opt.MagEvaporation_status == 1 && opt.JustMOT ~= 1
     InitialFreq = 36; %33
     FinalFreq = 2;
     Rate = 11; % 10
@@ -243,7 +250,7 @@ if opt.MagEvaporation_status == 1
 end
 
 %% Dipole Load
-if opt.LoadOpticalTrap_status == 1
+if opt.LoadOpticalTrap_status == 1 && opt.JustMOT ~= 1
     % Loosen mag trap
     t_loosen = 50*1e-3;
     t = linspace(0,t_loosen,100);
@@ -262,7 +269,7 @@ if opt.LoadOpticalTrap_status == 1
 end
 
 %% Optical Evap
-if opt.OpticalEvaporation_status == 1
+if opt.OpticalEvaporation_status == 1 && opt.JustMOT ~= 1
     % Ramp down magnetic trap
     Trampcoils = 500*1e-3;
     t = linspace(0,Trampcoils,101);
@@ -332,23 +339,21 @@ if opt.mw.enable(1) == 1
     sq.find('bias e/w').after(1e-3,0);
 end
 %% Raman Alignment
-RamanAlignment = 1;
+RamanAlignment = 0;
 if RamanAlignment == 1 && opt.raman.OnOff ~= 1
-    Ch2_Pratio = 0;
+    Ch2_Pratio = 1;
     Ch1_Pratio = 1;
 
     % % % Inputs
     % Timing
     TriggerDuration = 10e-3; % minimum of 10 ms needed
     triggerDelay = 1e-3; % minimum delay of 1 ms required
-    Closer = 8e-3;
-    InterferometryDelay = 8e-3 - Closer;
-    T_int = 1e-3;
 
-    TimeBeforeDrop = 20e-3;    %i.e. do pulse in trap
-    PulseWidth = TimeBeforeDrop;
+    PulseWidth = 15e-3; %start large and make smaller as you align
     dt = 1e-3;
-    % Pulse Parameters
+    TOF = -PulseWidth;
+
+    % Pulse Parameters    
     chirp = 25.106258428e6;
     k = 22.731334388721734;
     delta = 5;
@@ -364,27 +369,68 @@ if RamanAlignment == 1 && opt.raman.OnOff ~= 1
     if mod(triggerDelay,1e-6) < 1e-6 && mod(triggerDelay,1e-6) ~= 0
         error('DDS Error: Trigger Delay requires DDS timing resolution less than 1 us')
     end
-    sq.anchor(timeAtDrop + InterferometryDelay - triggerDelay);
+    sq.anchor(timeAtDrop + TOF);
     sq.find('Raman DDS Trig').before(TriggerDuration,1);
     sq.find('Raman DDS Trig').after(TriggerDuration,0);
-    sq.ddsTrigDelay = timeAtDrop + InterferometryDelay - triggerDelay - TimeBeforeDrop;
+    sq.ddsTrigDelay = timeAtDrop + TOF - triggerDelay;
 
     sq.anchor(timeAtDrop);
-    MakePulseSequence_Rhys(sq.dds,'k',k,'t0',InterferometryDelay - TimeBeforeDrop,'T',T_int,'width',PulseWidth,'dt',dt,...
+    MakePulseSequence_Rhys(sq.dds,'k',k,'t0',TOF,'T',1e-3,'width',PulseWidth,'dt',dt,...
         'phase',[0,0,0],'chirp',chirp,'delta',delta,...
         'power1',1*[Ch1_Pratio,0,0],'power2',1*[Ch2_Pratio,0,0],'PulseType','Square');
 end
-
-
-
+   
 %% Interferometry
+if opt.raman.OnOff == 1
+    Ch2_Pratio = 0.166;
+    Ch1_Pratio = 0.66;
+    delta = opt.params;
+
+    % % % Inputs
+    % Timing
+    TriggerDuration = 10e-3; % minimum of 10 ms needed
+    triggerDelay = 1e-3; % minimum delay of 1 ms required
+    TOF = -5e-3;
+    T_int = 1e-3;
+
+
+    % Pulse Parameters
+    PulseWidth = 10e-6;
+    dt = 1e-6;
+    chirp = 25.106258428e6;
+    k = 22.731334388721734;
+    delta = opt.params;
+
+    % Error check DDS timing
+    if mod(triggerDelay,1e-6) < 1e-6 && mod(triggerDelay,1e-6) ~= 0
+        error('DDS Error: Trigger Delay requires DDS timing resolution less than 1 us')
+    end
+
+    % Set bias
+    sq.anchor(timeAtDrop + TOF);
+    MagDelay = 500*1e-3;
+    sq.find('bias e/w').before(MagDelay,10);
+    sq.find('bias u/d').before(MagDelay,0);
+    sq.find('bias n/s').set(0);
+    sq.find('bias e/w').after(MagDelay + 4*PulseWidth + 2*T_int,0);
+
+    sq.find('Raman DDS Trig').before(TriggerDuration,1);
+    sq.find('Raman DDS Trig').after(TriggerDuration,0);
+    sq.ddsTrigDelay = timeAtDrop + TOF;
+
+    sq.anchor(timeAtDrop);
+    MakePulseSequence_Rhys(sq.dds,'k',k,'t0',TOF,'T',T_int,'width',PulseWidth,'dt',dt,...
+        'phase',[0,0,0],'chirp',chirp,'delta',delta,...
+        'power1',1*[Ch1_Pratio,0,0],'power2',1*[Ch2_Pratio,0,0],'PulseType','Square');
+
+    sq.find('bias e/w').after(MagDelay + TOF + PulseWidth,0);
+
+end
+
+% %% Interferometry
 % if opt.raman.OnOff == 1
-% %     Ch2_Pratio = 0.1;
-% %     Ch1_Pratio = 0.1;
-% %         Ch2_Pratio = 0.;
-% %         Ch1_Pratio = 0.;
-% Ch1_Pratio = opt.params;
-% Ch2_Pratio = opt.params;
+% Ch1_Pratio = 1;
+% Ch2_Pratio = 1;
 % delta = 4.750;
 % % % % Need to re-calibrate channels
 % % % % Ch1_Pratio = Ch1_Pratio - 0.005; 
@@ -404,7 +450,7 @@ end
 %     % Pulse Parameters
 %     chirp = 25.106258428e6;
 %     k = 22.731334388721734;
-%     delta = opt.params;
+%     delta = 10;
 % 
 %     % Set bias
 %     sq.anchor(timeAtDrop);
@@ -437,7 +483,7 @@ if opt.mw.enable_sg == 1
     if opt.mw.enable(1) == 1
         MagDelay = MicrowaveDelay;
     elseif opt.raman.OnOff == 1
-        MagDelay = InterferometryDelay + Closer;
+        MagDelay = 0;
     else
         MagDelay = 8e-3;
     end

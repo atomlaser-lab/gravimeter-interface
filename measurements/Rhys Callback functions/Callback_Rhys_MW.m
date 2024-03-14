@@ -8,11 +8,11 @@ function Callback_Rhys_MW(r)
 
 % % % Inputs
 ClearImage = 0;
-FigNum = 335;
+FigNum = 5;
 TOF = 35e-3;
 
 Title = 'Microwave Transfer';
-Param = sort(unique((-11:0.1:-10)));
+Param = sort(unique((-165:0.2:-163)));
 % T1 = (-1.5:0.1:-3);
 % T2 = (-5:0.1:-3);
 % T1 = [-9.8 -9.5 -9.2];

@@ -13,7 +13,6 @@ power1 = [];power2 = [];
 chirp = 2*k*9.795/(2*pi);
 order = 1;
 start_order = 0;
-dt = 1e-6;
 mirrorSwitch = 1;
 
 if mod(numel(varargin),2) ~= 0
@@ -142,8 +141,11 @@ for nn = 1:numPulses
 %     freq(idx,2) = DDSChannel.DEFAULT_FREQ - mirrorSwitch*0.25/1e6*(chirp*tc + order*4*recoil);
     
     freq(idx,1) = DDSChannel.DEFAULT_FREQ + mirrorSwitch*0.25/1e6*(chirp*tc + (2*start_order+order)*4*recoil);
-    freq(idx,2) = DDSChannel.DEFAULT_FREQ - mirrorSwitch*0.25/1e6*(chirp*tc + (2*start_order+order)*4*recoil);
- 
+    freq(idx,2) = DDSChannel.DEFAULT_FREQ - mirrorSwitch*0.25/1e6*(chirp*tc + (2*start_order+order)*4*recoil); 
+%    freq(idx,1) = 20;
+%     freq(idx,2) = 20;
+
+
 %     freq(idx,1) = DDSChannel.DEFAULT_FREQ + mirrorSwitch*0.25/1e6*(chirp*tc + (order+detuning/recoil)*4*recoil);
 %     freq(idx,2) = DDSChannel.DEFAULT_FREQ - mirrorSwitch*0.25/1e6*(chirp*tc + (order+detuning/recoil)*4*recoil);
 

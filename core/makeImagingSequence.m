@@ -56,13 +56,13 @@ switch lower(imgType)
         camChannel = 'cam trig';
         imgType = 0;
         if isempty(pulseTime)
-            pulseTime = 10e-6; % was 17e-6 on the 19/11/23
+            pulseTime = 17e-6; % was 17e-6 on the 19/11/23
         end
     case {'drop 2'}
         camChannel = 'drop 1 camera trig';
         imgType = 1;
         if isempty(pulseTime)
-            pulseTime = 50e-6;
+            pulseTime = 60e-6;
         end
     otherwise
         error('Unsupported imaging type %s',imgType);
@@ -70,23 +70,43 @@ end
 
 %Preamble
 sq.find('imaging freq').set(imgFreq);
-sq.find('Top repump shutter').before(10e-3,0);
+
+% sq.find('Top repump shutter').before(20e-3,0);
 
 %Repump settings - repump occurs just before imaging
 %If manifold is set to image F = 1 state, enable repump. Otherwise,
 %disable repumping
 if imgType == 0 && manifold == 1
-    sq.find('liquid crystal repump').set(7);%was -2.22
+    if tof <15e-3
+        sq.find('Top repump shutter').after(5e-3,0);
+        sq.find('liquid crystal repump').after(5e-3,7);
+    else
+        sq.find('Top repump shutter').after(tof-10e-3,0);
+        sq.find('liquid crystal repump').after(tof-12e-3,7);
+    end
+    %     sq.find('liquid crystal repump').set(7);%was -2.22
+    %     sq.find('liquid crystal repump').after(15e-3,7);%was -2.22
+    %     sq.find('2D MOT Amp TTL').after(tof-repumpTime-repumpDelay-1e-3,1);
+    %     sq.find('2D MOT freq').after(tof-repumpTime-repumpDelay-1e-3,8.4); %for
+
     sq.find('repump amp ttl').after(tof-repumpTime-repumpDelay,1);
     sq.find('repump amp ttl').after(repumpTime,0);
+
+%     sq.find('2D MOT Amp TTL').after(repumpTime+1e-3,0);
+%     sq.find('2D MOT freq').after(repumpTime+1e-3,7.65);
+
     if ~isempty(repumpFreq)
         sq.find('repump freq').after(tof-repumpTime-repumpDelay,repumpFreq);
     end
+
 elseif imgType == 1 && manifold == 1
-    sq.find('liquid crystal repump').set(7);
+    sq.find('Top repump shutter').after(tof-0e-3,0);
+    sq.find('liquid crystal repump').after(tof-30e-3,-2.22);
+
     sq.find('drop repump').after(tof-repumpTime-repumpDelay,1);
     sq.find('drop repump').after(repumpTime,0);
-    sq.find('fiber switch repump').after(tof-fibreSwitchDelay,1);   
+    sq.find('fiber switch repump').after(tof-fibreSwitchDelay,1);
+    
     if ~isempty(repumpFreq)
         sq.find('drop repump freq').after(tof-repumpTime-repumpDelay,4.3);
     end

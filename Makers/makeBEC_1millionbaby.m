@@ -1,4 +1,4 @@
-function sq = makeBEC_toerase_recovery(varargin)
+function sq = makeBEC_toerase(varargin)
 
 
 % Check if any variable is an instance of SequenceOptions
@@ -62,7 +62,7 @@ MagneticInsensitive_status = opt.MagneticInsensitive_status;
 
 %% Create a conversion object to handle conversions to volts
 convert = RunConversions;
-imageVoltage = convert.imaging(opt.detuning - 1.8);
+imageVoltage = convert.imaging(opt.detuning);
 
 %% Initialize sequence - defaults should be handled here
 sq = initSequence;
@@ -74,19 +74,20 @@ sq.find('liquid crystal repump').set(7);
 sq.find('Top repump shutter').set(0);
 
 sq.find('Imaging Freq').set(convert.imaging(opt.detuning));
-sq.find('3D MOT Freq').set(convert.mot_freq(-16));    %Use -25 MHz for 4 s loading times, -27.5 MHz for 6 s
-sq.find('Repump freq').set(convert.repump_freq(-2));
+sq.find('3D MOT Freq').set(convert.mot_freq(-17));    %Use -17 MHz for 4 s loading times, 
+sq.find('Repump freq').set(convert.repump_freq(-1.5)); %2
 
+if opt.LoadOpticalTrap_status == 1
 sq.find('50w ttl').set(1);
 sq.find('25w ttl').set(1);
-sq.find('50w amp').set(convert.dipole50(22));
-sq.find('25w amp').set(convert.dipole25(17)); 
-
+sq.find('50w amp').set(convert.dipole50(35)); %22 %35
+sq.find('25w amp').set(convert.dipole25(20)); %17 %22
+end
 %% Set up the MOT loading values                
 
 sq.find('MOT coil TTL').set(1);     %Turn on the MOT coils
-sq.find('3d coils').set(convert.mot_coil(1.8));
-sq.find('bias u/d').set(0);
+sq.find('3d coils').set(0.15); %42
+sq.find('bias u/d').set(-1); %-1
 sq.find('bias e/w').set(0);
 sq.find('bias n/s').set(0);
 
@@ -102,15 +103,15 @@ sq.find('push amp ttl').before(10e-3,0);
 
 %Increase the cooling and repump detunings to reduce re-radiation
 %pressure, and weaken the trap
-sq.find('3D MOT freq').set(convert.mot_freq(-21));
-sq.find('repump freq').set(convert.repump_freq(-6));
-sq.find('3D coils').set(convert.mot_coil(1.5));
+sq.find('3D MOT freq').set(convert.mot_freq(-18)); %-18
+sq.find('repump freq').set(convert.repump_freq(-8));
+sq.find('3D coils').set(0.14);
 sq.find('bias e/w').set(5*0);
 sq.find('bias n/s').set(7*0);
 sq.find('bias u/d').set(1.75*0);
 
 % 
-Tcmot = 12e-3;                      %12.5 ms CMOT stage
+Tcmot = 13*1e-3;                      %12.5 ms CMOT stage
 sq.delay(Tcmot);                    %Wait for time Tcmot
 
 end
@@ -118,28 +119,32 @@ end
  %% PGC stage
  if PGC_status == 1
 
-Tpgc = 40e-3;
+Tpgc = 20*1e-3; %20 ms
 %Define a function giving a 100 point smoothly varying curve
 t = linspace(0,Tpgc,50);
 f = @(vi,vf) sq.linramp(t,vi,vf);
 
 %Smooth ramps for these parameters
-sq.find('3D MOT Amp').after(t,f(5,3));
-sq.find('3D MOT Freq').after(t,f(sq.find('3D MOT Freq').values(end),convert.mot_freq(-055)));
-sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),convert.mot_coil(0.55)));
+sq.find('3D MOT Amp').after(t,f(5,3.8));
+sq.find('3D MOT Freq').after(t,f(sq.find('3D MOT Freq').values(end),convert.mot_freq(-66))); %66 for 12s
+sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),0));
 sq.find('repump freq').set(convert.repump_freq(-9.25));
+
+
+sq.find('bias u/d').set(3);
+sq.find('bias e/w').set(0);
+sq.find('bias n/s').set(0);
 
 sq.delay(Tpgc);
 % Turn off the repump field for optical pumping - 1 ms
-T = 1e-3;
+Tdepump = 1e-3;
 sq.find('repump amp ttl').set(0);
 sq.find('Top repump shutter').set(1);
 sq.find('liquid crystal repump').set(-2.22);
-sq.find('bias u/d').set(0);
+sq.find('bias u/d').set(3); %0.5
 sq.find('bias e/w').set(0);
-sq.find('bias n/s').set(7.5*0);
-sq.delay(T);
-
+sq.find('bias n/s').set(0); 
+sq.delay(Tdepump);
  end %end PGC
 
 
@@ -148,18 +153,17 @@ if LoadMagTrap_status == 1
 sq.find('liquid crystal bragg').set(-3);
 sq.find('3D mot amp ttl').set(0);
 sq.find('MOT coil ttl').set(1);
-sq.find('3D coils').set(2.05);
+sq.find('3D coils').set(1.2);
 % sq.delay(3.0); %test lifetime in mag trap
 end
 
  %% Microwave evaporation
  if MagEvaporation_status ==1
 % Provide detunings in MHz from the Rb hyperfine splitting
-
 sq.delay(20e-3);
-evapRate = 10;
-evapStart = 40;
-evapEnd = 10;
+evapRate = 12; %10
+evapStart = 37; %37
+evapEnd = 8;
 Tevap = (evapStart-evapEnd)/evapRate;
 t = linspace(0,Tevap,100);
 sq.find('mw freq').after(t,convert.microwave(sq.linramp(t,evapStart,evapEnd)));
@@ -172,43 +176,53 @@ end %end MagEvaporation
 
 %% Weaken trap while MW frequency fixed
 if LoadOpticalTrap_status == 1
-Trampcoils = 180e-3;
-t = linspace(0,Trampcoils,50);
-sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),convert.mot_coil(1)));
-sq.find('bias e/w').after(t,sq.minjerk(t,sq.find('bias e/w').values(end),0));
-sq.find('bias n/s').after(t,sq.minjerk(t,sq.find('bias n/s').values(end),0));
-sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),-0.12*0));
-sq.delay(Trampcoils);
+    dipoleposition_test = 0;
+
+    if dipoleposition_test == 0
+        Trampcoils = 180e-3;
+        t = linspace(0,Trampcoils,100);
+        sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),.35)); %0.4
+        sq.find('bias e/w').after(t,sq.minjerk(t,sq.find('bias e/w').values(end),0));
+        sq.find('bias n/s').after(t,sq.minjerk(t,sq.find('bias n/s').values(end),0));
+        sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),4));
+        sq.delay(Trampcoils);
+
+
+    elseif dipoleposition_test == 1
+        Trampcoils = 180e-3;
+        t = linspace(0,Trampcoils,100);
+        sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),0.45));%.45
+        sq.delay(Trampcoils);
+        sq.find('3d coils').set(-.1);
+%         sq.find('bias e/w').after(t,sq.minjerk(t,sq.find('bias e/w').values(end),0));
+%         sq.find('bias n/s').after(t,sq.minjerk(t,sq.find('bias n/s').values(end),0));
+%         sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),3));
+        sq.delay(22.5e-3);
+    end
 end
 
-% Trampcoils = 0.5/2;
-% t = linspace(0,Trampcoils,50);
-% sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
-% sq.find('bias e/w').after(t,sq.linramp(t,sq.find('bias e/w').values(end),0));
-% sq.find('bias n/s').after(t,sq.linramp(t,sq.find('bias n/s').values(end),0));
-% sq.find('bias u/d').after(t,sq.linramp(t,sq.find('bias u/d').values(end),0));
-% sq.delay(Trampcoils);
-% sq.find('mot coil ttl').set(0);
+
+
 
 %% Optical evaporation
 if OpticalEvaporation_status == 1
 % Ramp down magnetic trap in 1 s
 
-Trampcoils = .8;
-t = linspace(0,Trampcoils,101);
-sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
+Trampcoils = .8; %.8
+t = linspace(0,Trampcoils,100);
+sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),0.14)); %0.14
 sq.find('mw amp ttl').anchor(sq.find('3d coils').last).before(100e-3,0);
 sq.find('mot coil ttl').at(sq.find('3d coils').last,0);
 % % 
 % % At the same time, start optical evaporation
 % % 
-sq.delay(30e-3);
-Tevap = 3;
-t = linspace(0,Tevap,200);
-sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(5.1),0.5));
-sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(4.4),0.5));
+sq.delay(10e-3); %10
+Tevap =2.8;
+t = linspace(0,Tevap,100);
+sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.6),.42)); %1.6
+sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.20),.7)); %1.26 %1.28
 
-% sq.find('bias e/w').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias e/w').values(end),10));
+sq.find('bias e/w').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias e/w').values(end),0));
 sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),0));
 sq.find('bias u/d').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias u/d').values(end),0));
 sq.delay(Tevap);
@@ -224,12 +238,12 @@ end
 timeAtDrop = sq.time; %Store the time when the atoms are dropped for later
 sq.anchor(timeAtDrop);
 sq.find('3D mot amp ttl').set(0);
-% sq.find('bias e/w').before(200e-3,0);
-% sq.find('bias n/s').before(200e-3,0);
-% sq.find('bias u/d').before(200e-3,0);
+sq.find('bias e/w').before(200e-3,0);
+sq.find('bias n/s').before(200e-3,0);
+sq.find('bias u/d').before(200e-3,0);
 sq.find('mw amp ttl').set(0);
 sq.find('mot coil ttl').set(0);
-sq.find('3D Coils').set(convert.mot_coil(0));
+sq.find('3D Coils').set(0);
 sq.find('25w ttl').set(0);
 sq.find('50w ttl').set(0);
 sq.find('50w amp').set(convert.dipole50(0));
@@ -248,7 +262,7 @@ sq.camDelay = timeAtDrop - 2;   %Set camera acquisition delay to be 2 s less tha
 if strcmpi(Abs_Analysis_parameters.camera,'in-trap') || strcmpi(Abs_Analysis_parameters.camera,'drop 2')
     makeImagingSequence(sq,'type',Abs_Analysis_parameters.camera,'tof',opt.tof,...
         'repump Time',100e-6,'pulse Delay',10e-6,'pulse time',[],...
-        'imaging freq',imageVoltage,'repump delay',10e-6,'repump freq',4.3,...
+        'imaging freq',imageVoltage,'repump delay',10e-6,'repump freq',4.0,...
         'manifold',1,'includeDarkImage',true,'cycle time',150e-3);
 elseif strcmpi(Abs_Analysis_parameters.camera,'drop 3') || strcmpi(Abs_Analysis_parameters.camera,'drop 4')
     makeFMISequence(sq,'tof',opt.tof,'offset',30e-3,'duration',100e-3,...

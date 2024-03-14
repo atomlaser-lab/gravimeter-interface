@@ -189,8 +189,10 @@ for nn = 1:numPulses
     % 2 frequency so that we use the lattice formed from retroreflecting
     % from the vibrationally isolated mirror
     %
-    freq(idx,1) = DDSChannel.DEFAULT_FREQ + delta;
-    freq(idx,2) = DDSChannel.DEFAULT_FREQ - delta;
+%     freq(idx,1) = DDSChannel.DEFAULT_FREQ + delta/4;
+%     freq(idx,2) = DDSChannel.DEFAULT_FREQ - delta/4;
+    freq(idx,1) = 20;
+    freq(idx,2) = 20;    
 end
 
 freq(freq == 0) = DDSChannel.DEFAULT_FREQ;

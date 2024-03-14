@@ -8,12 +8,12 @@ function Callback_Rhys_2ROI(r)
 
 % % % Inputs
 ClearImage = 0;
-FigNum = 336;
+FigNum = 5;
 % TOF = 216.5e-3;
 TOF = 35e-3;
 
 Title = 'Raman';
-Param = sort(unique((2:0.2:7)));
+Param = sort(unique((4.:0.025:5.8)));
 ParamName = 'Delta';
 Unit = ' (MHz)';  %do not forget to put a space before the unit
 

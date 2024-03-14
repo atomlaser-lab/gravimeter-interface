@@ -12,17 +12,20 @@ FigNum = 5;
 % TOF = 216.5e-3;
 TOF = 20e-3;
 
-Title = 'PGC';
-Param = sort(unique(((-3:0.5:2))));
+Title = 'Raman Alignment Test';
+Param = sort(unique(((-2:0.5:6))));
+% Param = sort(unique(((1:1:10))));
+
 % Param = [100 25 50];
 % Param = sort([Param,Param,Param,Param]);
-ParamName = 'MOT Load Time';
-Unit = 's';  %do not forget to put a space before the unit
-
+% ParamName = 'Baseline';
+% Unit = '';  %do not forget to put a space before the unit
+ParamName = 'TOF When Raman turns on';
+Unit = ' (ms)';  %do not forget to put a space before the unit
 
 if r.isInit()
-    r.data.param = const.randomize(Param);
-%     r.data.param = (Param);
+%     r.data.param = const.randomize(Param);
+    r.data.param = (Param);
     r.data.ParamName = ParamName;
     r.data.ParamUnits = Unit;
     r.c.setup('var',r.data.param);
