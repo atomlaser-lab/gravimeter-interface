@@ -10,18 +10,18 @@ function Callback_Rhys(r)
 ClearImage = 0;
 FigNum = 5;
 % TOF = 216.5e-3;
-TOF = 20e-3;
+TOF = 36e-3;
 
-Title = 'Raman Alignment Test';
-Param = sort(unique(((-2:0.5:6))));
+% Title = 'Raman Test: TOF 15 ms, detuning = 0';
+% Title = 'Raman Alignment Test: TOF 18.5 ms';
+Title = 'Raman: TOF = 17 ms, 0.85 AOM Power, AOM detuning = 0.01 MHz';
+
+Param = sort(unique((0:25:1250)));
+% Param = sort(unique(((0:0.1:1))));
 % Param = sort(unique(((1:1:10))));
 
-% Param = [100 25 50];
-% Param = sort([Param,Param,Param,Param]);
-% ParamName = 'Baseline';
-% Unit = '';  %do not forget to put a space before the unit
-ParamName = 'TOF When Raman turns on';
-Unit = ' (ms)';  %do not forget to put a space before the unit
+ParamName = 'AOM Power';
+Unit = ' (Arb.)';  %do not forget to put a space before the unit
 
 if r.isInit()
 %     r.data.param = const.randomize(Param);
@@ -87,6 +87,8 @@ elseif r.isAnalyze()
     MakePlot(r.data.param,r.data.T(:,2)*1e6,'Temperature (uK)',4,r.data.ParamName,r.data.ParamUnits,'b',i1,['x';'y'])
 %     MakePlot(r.data.param,r.data.xPos*1.0285/5.5e-6,'Pixel Number',4,r.data.ParamName,r.data.ParamUnits,'r',i1)
 %     MakePlot(r.data.param,r.data.yPos*1.0285/5.5e-6,'Pixel Number',4,r.data.ParamName,r.data.ParamUnits,'b',i1,['x';'y'])
+
+
 
 end
 

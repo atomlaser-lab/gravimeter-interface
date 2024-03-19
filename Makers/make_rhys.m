@@ -68,18 +68,6 @@ sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
 sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
 calibData = load('RamanAOMData_formatted.mat');
 
-
-% % % calibData = load('ramanPowerCalib.mat');
-% % % calibData.data_ch1.optical_power = calibData.data_ch1.OpticalPower/max(calibData.data_ch1.OpticalPower);
-% % % calibData.data_ch2.optical_power = calibData.data_ch2.OpticalPower/max(calibData.data_ch2.OpticalPower);
-% % % calibData.data_ch1.amp = calibData.data_ch1.amp_W*1e3;
-% % % calibData.data_ch2.amp= calibData.data_ch2.amp_W*1e3;
-% % % 
-% % % sq.dds(1).calibrationData = calibData.data_ch1;
-% % % sq.dds(2).calibrationData = calibData.data_ch2;
-
-
-
 I_ratio = 1;
 Ch1_PDesire = 20e-3;
 Ch2_PDesire = Ch1_PDesire*I_ratio;

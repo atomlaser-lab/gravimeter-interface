@@ -1,6 +1,7 @@
 function sq = makeBEC_Raman2(varargin)
 
 
+
 % Check if any variable is an instance of SequenceOptions
 % Get all variable names in the workspace
 allVarNames = evalin('base', 'who');
@@ -55,6 +56,15 @@ imageVoltage = convert.imaging(opt.detuning);
 
 %% Initialize sequence - defaults should be handled here
 sq = initSequence;
+
+% Bragg Calibration data used in initSequence.
+% For now I will simply load/set my own calibration data here. I'll create
+% another object later
+sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
+sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
+calibData = load('RamanAOMData_formatted.mat');
+sq.dds(1).calibrationData = calibData.data_ch1;
+sq.dds(2).calibrationData = calibData.data_ch2;
 
 %    U/D bias field converter to amps to volts (possible values are -0.58 A to 14 A) which corresponds to a voltage from (2.823V to -0.14V)
 UD = @(x) x* -0.2031 + 2.707; %this converts the input value in amps to the appropriate voltage
@@ -243,25 +253,24 @@ sq.find('25w amp').set(convert.dipole25(0));
 
 
 %% Raman alignment test
-RamanAlignment = 1;
+RamanAlignment = 0;
 if RamanAlignment == 1 && opt.raman.OnOff ~= 1
     Ch2_Pratio = 1;
-    Ch1_Pratio = 0;
+    Ch1_Pratio = 1;
 
     % % % Inputs
     % Timing
-    TriggerDuration = 10e-3; % minimum of 10 ms needed
-    triggerDelay = 1e-3; % minimum delay of 1 ms required
+    TriggerDuration = 1e-3; 
+    triggerDelay = 1e-3; 
 
-%     PulseWidth = 2.5e-3; %start large and make smaller as you align  
-    PulseWidth = 1e-3; %start large and make smaller as you align
+    PulseWidth = 10e-3; %start large and make smaller as you align
     dt = 1e-3;
     TOF = 15*1e-3;
 
     % Pulse Parameters    
     chirp = 25.106258428e6;
     k = 22.731334388721734;
-    delta = 0;
+    delta = 8; % 12
 
     % Set bias
     sq.anchor(timeAtDrop);
@@ -275,10 +284,10 @@ if RamanAlignment == 1 && opt.raman.OnOff ~= 1
         error('DDS Error: Trigger Delay requires DDS timing resolution less than 1 us')
     end
     sq.anchor(timeAtDrop + TOF);
-    sq.find('Raman DDS Trig').before(TriggerDuration + triggerDelay,1);
-    sq.find('Raman DDS Trig').after(TriggerDuration + triggerDelay,0);
-
+    sq.find('Raman DDS Trig').before(TriggerDuration,1);
+    sq.find('Raman DDS Trig').after(TriggerDuration,0);
     sq.ddsTrigDelay = timeAtDrop + TOF - triggerDelay;
+    
 
     sq.anchor(timeAtDrop);
     MakePulseSequence_Rhys(sq.dds,'k',k,'t0',TOF,'T',1e-3,'width',PulseWidth,'dt',dt,...
@@ -292,29 +301,37 @@ end
 % opt.tof = 36e-3;
 
 MWDelay = 4e-3;
-MWDuration = 450e-6;
+MWDuration = 550e-6;
 MagDelay = 0*1e-3;
 
-SGDelay = 15e-3;
+SGDelay = 17e-3;
 SGDuraiton = 2e-3;
 
 BlowAway1Delay = 1e-3;
 BlowAway1Duration = 2e-3;
 
-RamanTOF = 18e-3;
-RamanPulseWidth = 15e-3;
-dt = 1e-3;
-BeamPower1 = 1;
-BeamPower2 = 1;
-delta = opt.params;
+% % % % % % % % % % % % 
+
+RamanTOF = 17*1e-3; %18.5
+RamanPulseWidth = opt.params*1e-6;
+dt = 20e-6;
+BeamPower1 = 0.85;
+BeamPower2 = BeamPower1;
+delta = 0.01;
+% delta = 0.33;
+
+triggerDelay = 1e-3;
+TriggerDuration = 10e-3;
+
+% % % % % % % % % % % % 
 
 BlowAway2Delay = 0.1e-3;
 BlowAway2Duration = 1e-3;
 
 % OnOff
-BlowAway1 = 0;
-Raman = 0;
-BlowAway2 = 0;
+BlowAway1 = 1;
+Raman = 1;
+BlowAway2 = 1;
 
 if RamanAlignment == 1
     BlowAway1 = 0; Raman = 0; BlowAway2 = 0;
@@ -388,19 +405,25 @@ end
 % Raman transfer from |2,0> to |1,0> 
 if Raman == 1
     %inputs
-    sq.anchor(timeAtDrop + RamanTOF);
-    TriggerDuration = 10e-3;
-    sq.find('DDS Trig').before(TriggerDuration,0);
-    sq.find('DDS Trig').after(TriggerDuration,1);
 
-%     makeRamanPulseSequence(sq.dds,'t0',RamanTOF,'width',RamanPulseWidth,'dt',dt,'delta',delta);
+
+    sq.anchor(timeAtDrop + RamanTOF);
+%     sq.find('bias e/w').before(MagDelay,5);
+
+
+    sq.find('Raman DDS Trig').before(TriggerDuration + triggerDelay,1);
+    sq.find('Raman DDS Trig').after(TriggerDuration,0);
+    sq.ddsTrigDelay = timeAtDrop + RamanTOF - triggerDelay;
 
     sq.anchor(timeAtDrop);
     chirp = 25.106258428e6;
     k = 22.731334388721734;
     MakePulseSequence_Rhys(sq.dds,'k',k,'t0',RamanTOF,'T',1e-3,'width',RamanPulseWidth,'dt',dt,...
         'phase',[0,0,0],'chirp',chirp,'delta',delta,...
-        'power1',1*[BeamPower1,0,0],'power2',1*[BeamPower2,0,0],'PulseType','Square');
+        'power1',[BeamPower1,0,0],'power2',[BeamPower2,0,0],'PulseType','Square');
+
+    sq.anchor(timeAtDrop + RamanTOF + RamanPulseWidth);
+    sq.find('bias e/w').set(0);
 
 end
 
