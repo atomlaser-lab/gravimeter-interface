@@ -2,7 +2,7 @@ function Callback_MeasureMWFreq(r)
 
 if r.isInit()
     
-    r.data.df = const.randomize(0:0.5:9); %in kHz %broad scan
+    r.data.df = const.randomize(15:0.5:20); %in kHz %broad scan
 %     r.data.df = const.randomize(-2:0.25:2); %in kHz %small scan
 
     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + r.data.df*1e-3;
@@ -13,7 +13,7 @@ if r.isInit()
     r.c.setup('var',r.data.df);
 elseif r.isSet()
     
-    r.make(r.devices.opt,'tof',217e-3).upload;
+    r.make(r.devices.opt,'tof',36e-3).upload;
     %
     % These commands are for list-mode operation
     %
@@ -59,7 +59,7 @@ elseif r.isAnalyze()
 %     r.data.d{i1,1} = dout;
     
     
-    figure(98);clf;
+    figure(99);clf;
     subplot(1,2,1)
     plot(r.data.df(1:i1),r.data.R(1:i1,:),'o');
     plot_format('Freq [kHz]','Population','',12);
@@ -92,11 +92,11 @@ elseif r.isAnalyze()
     grid on
     hold on;
     
-    if r.c.done(1)
-        nlf = nonlinfit(r.data.df*1e-3,r.data.R(:,1),1e-2);
-        nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*372/2).^2));
+    if r.c(1) > 4
+        nlf = nonlinfit(r.data.df(1:r.c(1))*1e-3,r.data.R(:,1),1e-2);
+        nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*350/2).^2));
         [~,idx] = min(nlf.y);
-        nlf.bounds2('A',[0.9,1,0.95],'R',[0,10,0.8]*1e-3,'x0',[min(nlf.x),max(nlf.x),nlf.x(idx)]);
+        nlf.bounds2('A',[0.9,1,0.95],'R',[0,10,0.2]*1e-3,'x0',[min(nlf.x),max(nlf.x),nlf.x(idx)]);
         nlf.fit;
         fprintf(1,'Rabi frequency: %.3f kHz, Center = %.3f kHz\n',nlf.c(2,1)*1e3,nlf.c(3,1)*1e3);
         subplot(1,2,1);

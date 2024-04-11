@@ -1,4 +1,4 @@
-function sq = makeBEC_Raman2(varargin)
+function sq = makeBEC_Raman3(varargin)
 
 
 
@@ -53,6 +53,7 @@ end
 %% Create a conversion object to handle conversions to volts
 convert = RunConversions;
 imageVoltage = convert.imaging(opt.detuning);
+
 %% Initialize sequence - defaults should be handled here
 sq = initSequence;
 
@@ -61,8 +62,7 @@ sq = initSequence;
 % another object later
 sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
 sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
-% calibData = load('RamanAOMData_formatted.mat');
-calibData = load('RamanAOMData_11042024');
+calibData = load('RamanAOMData_formatted.mat');
 sq.dds(1).calibrationData = calibData.data_ch1;
 sq.dds(2).calibrationData = calibData.data_ch2;
 
@@ -251,111 +251,35 @@ sq.find('50w ttl').set(0);
 sq.find('50w amp').set(convert.dipole50(0));
 sq.find('25w amp').set(convert.dipole25(0));
 
-
-%% Raman alignment test
-RamanAlignment = 0;
-if RamanAlignment == 1 && opt.raman.OnOff ~= 1
-    Ch2_Pratio = 1;
-    Ch1_Pratio = 1;
-
-    % % % Inputs
-    % Timing
-    TriggerDuration = 1e-3; 
-    triggerDelay = 1e-3; 
-
-    PulseWidth = 10e-3; %start large and make smaller as you align
-    dt = 1e-3;
-    TOF = 15*1e-3;
-
-    % Pulse Parameters    
-    chirp = 25.106258428e6;
-    k = 22.731334388721734;
-    delta = 8; % 12
-
-    % Set bias
-    sq.anchor(timeAtDrop);
-    MagDelay = 500*1e-3;
-    sq.find('bias e/w').before(MagDelay,10);
-    sq.find('bias u/d').before(MagDelay,0);
-    sq.find('bias n/s').set(0);
-
-    % Trigger DDS
-    if mod(triggerDelay,1e-6) < 1e-6 && mod(triggerDelay,1e-6) ~= 0
-        error('DDS Error: Trigger Delay requires DDS timing resolution less than 1 us')
-    end
-    sq.anchor(timeAtDrop + TOF);
-    sq.find('Raman DDS Trig').before(TriggerDuration,1);
-    sq.find('Raman DDS Trig').after(TriggerDuration,0);
-    sq.ddsTrigDelay = timeAtDrop + TOF - triggerDelay;
-    
-
-    sq.anchor(timeAtDrop);
-    MakePulseSequence_Rhys(sq.dds,'k',k,'t0',TOF,'T',1e-3,'width',PulseWidth,'dt',dt,...
-        'phase',[0,0,0],'chirp',chirp,'delta',delta,...
-        'power1',1*[Ch1_Pratio,0,0],'power2',1*[Ch2_Pratio,0,0],'PulseType','Square');
-end
-
-
 %% Microwave/Raman Stuff
 % % % Inputs
 % opt.tof = 36e-3;
 
 MWDelay = 4e-3;
-MWDuration = 536e-6;
+MWDuration = 550e-6;
 MagDelay = 0*1e-3;
 
 SGDelay = 17e-3;
 SGDuraiton = 2e-3;
 
 BlowAway1Delay = 1e-3;
-BlowAway1Duration = 2e-3;
+BlowAway1Duration = 6*1e-3;
 
-% % % % % % % % % % % % 
-TwoStateImaging = 0;
-BiasPrep = 10e-3;
-BiasDelay = 2.5e-3;
-EWBias = 0;
-NSBias = 0;
-% EWBias = 0.6;
-% NSBias = 7;
-
-RamanTOF = 16.5*1e-3;
-RamanPulseWidth = 50*1e-6;
-dt = 10e-6;
+RamanTOF = 17*1e-3; %18.5
+RamanPulseWidth = 10*1e-6;
+dt = 1e-6;
 BeamPower1 = 1;
 BeamPower2 = BeamPower1;
-delta = 0.02;
-delta = opt.params;
+delta = 0.01;
+% delta = 0.33;
 
-triggerDelay = 1e-3;
-TriggerDuration = 10e-3;
-
-% % % % % % % % % % % % 
-
-BlowAway2Delay = 0.1e-3;
-BlowAway2Duration = 1e-3;
+triggerDelay = 0e-3;
+TriggerDuration = 5e-3;
 
 % OnOff
-BlowAway1 = 1;
-Raman = 1;
-BlowAway2 = 1;
+BlowAway = 1;
+Raman = 0;
 
-if RamanAlignment == 1
-    BlowAway1 = 0; Raman = 0; BlowAway2 = 0;
-    opt.mw.enable(1) = 0;
-    opt.mw.enable_sg = 0;
-end
-
-% % Timing error checks
-if BlowAway1 + Raman + BlowAway2 ~= 0
-    if RamanTOF < (MWDelay + MWDuration) + (BlowAway1Delay + BlowAway1Duration)
-        error('Raman pulse occurs before MW/blow away1')
-    end
-    
-    if opt.tof < (RamanTOF + RamanPulseWidth) + (BlowAway2Delay + BlowAway2Duration)
-        error('Imaging starts before Raman is complete')
-    end
-end
 
 % % % Sequence 
 % MW from |-1,-1> -> |2,0>
@@ -378,19 +302,20 @@ if opt.mw.enable(1) == 1
     sq.delay(BlowAway1Delay);
 end
 
-% Repump light blow away of |-1,-1> atoms
-if BlowAway1 == 1
-    sq.find('liquid crystal repump').set(7);
-    sq.find('Top Repump Shutter').set(0);
-    sq.find('Repump Amp TTL').set(1);
-    sq.find('Repump Amp').set(10);
-    sq.find('Repump Freq').set(RunConversions.repump_freq(0));
-    sq.delay(BlowAway1Duration);
+% % Repump light blow away of |-1,-1> atoms
+% if BlowAway == 1
+%     sq.find('liquid crystal repump').set(7);
+%     sq.find('Top Repump Shutter').set(0);
+%     sq.find('Repump Amp TTL').set(1);
+%     sq.find('Repump Amp').set(10);
+%     sq.find('Repump Freq').set(RunConversions.repump_freq(0));
+%     sq.delay(BlowAway1Duration);
+% 
+%     sq.find('Repump Amp TTL').set(0);
+%     sq.find('Top Repump Shutter').set(1);
+%     sq.find('liquid crystal repump').set(-2.22);
+% end
 
-    sq.find('Repump Amp TTL').set(0);
-    sq.find('Top Repump Shutter').set(1);
-    sq.find('liquid crystal repump').set(-2.22);
-end
 
 % Stern-Gerlach pulse to test MW transfer
 if opt.mw.enable_sg == 1
@@ -412,17 +337,8 @@ end
 % Raman transfer from |2,0> to |1,0> 
 if Raman == 1
     %inputs
-
-
     sq.anchor(timeAtDrop + RamanTOF);
-    sq.find('bias e/w').before(BiasPrep,EWBias);
-    sq.find('Bias N/S').before(BiasPrep,NSBias);
 
-    sq.delay(BiasDelay);
-    sq.find('bias e/w').set(0);
-    sq.find('Bias N/S').set(0);    
-
-    sq.anchor(timeAtDrop + RamanTOF);
     sq.find('Raman DDS Trig').before(TriggerDuration + triggerDelay,1);
     sq.find('Raman DDS Trig').after(TriggerDuration,0);
     sq.ddsTrigDelay = timeAtDrop + RamanTOF - triggerDelay;
@@ -435,18 +351,22 @@ if Raman == 1
         'power1',[BeamPower1,0,0],'power2',[BeamPower2,0,0],'PulseType','Square');
 
     sq.anchor(timeAtDrop + RamanTOF + RamanPulseWidth);
-%     sq.find('bias e/w').set(0);
-
+    sq.find('bias e/w').set(0);
 end
 
-% Trapping light blow away |2,0> atoms 
-if BlowAway2 == 1
-    sq.anchor(timeAtDrop + RamanTOF + RamanPulseWidth + BlowAway2Delay);
-    sq.find('3D MOT Amp').set(5);
-    sq.find('3D MOT Amp TTL').set(1);
-    sq.find('3D MOT Freq').set(RunConversions.mot_freq(0));
-    sq.delay(BlowAway2Duration);
-    sq.find('3D MOT Amp TTL').set(0);
+% Repump light blow away of |-1,-1> atoms
+if BlowAway == 1
+    sq.anchor(timeAtDrop + RamanTOF + RamanPulseWidth + BlowAway1Delay);
+    sq.find('liquid crystal repump').set(7);
+    sq.find('Top Repump Shutter').set(0);
+    sq.find('Repump Amp TTL').set(1);
+    sq.find('Repump Amp').set(10);
+    sq.find('Repump Freq').set(RunConversions.repump_freq(0));
+    sq.delay(BlowAway1Duration);
+
+    sq.find('Repump Amp TTL').set(0);
+    sq.find('Top Repump Shutter').set(1);
+    sq.find('liquid crystal repump').set(-2.22);
 end
 
 %% Imaging stage
@@ -461,17 +381,10 @@ Abs_Analysis_parameters.camera = evalin('base', 'Abs_Analysis_parameters.camera'
 sq.anchor(timeAtDrop);
 sq.camDelay = timeAtDrop - 2;   %Set camera acquisition delay to be 2 s less than when image is taken
 if strcmpi(Abs_Analysis_parameters.camera,'in-trap') || strcmpi(Abs_Analysis_parameters.camera,'drop 2')
-    if TwoStateImaging == 1
-        makeRamanImagingSequence(sq,'type',Abs_Analysis_parameters.camera,...
-            'tof1',opt.tof,'repump delay',0.5e-3,'tof2',opt.tof+opt.misc.tof2,'cycle time',150e-3,...
-            'repump Time',200e-6,'pulse Delay',10e-6,'pulse time',10e-6,...
-            'imaging freq',imageVoltage,'image freq2',imageVoltage,'repump freq',4.3,'includeDarkImage',true);
-    else
-        makeImagingSequence(sq,'type',Abs_Analysis_parameters.camera,'tof',opt.tof,...
-            'repump Time',100e-6,'pulse Delay',10e-6,'pulse time',[],...
-            'imaging freq',imageVoltage,'repump delay',10e-6,'repump freq',4.2,...
-            'manifold',1,'includeDarkImage',true,'cycle time',150e-3);
-    end
+    makeImagingSequence(sq,'type',Abs_Analysis_parameters.camera,'tof',opt.tof,...
+        'repump Time',100e-6,'pulse Delay',10e-6,'pulse time',[],...
+        'imaging freq',imageVoltage,'repump delay',10e-6,'repump freq',4.2,...
+        'manifold',1,'includeDarkImage',true,'cycle time',150e-3);
 elseif strcmpi(Abs_Analysis_parameters.camera,'drop 3') || strcmpi(Abs_Analysis_parameters.camera,'drop 4')
     makeFMISequence(sq,'tof',opt.tof,'offset',30e-3,'duration',100e-3,...
         'imaging freq',imageVoltage,'manifold',1);

@@ -154,6 +154,9 @@ classdef DDSChannel < TimingControllerChannel
                 if isfield(data,"Popt")
                     rf = interp1(data.Popt,data.Prf,P,'pchip');
                 else
+                    if isfield(data,'amp') == 0 && isfield(data,'amp_dBm') == 1
+                        data.amp = (10.^(data.amp_dBm/10))*10^-3;
+                    end
                     rf = interp1(data.optical_power,data.amp,P,'pchip');
                 end
                 % manually set zeros

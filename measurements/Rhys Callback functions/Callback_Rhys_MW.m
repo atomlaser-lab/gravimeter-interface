@@ -12,7 +12,7 @@ FigNum = 5;
 TOF = 36e-3;
 
 Title = 'Microwave Transfer';
-Param = sort(unique((16:0.2:20)));
+Param = sort(unique((8.5:0.1:9.5)));
 % T1 = (-1.5:0.1:-3);
 % T2 = (-5:0.1:-3);
 % T1 = [-9.8 -9.5 -9.2];
@@ -32,7 +32,7 @@ Unit = ' (kHz)';  %do not forget to put a space before the unit
 
 if r.isInit()
     r.data.df = Param;
-    r.data.freq1 = const.f_Rb_groundHFS - 315e3 + Param*1e3;
+    r.data.freq1 = const.f_Rb_groundHFS - 315e3 + 2*Param*1e3;
     r.data.freq2 = const.f_Rb_groundHFS*ones(size(Param));
     
     r.data.ParamName = ParamName;
