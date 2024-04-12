@@ -13,18 +13,6 @@ TOF = 36e-3;
 
 Title = 'Microwave Transfer';
 Param = sort(unique((8.5:0.1:9.5)));
-% T1 = (-1.5:0.1:-3);
-% T2 = (-5:0.1:-3);
-% T1 = [-9.8 -9.5 -9.2];
-% T2 = [-6.8, -7, -7.2];
-% T3 = [-4.2 -4.5 -4.7];
-% T4 = [-1.8 -2 -2.2];
-% T5 = [-0.2 -0.5 -0.7];
-% T6 = [0.8 1 1.2];
-% T7 = [2.3 2.5 2.7];
-% T8 = [5.8 5.9 5.7];
-% Param = sort(unique([T1 T2 T3 T4 T5 T6 T7 T8]));
-% Param = sort(unique([T1 T2]));
 
 ParamName = 'MW Frequency';
 Unit = ' (kHz)';  %do not forget to put a space before the unit

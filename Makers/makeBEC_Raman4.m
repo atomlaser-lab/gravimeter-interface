@@ -1,6 +1,6 @@
-function sq = makeBEC_Raman2(varargin)
+function sq = makeBEC_Raman4(varargin)
 
-% This Transfers atoms from |2,0> to |1,0>
+% This Transfers atoms from |1,-1> to |2,0>
 
 % Check if any variable is an instance of SequenceOptions
 % Get all variable names in the workspace
@@ -209,15 +209,8 @@ end
 
 %% Optical evaporation
 if opt.OpticalEvaporation_status == 1 && opt.JustMOT ~= 1
-    % % % Blow away |2,1> and |2,2> atoms that are present from mag trap
-    OpticalEvapTime = sq.time;
-%     sq.anchor(OpticalEvapTime);
-%     sq.find('Imaging Amp TTL').set(0);
-%     sq.delay(3e-3);
-%     sq.find('Imaging Amp TTL').set(0);
-
     % Ramp down magnetic trap in 1 s
-    sq.anchor(OpticalEvapTime);
+
     Trampcoils = 0.9; %.8
     t = linspace(0,Trampcoils,100);
     sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),0.1)); %0.14
@@ -236,10 +229,6 @@ if opt.OpticalEvaporation_status == 1 && opt.JustMOT ~= 1
     sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),0));
     sq.find('bias u/d').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias u/d').values(end),0));
     sq.delay(Tevap);
-
-
-
-
 end
 
 %% Drop atoms
@@ -262,56 +251,6 @@ sq.find('50w ttl').set(0);
 sq.find('50w amp').set(convert.dipole50(0));
 sq.find('25w amp').set(convert.dipole25(0));
 
-
-%% Raman alignment test
-RamanAlignment = 0;
-if RamanAlignment == 1 && opt.raman.OnOff ~= 1
-    Ch2_Pratio = 1;
-    Ch1_Pratio = 1;
-
-    % % % Inputs
-    % Timing
-    TriggerDuration = 1e-3; 
-    triggerDelay = 1e-3; 
-
-    PulseWidth = 10e-3; %start large and make smaller as you align
-    dt = 1e-3;
-    TOF = 15*1e-3;
-
-    % Pulse Parameters    
-    chirp = 25.106258428e6;
-    k = 22.731334388721734;
-    delta = 8; % 12
-
-    % Set bias
-    sq.anchor(timeAtDrop);
-    MagDelay = 500*1e-3;
-    sq.find('bias e/w').before(MagDelay,10);
-    sq.find('bias u/d').before(MagDelay,0);
-    sq.find('bias n/s').set(0);
-
-    % Trigger DDS
-    if mod(triggerDelay,1e-6) < 1e-6 && mod(triggerDelay,1e-6) ~= 0
-        error('DDS Error: Trigger Delay requires DDS timing resolution less than 1 us')
-    end
-    sq.anchor(timeAtDrop + TOF);
-    sq.find('Raman DDS Trig').before(TriggerDuration,1);
-    sq.find('Raman DDS Trig').after(TriggerDuration,0);
-    sq.ddsTrigDelay = timeAtDrop + TOF - triggerDelay;
-    
-
-    sq.anchor(timeAtDrop);
-    MakePulseSequence_Rhys(sq.dds,'k',k,'t0',TOF,'T',1e-3,'width',PulseWidth,'dt',dt,...
-        'phase',[0,0,0],'chirp',chirp,'delta',delta,...
-        'power1',1*[Ch1_Pratio,0,0],'power2',1*[Ch2_Pratio,0,0],'PulseType','Square');
-end
-
-
-%% Blow away |2,1> and |2,2> atoms that are present from mag trap
-% sq.anchor(timeAtDrop);
-% sq.find('Imaging Amp TTL').set(1);
-% sq.delay(2e-3);
-% sq.find('Imaging Amp TTL').set(0);
 
 %% Microwave/Raman Stuff
 % % % Inputs
@@ -338,11 +277,11 @@ NSBias = 0;
 
 RamanTOF = 16.5*1e-3;
 RamanPulseWidth = 50*1e-6;
-dt = 10e-6;
+dt = max(round(RamanPulseWidth*1e6/10)*1e-6,1e-6);
 BeamPower1 = 1;
 BeamPower2 = BeamPower1;
-delta = 0.02;
-% delta = opt.params;
+% delta = -0.326;
+delta = opt.params;
 
 triggerDelay = 1e-3;
 TriggerDuration = 10e-3;
@@ -353,18 +292,11 @@ BlowAway2Delay = 0.1e-3;
 BlowAway2Duration = 1e-3;
 
 % OnOff
-BlowAway1 = 0;
 Raman = 0;
 BlowAway2 = 0;
 
-if RamanAlignment == 1
-    BlowAway1 = 0; Raman = 0; BlowAway2 = 0;
-    opt.mw.enable(1) = 0;
-    opt.mw.enable_sg = 0;
-end
-
 % % Timing error checks
-if BlowAway1 + Raman + BlowAway2 ~= 0
+if Raman + BlowAway2 ~= 0
     if RamanTOF < (MWDelay + MWDuration) + (BlowAway1Delay + BlowAway1Duration)
         error('Raman pulse occurs before MW/blow away1')
     end
@@ -374,40 +306,7 @@ if BlowAway1 + Raman + BlowAway2 ~= 0
     end
 end
 
-% % % Sequence 
-% MW from |-1,-1> -> |2,0>
-if opt.mw.enable(1) == 1
-    sq.anchor(timeAtDrop);
-    % Set bias
-    sq.find('bias e/w').before(MagDelay,5);
-    sq.find('bias u/d').before(MagDelay,0); %%% This could be wrong. Previous operation was at zero VOLTS not amps
-    sq.find('bias n/s').set(0);
-
-    % Microwave Transfer
-    sq.find('R&S list step trig').set(1);
-    sq.delay(MWDelay); % delay to prevent state-changing collisions
-    sq.find('state prep ttl').set(1);
-    sq.delay(MWDuration);
-    sq.find('state prep ttl').set(0);
-
-    % return bias to zero
-    sq.find('bias e/w').after(1e-3,0);
-    sq.delay(BlowAway1Delay);
-end
-
-% Repump light blow away of |-1,-1> atoms
-if BlowAway1 == 1
-    sq.find('liquid crystal repump').set(7);
-    sq.find('Top Repump Shutter').set(0);
-    sq.find('Repump Amp TTL').set(1);
-    sq.find('Repump Amp').set(10);
-    sq.find('Repump Freq').set(RunConversions.repump_freq(0));
-    sq.delay(BlowAway1Duration);
-
-    sq.find('Repump Amp TTL').set(0);
-    sq.find('Top Repump Shutter').set(1);
-    sq.find('liquid crystal repump').set(-2.22);
-end
+%%% Sequence 
 
 % Stern-Gerlach pulse to test MW transfer
 if opt.mw.enable_sg == 1
@@ -430,7 +329,6 @@ end
 if Raman == 1
     %inputs
 
-
     sq.anchor(timeAtDrop + RamanTOF);
     sq.find('bias e/w').before(BiasPrep,EWBias);
     sq.find('Bias N/S').before(BiasPrep,NSBias);
@@ -452,7 +350,7 @@ if Raman == 1
         'power1',[BeamPower1,0,0],'power2',[BeamPower2,0,0],'PulseType','Square');
 
     sq.anchor(timeAtDrop + RamanTOF + RamanPulseWidth);
-%     sq.find('bias e/w').set(0);
+    sq.find('bias e/w').set(0);
 
 end
 

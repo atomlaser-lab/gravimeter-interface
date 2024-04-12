@@ -4,8 +4,8 @@ function img = Abs_Analysis_Raman(varargin)
 FigNum = 1;
 dispOD = [0,0.5];
 plotOpt = 1;
-plotROI = 0;
-useFilt = 1;
+plotROI = 1;
+useFilt = 0;
 filtWidth = 50e-6;
 
 % % % Region of interest options
@@ -16,18 +16,21 @@ fittype = 'gauss2d'; %gauss2d '2comp1d'
 % Choose appropriate camera properties
 img_type = 'drop 1';
 
+% 128
+% 1024
+
 % ROI 1
-roiStep(1) = 5;
-TopRow = 400;
-BottomRow = 1400;
-LeftColumn = 400;
-RightColumn = 1700;
+roiStep(1) = 1;
+TopRow = 1500;
+BottomRow = 2048;
+LeftColumn = 0;
+RightColumn = 2024;
 
 % ROI 2
-roiStep(2) = 5;
-TopRow2 = 200;
+roiStep(2) = 1;
+TopRow2 = 1500;
 BottomRow2 = 2048;
-LeftColumn2 = 1;
+LeftColumn2 = 0;
 RightColumn2 = 2048;
 
 %% Automated Inputs
@@ -146,7 +149,8 @@ for kk = 1:2
         end
         img(jj,kk).setClouds(size(roiRow{kk},1));
         for nn = 1:numel(img(jj,kk).clouds)
-            img(jj,kk).clouds(nn).fitdata.set('roirow',roiRow{kk}(nn,:),'roiCol',roiCol{kk}(nn,:),...
+            imgsize = size(img(jj,kk).raw.images);
+            img(jj,kk).clouds(nn).fitdata.set('imgsize',imgsize(1:2),'roirow',roiRow{kk}(nn,:),'roiCol',roiCol{kk}(nn,:),...
                 'roiStep',roiStep(kk),'fittype',fittype,'method','x');
         end
 

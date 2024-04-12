@@ -10,26 +10,26 @@ function Callback_Rhys_2ROI(r)
 ClearImage = 0;
 FigNum = 5;
 % TOF = 216.5e-3;
-TOF = 35e-3;
+TOF = 36e-3;
 
-Title = 'Raman';
-Param = sort(unique((4.:0.025:5.8)));
-ParamName = 'Delta';
-Unit = ' (MHz)';  %do not forget to put a space before the unit
+Title = 'Raman: AOM Power = 1, Pulse = 100 us, TOF = 16.5 ms';
+Param = sort(unique((0:50:400)));
+
+ParamName = '4*AOM Setting (MHz)';
 
 
 if r.isInit()
     r.data.param = const.randomize(Param);
 %     r.data.param = (Param);
     r.data.ParamName = ParamName;
-    r.data.ParamUnits = Unit;
+%     r.data.ParamUnits = Unit;
     r.c.setup('var',r.data.param);
 
 elseif r.isSet()
 %     r.devices.opt.detuning = r.data.param(r.c(1));
     r.make(r.devices.opt,'params',r.data.param(r.c(1)), 'tof', TOF).upload;
 
-    fprintf(1,'Run  %d/%d, %s = %.3f %s\n',r.c.now,r.c.total,r.data.ParamName,r.data.param(r.c(1)),r.data.ParamUnits);
+    fprintf(1,'Run  %d/%d, %s = %.3f %s\n',r.c.now,r.c.total,r.data.ParamName,r.data.param(r.c(1)));
 
 elseif r.isAnalyze()
     i1 = r.c(1);
@@ -58,10 +58,12 @@ elseif r.isAnalyze()
     r.data.C1.N(i1) = img.clouds(1).fit.N;
     r.data.C1.xPos(i1) = img.clouds(1).fit.pos(1);
     r.data.C1.yPos(i1) = img.clouds(1).fit.pos(2);
+    r.data.C1.peakOD(i1) = img.clouds(1).peakOD;
 
     r.data.C2.N(i1)= img.clouds(2).fit.N;
     r.data.C2.xPos(i1) = img.clouds(2).fit.pos(1);
     r.data.C2.yPos(i1) = img.clouds(2).fit.pos(2);
+    r.data.C2.peakOD(i1) = img.clouds(2).peakOD;
 
     if r.data.C2.N(i1) < 1e3
     	r.data.C2.xPos(i1) = NaN;
@@ -82,20 +84,51 @@ elseif r.isAnalyze()
     scatter(r.data.param(1:i1),r.data.C1.N./(r.data.C1.N + r.data.C2.N),'r')
     hold on
     scatter(r.data.param(1:i1),r.data.C2.N./(r.data.C1.N + r.data.C2.N),'b')
-    xlabel('df')
+    xlabel(ParamName)
     ylabel('N norm')
-    legend('ROI 1', 'ROI 2')
 
     subplot(3,1,2)
+    scatter(r.data.param(1:i1),(r.data.C1.N + r.data.C2.N),'r')
+    xlabel(ParamName)
+    ylabel('N Total')
+
+    subplot(3,1,3)
+    scatter(r.data.param(1:i1),r.data.C1.peakOD,'r')
+    hold on
+    scatter(r.data.param(1:i1),r.data.C2.peakOD,'b')
+    xlabel(ParamName)
+    ylabel('OD')
+    legend('ROI 1', 'ROI 2')
+
+
+    % % % Plot as you go
+    figure(FigNum+1);
+    if ClearImage == 1
+        clf
+    end
+    sgtitle(Title)
+    subplot(3,1,1)
+    scatter(r.data.param(1:i1),r.data.C1.N./(r.data.C1.N + r.data.C2.N),'r')
+    ylabel('ROI1 N norm')
+    xlabel(ParamName)
+
+    subplot(3,1,2)
+    scatter(r.data.param(1:i1),r.data.C2.N./(r.data.C1.N + r.data.C2.N),'b')
+    xlabel(ParamName)
+    ylabel('ROI2 N norm')
+
+    subplot(3,1,3)
     scatter(r.data.param(1:i1),r.data.C1.N)
     ylabel('N total')
+    xlabel(ParamName)
+
     subplot(3,1,3)
-    scatter(r.data.param(1:i1),r.data.C1.yPos,'r')
+    scatter(r.data.param(1:i1),r.data.C1.peakOD,'r')
     hold on
-    scatter(r.data.param(1:i1),r.data.C2.yPos,'b')
-    xlabel('df')
-    ylabel('Pos')
-    legend('ROI 1', 'ROI 2')
+    scatter(r.data.param(1:i1),r.data.C2.peakOD,'b')
+    xlabel(ParamName)
+    ylabel('OD')
+    legend('ROI 1', 'ROI 2')    
 
 end
 

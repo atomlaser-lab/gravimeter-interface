@@ -1,13 +1,13 @@
 classdef RunConversions < handle
     methods(Static)
         function V = dipole25(power)
-%             V = (power + 0.1795)/2.7065;
-            V = 0.325898426677744*power + 1.127093693591155; % 18/12/2023
+            V = (power + 0.15)/2.76;    % 12/04/2024, with servo
+%             V = 0.325898426677744*power + 1.127093693591155; % 18/12/2023
         end
         
         function V = dipole50(power)
-%             V = (power + 66.9e-3)/4.9909; 
-            V =  0.167016409500481*power + 0.875247148388929; % 18/12/2023
+            V = (power + 0.19)/5.42;    % 12/04/2024, with servo
+%             V =  0.167016409500481*power + 0.875247148388929; % 18/12/2023
         end
         
         function V = mot_coil(current)
