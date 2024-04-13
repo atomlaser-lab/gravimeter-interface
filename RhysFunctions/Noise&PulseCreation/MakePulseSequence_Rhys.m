@@ -184,10 +184,10 @@ for nn = 1:numPulses
     %
     ph(idx,2) = appliedPhase(nn);
     %
-    % Set frequencies.
-    % Need channel 1 frequency to be higher than channel
-    % 2 frequency so that we use the lattice formed from retroreflecting
-    % from the vibrationally isolated mirror
+    % Set frequencies. Channel 1 corresponds to the sideband, channel 2 to
+    % the carrier. AOMs are aligned for the +1 order.  If using the +1
+    % sideband, and if the R&S synthesizer is set to HFS - DF, then DELTA =
+    % DF*2;
     %
     freq(idx,1) = DDSChannel.DEFAULT_FREQ + delta/4;
     freq(idx,2) = DDSChannel.DEFAULT_FREQ - delta/4;   

@@ -21,14 +21,14 @@ img_type = 'drop 1';
 
 % ROI 1
 roiStep(1) = 1;
-TopRow = 1500;
+TopRow = 1300;
 BottomRow = 2048;
 LeftColumn = 0;
-RightColumn = 2024;
+RightColumn = 2048;
 
 % ROI 2
 roiStep(2) = 1;
-TopRow2 = 1500;
+TopRow2 = 1300;
 BottomRow2 = 2048;
 LeftColumn2 = 0;
 RightColumn2 = 2048;
@@ -181,7 +181,7 @@ for kk = 1:2
                 if kk == 1
                     title(ax,sprintf('%s',[ax.Title.String, ', F =2']));
                 else
-                    title(ax,sprintf('%s',[ax.Title.String, ', F =1']));
+                    title(ax,sprintf('%s',[ax.Title.String, ', Total']));
                 end
             else
                 figure(FigNum);clf;

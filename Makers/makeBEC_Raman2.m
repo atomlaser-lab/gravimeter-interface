@@ -209,15 +209,7 @@ end
 
 %% Optical evaporation
 if opt.OpticalEvaporation_status == 1 && opt.JustMOT ~= 1
-    % % % Blow away |2,1> and |2,2> atoms that are present from mag trap
-    OpticalEvapTime = sq.time;
-%     sq.anchor(OpticalEvapTime);
-%     sq.find('Imaging Amp TTL').set(0);
-%     sq.delay(3e-3);
-%     sq.find('Imaging Amp TTL').set(0);
-
     % Ramp down magnetic trap in 1 s
-    sq.anchor(OpticalEvapTime);
     Trampcoils = 0.9; %.8
     t = linspace(0,Trampcoils,100);
     sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),0.1)); %0.14
@@ -236,9 +228,6 @@ if opt.OpticalEvaporation_status == 1 && opt.JustMOT ~= 1
     sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),0));
     sq.find('bias u/d').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias u/d').values(end),0));
     sq.delay(Tevap);
-
-
-
 
 end
 
@@ -308,30 +297,31 @@ end
 
 
 %% Blow away |2,1> and |2,2> atoms that are present from mag trap
-% sq.anchor(timeAtDrop);
+sq.anchor(timeAtDrop);
+% % % Use imaging beam (much weaker than trapping)
 % sq.find('Imaging Amp TTL').set(1);
-% sq.delay(2e-3);
+% sq.find('Imaging Freq').set(RunConversions.imaging(0));
+% sq.delay(5e-3);
 % sq.find('Imaging Amp TTL').set(0);
+% sq.anchor(timeAtDrop);
 
 %% Microwave/Raman Stuff
 % % % Inputs
-% opt.tof = 36e-3;
-
 MWDelay = 4e-3;
 MWDuration = 536e-6;
 MagDelay = 0*1e-3;
 
 SGDelay = 17e-3;
-SGDuraiton = 2e-3;
+SGDuration = 2e-3;
 
 BlowAway1Delay = 1e-3;
 BlowAway1Duration = 2e-3;
 
 % % % % % % % % % % % % 
-TwoStateImaging = 1;
+TwoStateImaging = 0;
 BiasPrep = 10e-3;
 BiasDelay = 2.5e-3;
-EWBias = 0;
+EWBias = 5;
 NSBias = 0;
 % EWBias = 0.6;
 % NSBias = 7;
@@ -341,8 +331,8 @@ RamanPulseWidth = 50*1e-6;
 dt = 10e-6;
 BeamPower1 = 1;
 BeamPower2 = BeamPower1;
-delta = 0.02;
-% delta = opt.params;
+% delta = 0.02 + opt.params;
+delta = -5 + opt.params;
 
 triggerDelay = 1e-3;
 TriggerDuration = 10e-3;
@@ -353,9 +343,9 @@ BlowAway2Delay = 0.1e-3;
 BlowAway2Duration = 1e-3;
 
 % OnOff
-BlowAway1 = 0;
-Raman = 0;
-BlowAway2 = 0;
+BlowAway1 = 1;
+Raman = 1;
+BlowAway2 = 1;
 
 if RamanAlignment == 1
     BlowAway1 = 0; Raman = 0; BlowAway2 = 0;
@@ -391,7 +381,7 @@ if opt.mw.enable(1) == 1
     sq.find('state prep ttl').set(0);
 
     % return bias to zero
-    sq.find('bias e/w').after(1e-3,0);
+%     sq.find('bias e/w').after(1e-3,0);
     sq.delay(BlowAway1Delay);
 end
 
@@ -418,10 +408,10 @@ if opt.mw.enable_sg == 1
     %
     sq.anchor(timeAtDrop + SGDelay);
     sq.find('mot coil ttl').set(1);
-    t = linspace(0,SGDuraiton,20);
+    t = linspace(0,SGDuration,20);
     sq.find('3d coils').after(t,convert.mot_coil(sq.linramp(t,0,5.5)));
     sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
-    sq.delay(2*SGDuraiton);
+    sq.delay(2*SGDuration);
     sq.find('mot coil ttl').set(0);
     sq.find('3d coils').set(convert.mot_coil(0));
 end

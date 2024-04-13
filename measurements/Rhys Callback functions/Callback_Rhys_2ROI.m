@@ -13,7 +13,7 @@ FigNum = 5;
 TOF = 36e-3;
 
 Title = 'Raman: AOM Power = 1, Pulse = 100 us, TOF = 16.5 ms';
-Param = sort(unique((0:50:400)));
+Param = sort(unique((-0.1:0.01:0.1)));
 
 ParamName = '4*AOM Setting (MHz)';
 

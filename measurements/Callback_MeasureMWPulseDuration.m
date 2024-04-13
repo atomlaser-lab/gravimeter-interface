@@ -14,7 +14,7 @@ elseif r.isSet()
 elseif r.isAnalyze()
     i1 = r.c(1);
     pause(0.1 + 0.25*rand);
-    img = Abs_Analysis_GUI('last');
+    img = Abs_Analysis('last');
 %     if ~img.raw.status.ok()
 %         %
 %         % Checks for an error in loading the files (caused by a missed

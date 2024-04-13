@@ -1,19 +1,19 @@
-function Callback_MeasureMWFreq(r)
+function Callback_MeasureMWFreq_DualState(r)
 
 if r.isInit()
     
-    r.data.df = const.randomize(15:0.5:20); %in kHz %broad scan
-%     r.data.df = const.randomize(-2:0.25:2); %in kHz %small scan
+%     r.data.df = const.randomize(15:0.5:20); %in kHz %broad scan
+    r.data.df = const.randomize(-2:0.25:2); %in kHz %small scan
 
-    r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + r.data.df*1e-3;
-%     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3  + 4.5e-3*ones(size(r.data.df));
-%     r.data.freq2 = const.f_Rb_groundHFS/1e6 + r.data.df*1e-3;
-    r.data.freq2 = const.f_Rb_groundHFS/1e6*ones(size(r.data.df));
+%     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + r.data.df*1e-3;
+    r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3  + 16.5e-3*ones(size(r.data.df));
+    r.data.freq2 = const.f_Rb_groundHFS/1e6 + r.data.df*1e-3;
+%     r.data.freq2 = const.f_Rb_groundHFS/1e6*ones(size(r.data.df));
     
     r.c.setup('var',r.data.df);
 elseif r.isSet()
     
-    r.make(r.devices.opt,'tof',36e-3).upload;
+    r.make(r.devices.opt).upload;
     %
     % These commands are for list-mode operation
     %
@@ -28,15 +28,15 @@ elseif r.isAnalyze()
     pause(0.1 + 0.5*rand);
     
     
-    img = Abs_Analysis_RT('last');
-    if ~img.raw.status.ok()
+    img = Abs_Analysis_DualState_RT('last');
+    if ~img(1).raw.status.ok()
         %
         % Checks for an error in loading the files (caused by a missed
         % image) and reruns the last sequence
         %
         r.c.decrement;
         return;
-    elseif r.c.now > 1 && strcmpi(r.data.files{r.c.now - 1},img.raw.files.name)
+    elseif r.c.now > 1 && strcmpi(r.data.files{r.c.now - 1},img(1).raw.files.name)
         pause(10);
         r.c.decrement;
         return;
@@ -44,12 +44,12 @@ elseif r.isAnalyze()
     
 %     Store raw data
     
-    r.data.files{i1,1} = img.raw.files;
+    r.data.files{i1,1} = img(1).raw.files;
     
 %     Get processed data
     
-    r.data.N(i1,:) = img.get('N');
-    r.data.Nsum(i1,:) = img.get('Nsum');
+    r.data.N(i1,:) = img(2).get('N');
+    r.data.Nsum(i1,:) = img(2).get('Nsum');
     r.data.R(i1,:) = r.data.N(i1,:)./sum(r.data.N(i1,:));
     r.data.Rsum(i1,:) = r.data.Nsum(i1,:)./sum(r.data.Nsum(i1,:));
 % 
@@ -62,6 +62,8 @@ elseif r.isAnalyze()
     figure(99);clf;
     subplot(1,2,1)
     plot(r.data.df(1:i1),r.data.R(1:i1,:),'o');
+%     hold on
+%     plot(r.data.df(1:i1),r.data.Rsum(1:i1,:),'sq');
     plot_format('Freq [kHz]','Population','',12);
 % %     h = legend('m = -1','m = 0');
 %     set(h,'Location','West');
@@ -69,20 +71,6 @@ elseif r.isAnalyze()
     title(' Microwave frequency using fit over OD')
     grid on
     hold on;
-    
-%     subplot(1,3,2)
-%     plot(r.data.df(1:i1),r.data.R(1:i1,:),'sq');
-%     hold off;
-%     plot_format('Freq [MHz]','Population','',12);
-%     h = legend('m = -1','m = 0');
-%     set(h,'Location','West');
-%     title(' Raman frequency using ROI')
-%     grid on;
-%     if r.c.done
-%     tNow = datestr(now);
-%         caption = sprintf('Determination of Raman frequency %s', tNow);
-%         sgtitle(caption)
-%     end
     
     subplot(1,2,2)
     plot(r.data.df(1:i1),r.data.N(1:i1,:),'o');
