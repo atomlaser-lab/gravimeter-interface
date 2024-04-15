@@ -1,7 +1,11 @@
 function Callback_MeasureRamanPulseDuration(r)
+FigNum = 98;
+% XLabel = 'Run Number';
+XLabel = 'Pulse Duration [us]';
+
 
 if r.isInit()
-    r.data.duration = 0:10:150;
+    r.data.duration = 90:5:200;
     
     r.c.setup('var',r.data.duration);
 elseif r.isSet()
@@ -21,26 +25,30 @@ elseif r.isAnalyze()
         %
         r.c.decrement;
         return;
-    elseif i1 > 1 && strcmpi(img.raw.files.name,r.data.files{i1 - 1}.name)
+    elseif i1 > 1 && strcmpi(img(1).raw.files.name,r.data.files{i1 - 1}.name)
         r.c.decrement;
         return;
     end
     %
     % Store raw data
     %
-    r.data.files{i1,1} = img.raw.files;
+    r.data.files{i1,1} = img(1).raw.files;
     %
     % Get processed data
     %
     r.data.N(i1,:) = img.get('N');
     r.data.Nsum(i1,:) = img.get('Nsum');
+    if numel(img) > 1
+        r.data.N(i1,2) = r.data.N(i1,2) - r.data.N(i1,1);
+        r.data.Nsum(i1,2) = r.data.Nsum(i1,2) - r.data.Nsum(i1,1);
+    end
     r.data.R(i1,:) = r.data.N(i1,:)./sum(r.data.N(i1,:));
     r.data.Rsum(i1,:) = r.data.Nsum(i1,:)./sum(r.data.Nsum(i1,:));
     
-    figure(97);clf;
+    figure(FigNum);
     subplot(1,2,1)
-    plot(r.data.duration(1:i1),r.data.N(1:i1,:),'o');
-    plot_format('Pulse duration [us]','Number','',12);
+    scatter(r.data.duration(1:i1),r.data.N(1:i1,:),'filled'); %,'o'
+    plot_format(XLabel,'Number','',12);
 %     h = legend('m = -1','m = 0','m = 1');
 %     set(h,'Location','West');
     title(' Raman frequency using fit over OD')
@@ -49,9 +57,10 @@ elseif r.isAnalyze()
     ylim([0,Inf]);
     
     subplot(1,2,2)
-    plot(r.data.duration(1:i1),r.data.Rsum(1:i1,:),'o');
+    scatter(r.data.duration(1:i1),r.data.Rsum(1:i1,:),'filled'); %,'o'
     hold off;
-    plot_format('Pulse duration [us]','Population','',12);
+    plot_format(XLabel,'Population','',12);
+    ylim([0,1])
 % %     h = legend('m = -1','m = 0','m = 1');
 % %     set(h,'Location','West');
 %     title(' Raman frequency using ROI')
@@ -62,9 +71,9 @@ elseif r.isAnalyze()
 %         sgtitle(caption)
 %     end
     if r.c(1) > 4
-        nlf = nonlinfit(r.data.duration(1:r.c(1)),r.data.Rsum(:,1),1e-2);
+        nlf = nonlinfit(r.data.duration(1:r.c(1)),r.data.Rsum(:,2),1e-2);
         nlf.setFitFunc(@(A,R,D,x) A*(1 - 4*R.^2./(4*R^2+D.^2).*sin(2*pi*sqrt(4*R^2+D.^2).*x/2).^2));
-        nlf.bounds2('A',[0.7,1,0.95],'R',[0,10,0.1]*1e-3,'D',[-0.1,0.1,0]);
+        nlf.bounds2('A',[0.5,1,2],'R',[0,10,0.03]*1e-3,'D',[-0.01,0.01,0]);
         nlf.fit;
         fprintf(1,'Rabi frequency: %.3f kHz, Detuning = %.3f kHz\n',nlf.c(2,1)*1e3,nlf.c(3,1)*1e3);
         subplot(1,2,2);

@@ -2,7 +2,9 @@ function Callback_MeasureMWFreq(r)
 
 if r.isInit()
     
-    r.data.df = const.randomize(15:0.5:20); %in kHz %broad scan
+%     r.data.df = const.randomize(15:0.5:20); %in kHz %broad scan
+    r.data.df = -95:1:-75;
+    r.data.df = r.data.df(:);
 %     r.data.df = const.randomize(-2:0.25:2); %in kHz %small scan
 
     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + r.data.df*1e-3;
@@ -28,7 +30,7 @@ elseif r.isAnalyze()
     pause(0.1 + 0.5*rand);
     
     
-    img = Abs_Analysis_RT('last');
+    img = Abs_Analysis('last');
     if ~img.raw.status.ok()
         %
         % Checks for an error in loading the files (caused by a missed
@@ -36,7 +38,7 @@ elseif r.isAnalyze()
         %
         r.c.decrement;
         return;
-    elseif r.c.now > 1 && strcmpi(r.data.files{r.c.now - 1},img.raw.files.name)
+    elseif r.c.now > 1 && strcmpi(r.data.files{r.c.now - 1}.name,img.raw.files.name)
         pause(10);
         r.c.decrement;
         return;
@@ -61,7 +63,7 @@ elseif r.isAnalyze()
     
     figure(99);clf;
     subplot(1,2,1)
-    plot(r.data.df(1:i1),r.data.R(1:i1,:),'o');
+    plot(r.data.df(1:i1),r.data.Rsum(1:i1,:),'o');
     plot_format('Freq [kHz]','Population','',12);
 % %     h = legend('m = -1','m = 0');
 %     set(h,'Location','West');
@@ -85,7 +87,7 @@ elseif r.isAnalyze()
 %     end
     
     subplot(1,2,2)
-    plot(r.data.df(1:i1),r.data.N(1:i1,:),'o');
+    plot(r.data.df(1:i1),r.data.Nsum(1:i1,:),'o');
     plot_format('Freq [kHz]','Number','',12);
     h = legend('m = -1','m = 0');
     set(h,'Location','West');
@@ -93,17 +95,17 @@ elseif r.isAnalyze()
     hold on;
     
     if r.c(1) > 4
-        nlf = nonlinfit(r.data.df(1:r.c(1))*1e-3,r.data.R(:,1),1e-2);
-        nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*350/2).^2));
-        [~,idx] = min(nlf.y);
-        nlf.bounds2('A',[0.9,1,0.95],'R',[0,10,0.2]*1e-3,'x0',[min(nlf.x),max(nlf.x),nlf.x(idx)]);
-        nlf.fit;
-        fprintf(1,'Rabi frequency: %.3f kHz, Center = %.3f kHz\n',nlf.c(2,1)*1e3,nlf.c(3,1)*1e3);
-        subplot(1,2,1);
-        hold on
-        xplot = linspace(min(nlf.x),max(nlf.x),1e2);
-        plot(xplot*1e3,nlf.f(xplot),'-');
-        hold off;
+%         nlf = nonlinfit(r.data.df(1:r.c(1))*1e-3,r.data.R(:,1),1e-2);
+%         nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*350/2).^2));
+%         [~,idx] = min(nlf.y);
+%         nlf.bounds2('A',[0.9,1,0.95],'R',[0,10,0.2]*1e-3,'x0',[min(nlf.x),max(nlf.x),nlf.x(idx)]);
+%         nlf.fit;
+%         fprintf(1,'Rabi frequency: %.3f kHz, Center = %.3f kHz\n',nlf.c(2,1)*1e3,nlf.c(3,1)*1e3);
+%         subplot(1,2,1);
+%         hold on
+%         xplot = linspace(min(nlf.x),max(nlf.x),1e2);
+%         plot(xplot*1e3,nlf.f(xplot),'-');
+%         hold off;
 % 
 %         nlf = nonlinfit(r.data.freq2 - const.f_Rb_groundHFS/1e6,r.data.N/max(r.data.N));
 %         nlf.setFitFunc(@(A,R,x0,x) A*4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*215/2).^2);

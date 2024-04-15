@@ -132,9 +132,19 @@ tPulse = (0: dt :width)';
 tPulse = [0;  tPulse + OffInstructionDuration; tPulse(end) + 2*OffInstructionDuration];
 t = repmat(tPulse,1,numPulses);
 
+% for  nn = 1:numPulses
+%     t(:,nn) = t(:,nn) + t0 + (nn-1)*T + (nn~=3)*(nn-1)*width + (nn==3)*(nn-1)*width;
+% end
+
 for  nn = 1:numPulses
-    t(:,nn) = t(:,nn) + t0 + (nn-1)*T + (nn~=3)*(nn-1)*width + (nn==3)*(nn-1)*width;
+    if numPulses == 1
+        nn = find(power1 ~= 0);
+        t(:,1) = t(:,1) + t0 + (nn-1)*T + (nn~=3)*(nn-1)*width + (nn==3)*(nn-1)*width;
+    else
+        t(:,nn) = t(:,nn) + t0 + (nn-1)*T + (nn~=3)*(nn-1)*width + (nn==3)*(nn-1)*width;
+    end
 end
+
 t = t(:);
 
 %% Create Noise 
@@ -163,7 +173,12 @@ I_factor = I_Ramp_factor.*I_Noise_factor;
 %
 [P,ph,freq] = deal(zeros(numel(t),2));
 for nn = 1:numPulses
-    t_RisingEdge = t0 + (nn-1)*T + (nn~=3)*(nn-1)*width + (nn==3)*(nn-1)*width;
+    if numPulses == 1
+        nn = find(power1 ~= 0);
+        t_RisingEdge = t0 + (nn-1)*T + (nn~=3)*(nn-1)*width + (nn==3)*(nn-1)*width;
+    else
+        t_RisingEdge = t0 + (nn-1)*T + (nn~=3)*(nn-1)*width + (nn==3)*(nn-1)*width;
+    end
     %
     % Set powers
     %

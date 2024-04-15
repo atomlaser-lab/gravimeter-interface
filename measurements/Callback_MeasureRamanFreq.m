@@ -1,7 +1,7 @@
 function Callback_MeasureRamanFreq(r)
 
 if r.isInit()
-    r.data.freq = 20.065 + 1e-3*const.randomize(-25:5:25);
+    r.data.freq = 20 - 315e-3 + 16e-3 + 1e-3*const.randomize(-40:4:40);
     
     r.c.setup('var',r.data.freq);
 elseif r.isSet()
@@ -13,7 +13,7 @@ elseif r.isSet()
 elseif r.isAnalyze()
     i1 = r.c(1);
     pause(0.5 + 0.5*rand);
-    img = Abs_Analysis_DualState_RT('last');
+    img = Abs_Analysis('last');
     if ~img(1).raw.status.ok()
         %
         % Checks for an error in loading the files (caused by a missed
@@ -40,7 +40,7 @@ elseif r.isAnalyze()
     
     figure(97);clf;
     subplot(1,2,1)
-    plot(r.data.freq(1:i1),r.data.N(1:i1,:),'o');
+    scatter(r.data.freq(1:i1),r.data.N(1:i1,:),'filled');
     plot_format('Freq [MHz]','Number','',12);
 %     h = legend('m = -1','m = 0','m = 1');
 %     set(h,'Location','West');
@@ -50,7 +50,7 @@ elseif r.isAnalyze()
     ylim([0,Inf]);
     
     subplot(1,2,2)
-    plot(r.data.freq(1:i1),r.data.Rsum(1:i1,:),'o');
+    scatter(r.data.freq(1:i1),r.data.R(1:i1,:),'filled');
     hold off;
     plot_format('Freq [MHz]','Population','',12);
 % %     h = legend('m = -1','m = 0','m = 1');
@@ -63,10 +63,10 @@ elseif r.isAnalyze()
 %         sgtitle(caption)
 %     end
     if r.c(1) > 4
-        nlf = nonlinfit(r.data.freq(1:r.c(1)),r.data.Rsum(:,1),1e-2);
+        nlf = nonlinfit(r.data.freq(1:r.c(1)),r.data.Rsum(:,2),1e-2);
         nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*50/2).^2));
         [~,idx] = min(nlf.y);
-        nlf.bounds2('A',[0.7,2,0.95],'R',[0,10,0.1]*1e-3,'x0',[min(nlf.x),max(nlf.x),nlf.x(idx)]);
+        nlf.bounds2('A',[0.5,2,0.95],'R',[0,10,0.05]*1e-3,'x0',[min(nlf.x),max(nlf.x),nlf.x(idx)]);
         nlf.fit;
         fprintf(1,'Rabi frequency: %.3f kHz, Center = %.3f kHz\n',nlf.c(2,1)*1e3,nlf.c(3,1)*1e3);
         subplot(1,2,2);

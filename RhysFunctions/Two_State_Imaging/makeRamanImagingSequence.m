@@ -83,13 +83,16 @@ end
 %Preamble
 timeAtDrop = sq.time;
 sq.find('imaging freq').set(imgFreq);
-sq.find('Top repump shutter').before(10e-3,0);
-
+sq.find('Liquid Crystal Repump').set(7);
+sq.find('Repump Amp').set(9);
+sq.find('Repump Freq').set(RunConversions.repump_freq(0));
 
 
 % Image atoms in the F = 2 manifold
 sq.anchor(timeAtDrop);
 sq.find('Imaging amp ttl').after(tof1+pulseDelay,1);
+% sq.find('repump amp ttl').after(tof1 + pulseDelay,0).before(repumpTime,1);
+% sq.find('Top repump shutter').after(tof1 + pulseDelay,1).before(repumpTime + 2e-3,0);
 sq.find(camChannel).after(tof1,1);
 sq.find('imaging amp ttl').after(pulseTime,0);
 sq.find(camChannel).after(camTime,0);
@@ -108,21 +111,11 @@ end
 % set second imaging detuning
 sq.find('imaging freq').set(imgFreq2);
 
-% Pump atoms in F = 1 into the F = 2 manifold
-if RepumpOnOff == 1
-    sq.find('liquid crystal repump').before(tof1,7);%was -2.22
-    sq.find('repump amp ttl').set(1);
-    sq.find('Repump Amp').set(9);
-    sq.find('Repump Freq').set(RunConversions.repump_freq(0));
-    sq.find('repump amp ttl').after(repumpTime,0);
-    sq.find('liquid crystal repump').after(repumpTime,-2.22);
-end
-sq.anchor(sq.latest);
-sq.delay(repumpTime);
-
 % Image atoms in the F = 1 state
 sq.anchor(timeAtDrop);
 sq.find('Imaging amp ttl').after(tof2+pulseDelay,1);
+sq.find('repump amp ttl').after(tof2 + pulseDelay,0).before(repumpTime,1);
+sq.find('Top repump shutter').after(tof2 + pulseDelay,1).before(repumpTime + 2e-3,0);
 sq.find(camChannel).after(tof2,1);
 sq.find('imaging amp ttl').after(pulseTime,0);
 sq.find(camChannel).after(camTime,0);
