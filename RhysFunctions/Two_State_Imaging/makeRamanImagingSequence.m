@@ -91,13 +91,19 @@ sq.find('Repump Freq').set(RunConversions.repump_freq(0));
 % Image atoms in the F = 2 manifold
 sq.anchor(timeAtDrop);
 sq.find('Imaging amp ttl').after(tof1+pulseDelay,1);
-% sq.find('repump amp ttl').after(tof1 + pulseDelay,0).before(repumpTime,1);
-% sq.find('Top repump shutter').after(tof1 + pulseDelay,1).before(repumpTime + 2e-3,0);
-sq.find(camChannel).after(tof1,1);
 sq.find('imaging amp ttl').after(pulseTime,0);
+sq.find(camChannel).after(tof1,1);
 sq.find(camChannel).after(camTime,0);
 
-sq.anchor(sq.latest);
+
+% Blow away F=2 atoms
+tBlow = 0.1e-3;
+sq.find('3D MOT Amp TTL').after(tof1 + camTime,1);
+sq.find('3D MOT Amp TTL').after(tBlow,0);
+sq.find('3D MOT Freq').set(RunConversions.mot_freq(0));
+sq.find('3D MOT Amp').set(5);
+% sq.find('3D MOT Amp TTL').set(0);
+
 sq.delay(RepumpDelay);
 
 % Blow away atoms
