@@ -97,12 +97,11 @@ sq.find(camChannel).after(camTime,0);
 
 
 % Blow away F=2 atoms
-tBlow = 0.1e-3;
+tBlow = tof2 - tof1 - 0.1e-3;
 sq.find('3D MOT Amp TTL').after(tof1 + camTime,1);
 sq.find('3D MOT Amp TTL').after(tBlow,0);
 sq.find('3D MOT Freq').set(RunConversions.mot_freq(0));
 sq.find('3D MOT Amp').set(5);
-% sq.find('3D MOT Amp TTL').set(0);
 
 sq.delay(RepumpDelay);
 

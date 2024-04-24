@@ -56,12 +56,11 @@ UD = @(x) x* -0.2031 + 2.707; %this converts the input value in amps to the appr
 % % Bragg Calibration data used in initSequence.
 % % For now I will simply load/set my own calibration data here. I'll create
 % % another object later
-% sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
-% sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
-% % calibData = load('RamanAOMData_formatted.mat');
-% calibData = load('RamanAOMData_11042024');
-% sq.dds(1).calibrationData = calibData.data_ch1;
-% sq.dds(2).calibrationData = calibData.data_ch2;
+sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
+sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
+calibData = load('RamanAOMHexPower_23042024.mat');
+sq.dds(1).calibrationData = calibData.data_ch1;
+sq.dds(2).calibrationData = calibData.data_ch2;
 
 %% Initialize sequence - defaults should be handled here
 sq = initSequence;
@@ -76,7 +75,7 @@ if opt.LoadOpticalTrap_status == 1 && opt.JustMOT ~= 1
 end
 
 %% Set up the MOT loading values
-sq.find('liquid crystal repump').set(3);
+sq.find('liquid crystal repump').set(7);
 sq.find('3D MOT Freq').set(convert.mot_freq(-16.75));
 sq.find('Repump freq').set(convert.repump_freq(-1.5));
 sq.find('MOT coil TTL').set(1);
@@ -126,8 +125,8 @@ if opt.PGC_status == 1
     % Turn off the repump field for optical pumping - 1 ms
     Tdepump = 1e-3;
     sq.find('repump amp ttl').set(0);
-    sq.find('Top repump shutter').set(1);
-    sq.find('liquid crystal repump').set(-2.22);
+%     sq.find('Top repump shutter').set(1);
+%     sq.find('liquid crystal repump').set(-2.22);
     sq.delay(Tdepump);
 end
 
@@ -196,14 +195,22 @@ end
 %% In Trap MW Transfer to |2,0>
 if opt.mw.enable(1) == 1
     MWDuration = 600e-6;
-    % Set bias
-    sq.find('bias e/w').before(10e-3,0);
-    sq.find('bias u/d').before(10e-3,0);
-    sq.find('bias n/s').before(10e-3,0);
-
+    InTrapDelay = 10e-3;
+    BlowDuration = 3e-3;
+    
     % Microwave Transfer
-    sq.find('state prep ttl').before(5e-3,1);
+    sq.find('state prep ttl').before(InTrapDelay,1);
     sq.find('state prep ttl').after(MWDuration,0);
+
+    % Turn on repump for in-trap blow away of remaining |1,-1> atoms
+    sq.find('Repump Amp TTL').before(InTrapDelay - MWDuration,1);
+    sq.find('Top Repump Shutter').before(InTrapDelay + 3e-3 - MWDuration,0);
+    sq.find('repump freq').before(InTrapDelay - MWDuration,convert.repump_freq(0));
+    sq.find('Repump Amp').before(InTrapDelay - MWDuration,10);
+    % turn off repump
+    sq.find('Repump Amp TTL').after(BlowDuration,0);
+    sq.find('Top Repump Shutter').after(BlowDuration,1);
+
 end
 
 
@@ -225,10 +232,10 @@ sq.find('25w amp').set(convert.dipole25(0));
 
 
 %% Raman Beam Alignment
-RamanAlignment = 0;
+RamanAlignment = 1;
 if RamanAlignment == 1
     Ch2_Pratio = 1;
-    Ch1_Pratio = 1;
+    Ch1_Pratio = 0.5;
 
     % % % Inputs
     % Timing
@@ -260,82 +267,32 @@ end
 
 %% Microwave/Raman Stuff
 % % % Inputs
-MWDelay = -5e-3;
-MWDuration = 600*1e-6;
-MagDelay = 0*1e-3;
-EWBias = 0;
-
-SGDelay = 17e-3;
-SGDuration = 2e-3;
-
-BlowAway1Delay = 1e-3;
-BlowAway1Duration = 2e-3;
-
-% % % % % % % % % % % %
-TwoStateImaging = 1;
+TwoStateImaging = 0;
 
 RamanTOF = 0.5*1e-3;
 RamanPulseWidth = 5*1e-6;
 dt = 1e-6;
 
-% dt = max(round(RamanPulseWidth*1e6/10)*1e-6,1e-6);
-BeamPower1 = 0.01;
-BeamPower2 = 0;
-% delta = -20.24;
-delta = opt.params;
+BeamPower1 = 1;
+BeamPower2 = BeamPower1;
+delta = 20;
 phi_2 = 0;
-
-triggerDelay = 1e-3;
-TriggerDuration = 10e-3;
 
 T_Sep = 0.25e-3;
 Pulse1OnOff = 1;
 Pulse2OnOff = 0;
 
-% % % % % % % % % % % %
-
 BlowAway2Delay = 0.1e-3;
 BlowAway2Duration = 1e-3;
 
 % OnOff
-BlowAway1 = 0;
 Raman = 0;
 BlowAway2 = 0;
+% % % % % % % % % % % %
+
+
 
 % % % % Sequence
-% % MW from |-1,-1> -> |2,0>
-% if opt.mw.enable(2) == 1
-%     sq.anchor(timeAtDrop);
-%     % Set bias
-%     sq.find('bias e/w').before(MagDelay,EWBias);
-%     sq.find('bias u/d').before(MagDelay,0); %%% This could be wrong. Previous operation was at zero VOLTS not amps
-%     sq.find('bias n/s').set(0);
-% 
-%     % Microwave Transfer
-%     sq.delay(MWDelay); % delay to prevent state-changing collisions
-%     sq.find('state prep ttl').set(1);
-%     sq.delay(MWDuration);
-%     sq.find('state prep ttl').set(0);
-% 
-%     % return bias to zero
-%     %     sq.find('bias e/w').after(1e-3,0);
-%     sq.delay(BlowAway1Delay);
-%     sq.find('bias e/w').before(MagDelay,0);
-% end
-
-% Repump light blow away of |-1,-1> atoms
-if BlowAway1 == 1
-    sq.find('liquid crystal repump').set(7);
-    sq.find('Top Repump Shutter').set(0);
-    sq.find('Repump Amp TTL').set(1);
-    sq.find('Repump Amp').set(10);
-    sq.find('Repump Freq').set(RunConversions.repump_freq(0));
-    sq.delay(BlowAway1Duration);
-
-    sq.find('Repump Amp TTL').set(0);
-    sq.find('Top Repump Shutter').set(1);
-    %     sq.find('liquid crystal repump').set(-2.22);
-end
 
 % Stern-Gerlach pulse to test MW transfer
 if opt.mw.enable_sg == 1
@@ -344,6 +301,10 @@ if opt.mw.enable_sg == 1
     % moment.  A ramp is used to ensure that the magnetic states
     % adiabatically follow the magnetic field
     %
+    SGDelay = 17e-3;
+    SGDuration = 2e-3;
+
+
     sq.anchor(timeAtDrop + SGDelay);
     sq.find('mot coil ttl').set(1);
     t = linspace(0,SGDuration,20);
@@ -356,6 +317,8 @@ end
 
 % Raman transfer from |2,0> to |1,0>
 if Raman == 1
+    triggerDelay = 1e-3;
+    TriggerDuration = 10e-3;
     % % % Pulse 1
     sq.anchor(timeAtDrop + RamanTOF);
     sq.find('Raman DDS Trig').before(TriggerDuration + triggerDelay,1);

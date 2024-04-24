@@ -12,6 +12,8 @@ repumpFreq = 4.3;
 imgFreq = 8.5;
 manifold = 1;
 includeDarkImage = false;
+repumpShutterDelay = 2e-3;
+liquidCrystalDelay = 12e-3;
 if mod(numel(varargin),2) ~= 0
     error('Input arguments must be in name/value pairs');
 else
@@ -45,6 +47,10 @@ else
                 manifold = v;
             case 'includedarkimage'
                 includeDarkImage = v;
+            case 'repumpshutterdelay'
+                repumpShutterDelay = v;
+            case 'liquidcrystaldelay'
+                liquidCrystalDelay = v;
             otherwise
                 error('Unsupported option %s',p);
         end
@@ -77,23 +83,15 @@ sq.find('imaging freq').set(imgFreq);
 %If manifold is set to image F = 1 state, enable repump. Otherwise,
 %disable repumping
 if imgType == 0 && manifold == 1
-    if tof <15e-3
-        sq.find('Top repump shutter').after(5e-3,0);
-        sq.find('liquid crystal repump').after(5e-3,7);
-    else
-        sq.find('Top repump shutter').after(tof-10e-3,0);
-        sq.find('liquid crystal repump').after(tof-12e-3,7);
+    if tof < repumpShutterDelay
+        warning('TOF is less than repump shutter delay: problems may occur while imaging F=1 atoms');
     end
-    %     sq.find('liquid crystal repump').set(7);%was -2.22
-    %     sq.find('liquid crystal repump').after(15e-3,7);%was -2.22
-    %     sq.find('2D MOT Amp TTL').after(tof-repumpTime-repumpDelay-1e-3,1);
-    %     sq.find('2D MOT freq').after(tof-repumpTime-repumpDelay-1e-3,8.4); %for
+    sq.find('top repump shutter').after(tof - repumpShutterDelay,0);
+    sq.find('liquid crystal repump').after(tof - liquidCrystalDelay,7);
+
 
     sq.find('repump amp ttl').after(tof-repumpTime-repumpDelay,1);
     sq.find('repump amp ttl').after(repumpTime,0);
-
-%     sq.find('2D MOT Amp TTL').after(repumpTime+1e-3,0);
-%     sq.find('2D MOT freq').after(repumpTime+1e-3,7.65);
 
     if ~isempty(repumpFreq)
         sq.find('repump freq').after(tof-repumpTime-repumpDelay,repumpFreq);
@@ -101,7 +99,7 @@ if imgType == 0 && manifold == 1
 
 elseif imgType == 1 && manifold == 1
     sq.find('Top repump shutter').after(tof-0e-3,0);
-    sq.find('liquid crystal repump').after(tof-30e-3,-2.22);
+    sq.find('liquid crystal repump').after(tof-30e-3,-2.3);
 
     sq.find('drop repump').after(tof-repumpTime-repumpDelay,1);
     sq.find('drop repump').after(repumpTime,0);
