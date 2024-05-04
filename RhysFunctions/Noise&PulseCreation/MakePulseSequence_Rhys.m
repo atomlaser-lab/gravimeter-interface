@@ -198,6 +198,11 @@ for nn = 1:numPulses
     % Set phases
     %
     ph(idx,2) = appliedPhase(nn);
+%     xTemp = 1:(size(ph,1)-2);
+%     Ramp = xTemp*(appliedPhase(nn)/size(ph,1));
+%     ph(idx,2) = Ramp;
+
+
     %
     % Set frequencies. Channel 1 corresponds to the sideband, channel 2 to
     % the carrier. AOMs are aligned for the +1 order.  If using the +1

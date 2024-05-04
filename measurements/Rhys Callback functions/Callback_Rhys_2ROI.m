@@ -8,12 +8,12 @@ function Callback_Rhys_2ROI(r)
 
 % % % Inputs
 ClearImage = 0;
-FigNum = 5;
+FigNum = 7;
 % TOF = 216.5e-3;
-TOF = 36e-3;
+TOF = 33e-3;
 
-Title = 'Raman: AOM Power = 1, Pulse = 100 us, TOF = 16.5 ms';
-Param = sort(unique((-0.1:0.01:0.1)));
+Title = 'Raman';
+Param = (0:5:90)*pi/180;
 
 ParamName = '4*AOM Setting (MHz)';
 
@@ -35,7 +35,7 @@ elseif r.isAnalyze()
     i1 = r.c(1);
     i2 = 1;
     pause(0.1 + 0.5*rand);
-    img = Abs_Analysis_GUI('last',1);
+    img = Abs_Analysis('last',1);
     if ~img(1).raw.status.ok()
         %
         % Checks for an error in loading the files (caused by a missed

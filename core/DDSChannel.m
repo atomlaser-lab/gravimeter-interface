@@ -171,7 +171,11 @@ classdef DDSChannel < TimingControllerChannel
         
         function amp = opticalToHex(P,varargin)
             data = varargin{1};
-            P = P.*max(data.optical_power);
+            [~,k] = sort(data.amp);
+            data.amp = data.amp(k);data.optical_power = data.optical_power(k);
+            [max_optical_power,idx] = max(data.optical_power);
+            data.amp = data.amp(1:idx);data.optical_power = data.optical_power(1:idx);
+            P = P.*max_optical_power;
             amp = interp1(data.optical_power,data.amp,P,'pchip');
         end
     end

@@ -5,7 +5,7 @@ XLabel = 'Pulse Duration [us]';
 
 
 if r.isInit()
-    r.data.duration = 90:5:200;
+    r.data.duration = [10:10:200,300,500];
     
     r.c.setup('var',r.data.duration);
 elseif r.isSet()
@@ -53,7 +53,7 @@ elseif r.isAnalyze()
 %     set(h,'Location','West');
     title(' Raman frequency using fit over OD')
     grid on
-    hold on;
+%     hold on;
     ylim([0,Inf]);
     
     subplot(1,2,2)
@@ -73,7 +73,7 @@ elseif r.isAnalyze()
     if r.c(1) > 4
         nlf = nonlinfit(r.data.duration(1:r.c(1)),r.data.Rsum(:,2),1e-2);
         nlf.setFitFunc(@(A,R,D,x) A*(1 - 4*R.^2./(4*R^2+D.^2).*sin(2*pi*sqrt(4*R^2+D.^2).*x/2).^2));
-        nlf.bounds2('A',[0.5,1,2],'R',[0,10,0.03]*1e-3,'D',[-0.01,0.01,0]);
+        nlf.bounds2('A',[0.5,1,2],'R',[0,1,0.03]*1e-3,'D',[-0.01,0.01,0]);
         nlf.fit;
         fprintf(1,'Rabi frequency: %.3f kHz, Detuning = %.3f kHz\n',nlf.c(2,1)*1e3,nlf.c(3,1)*1e3);
         subplot(1,2,2);

@@ -1,23 +1,46 @@
 function varargout = makeSequence(varargin)
-%% Parse input arguments
-opt = SequenceOptions;
 
-if nargin == 1
-    %
-    % If first argument is of type GravimeterOptions, use that
-    %
-    if ~isa(varargin{1},'SequenceOptions')
-        error('If using one argument it must be of type SequenceOptions');
+%% New parse inputs
+% %% comment out below parse inputs for this old script to work
+allVarNames = evalin('base', 'who');
+seqOptVarIndices = cellfun(@(varName) isa(evalin('base', varName), 'SequenceOptions'), allVarNames);
+seqOptVarNames = allVarNames(seqOptVarIndices);
+
+if isempty(seqOptVarNames)
+    if  nargin ==1 && ~exist(varargin{1},'var')
+        error('define the sequence option variable name first');
     end
-    opt = opt.replace(varargin{1}); 
-elseif mod(nargin,2) == 0
-    opt.set(varargin{:});
-elseif mod(nargin - 1,2) == 0 && isa(varargin{1},'SequenceOptions')
-    opt = opt.replace(varargin{1});
-    opt.set(varargin{2:end});    
-else 
-    error('You must supply either a SequenceOptions object, a set of name/value pairs for options, or a SequenceOptions object followed by name/value pairs');
+    % Create a new instance of SequenceOptions if it does not exist
+    opt = SequenceOptions;
+    cprintf('Keywords','Initialising Sequence Options\n')
+    assignin('base', 'opt', opt);
+else
+    if numel(seqOptVarNames) > 1
+        error('Multiple SequenceOptions found in the workspace');
+    end
+    % Use the existing instance of SequenceOptions
+    opt = evalin('base', seqOptVarNames{1});
 end
+
+%% Parse input arguments
+% opt = SequenceOptions;
+% 
+% if nargin == 1
+%     %
+%     % If first argument is of type GravimeterOptions, use that
+%     %
+%     if ~isa(varargin{1},'SequenceOptions')
+%         error('If using one argument it must be of type SequenceOptions');
+%     end
+%     opt = opt.replace(varargin{1}); 
+% elseif mod(nargin,2) == 0
+%     opt.set(varargin{:});
+% elseif mod(nargin - 1,2) == 0 && isa(varargin{1},'SequenceOptions')
+%     opt = opt.replace(varargin{1});
+%     opt.set(varargin{2:end});    
+% else 
+%     error('You must supply either a SequenceOptions object, a set of name/value pairs for options, or a SequenceOptions object followed by name/value pairs');
+% end
 
 %% Create conversion object
 convert = RunConversions;
@@ -270,17 +293,17 @@ end
 % from the time at which the atoms are dropped to when the first
 % imaging pulse occurs
 %
-sq.anchor(timeAtDrop);
-sq.camDelay = timeAtDrop - 2;   %Set camera acquisition delay to be 2 s less than when image is taken
-if strcmpi(opt.imaging_type,'drop 1') || strcmpi(opt.imaging_type,'drop 2')
-    makeImagingSequence(sq,'type',opt.imaging_type,'tof',opt.tof,...
-        'repump Time',100e-6,'pulse Delay',10e-6,'pulse time',[],...
-        'imaging freq',imageVoltage,'repump delay',10e-6,'repump freq',4.3,...
-        'manifold',1,'includeDarkImage',true,'cycle time',150e-3);
-elseif strcmpi(opt.imaging_type,'drop 3') || strcmpi(opt.imaging_type,'drop 4')
-    makeFMISequence(sq,'tof',opt.tof,'offset',30e-3,'duration',100e-3,...
-        'imaging freq',imageVoltage,'manifold',1);
-end
+% sq.anchor(timeAtDrop);
+% sq.camDelay = timeAtDrop - 2;   %Set camera acquisition delay to be 2 s less than when image is taken
+% if strcmpi(opt.imaging_type,'drop 1') || strcmpi(opt.imaging_type,'drop 2')
+%     makeImagingSequence(sq,'type',opt.imaging_type,'tof',opt.tof,...
+%         'repump Time',100e-6,'pulse Delay',10e-6,'pulse time',[],...
+%         'imaging freq',imageVoltage,'repump delay',10e-6,'repump freq',4.3,...
+%         'manifold',1,'includeDarkImage',true,'cycle time',150e-3);
+% elseif strcmpi(opt.imaging_type,'drop 3') || strcmpi(opt.imaging_type,'drop 4')
+%     makeFMISequence(sq,'tof',opt.tof,'offset',30e-3,'duration',100e-3,...
+%         'imaging freq',imageVoltage,'manifold',1);
+% end
 
 %% Automatic save of run
 %

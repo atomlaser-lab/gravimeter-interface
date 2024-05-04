@@ -9,10 +9,10 @@ function Callback_Rhys_MW(r)
 % % % Inputs
 ClearImage = 0;
 FigNum = 5;
-TOF = 36e-3;
+TOF = 34e-3;
 
 Title = 'Microwave Transfer';
-Param = sort(unique((8.5:0.1:9.5)));
+Param = -6:0.2:-4;
 
 ParamName = 'MW Frequency';
 Unit = ' (kHz)';  %do not forget to put a space before the unit

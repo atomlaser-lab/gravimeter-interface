@@ -2,12 +2,10 @@ function Callback_MeasureMWFreq(r)
 
 if r.isInit()
     
-    r.data.df = const.randomize(15:0.5:20); %in kHz %broad scan
+    r.data.df = const.randomize(5:0.5:10); %in kHz %broad scan
 %     r.data.df = const.randomize(-2:0.25:2); %in kHz %small scan
 
-    r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + r.data.df*1e-3;
-%     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3  + 4.5e-3*ones(size(r.data.df));
-%     r.data.freq2 = const.f_Rb_groundHFS/1e6 + r.data.df*1e-3;
+    r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 - r.data.df*1e-3;
     r.data.freq2 = const.f_Rb_groundHFS/1e6*ones(size(r.data.df));
     
     r.c.setup('var',r.data.df);
@@ -28,7 +26,7 @@ elseif r.isAnalyze()
     pause(0.1 + 0.5*rand);
     
     
-    img = Abs_Analysis_DualState_RT('last');
+    img = Abs_Analysis('last');
     if ~img(1).raw.status.ok()
         %
         % Checks for an error in loading the files (caused by a missed
@@ -93,8 +91,8 @@ elseif r.isAnalyze()
     hold on;
     
     if r.c(1) > 4
-        nlf = nonlinfit(r.data.df(1:r.c(1))*1e-3,r.data.R(:,2),1e-2);
-        nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*536/2).^2));
+        nlf = nonlinfit(r.data.df(1:r.c(1))*1e-3,r.data.R(:,1),1e-2);
+        nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*600/2).^2));
         [~,idx] = min(nlf.y);
         nlf.bounds2('A',[0.5,1,1.5],'R',[0,10,0.2]*1e-3,'x0',[min(nlf.x),max(nlf.x),nlf.x(idx)]);
         nlf.fit;

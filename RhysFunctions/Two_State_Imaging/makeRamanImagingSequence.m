@@ -14,9 +14,10 @@ includeDarkImage = true;
 
 RepumpDelay = 1e-3;
 cycleTime = 100e-3;
+repumpShutterDelay = 2e-3;
+liquidCrystalDelay = 12e-3;
 
 % % On/Off Options
-BlowAway = 0;
 RepumpOnOff = 1;
 
 
@@ -90,41 +91,33 @@ sq.find('Repump Freq').set(RunConversions.repump_freq(0));
 
 % Image atoms in the F = 2 manifold
 sq.anchor(timeAtDrop);
-sq.find('Imaging amp ttl').after(tof1+pulseDelay,1);
-sq.find('imaging amp ttl').after(pulseTime,0);
-sq.find(camChannel).after(tof1,1);
-sq.find(camChannel).after(camTime,0);
+sq.find('imaging amp ttl').after(tof1+pulseDelay,1).after(pulseTime,0);
+sq.find(camChannel).after(tof1,1).after(camTime,0);
 
+% set second imaging detuning with lots of time for VCO to change
+sq.find('imaging freq').set(imgFreq2);
 
 % Blow away F=2 atoms
-tBlow = tof2 - tof1 - 0.1e-3;
-sq.find('3D MOT Amp TTL').after(tof1 + camTime,1);
-sq.find('3D MOT Amp TTL').after(tBlow,0);
+% tBlow = tof2 - tof1 - 0.1e-3;
+if (tof2 - tof1) < 2e-3
+    warning('Difference between TOF1 and TOF2 is less than 2 ms, may interfere with F = 2 blow away pulse');
+end
+tBlow = 2e-3;
+blowDelay = 10e-6;
+sq.find('3D MOT Amp TTL').after(tof1 + camTime + blowDelay,1).after(tBlow,0);
 sq.find('3D MOT Freq').set(RunConversions.mot_freq(0));
 sq.find('3D MOT Amp').set(5);
 
 sq.delay(RepumpDelay);
 
-% Blow away atoms
-if BlowAway == 1
-    sq.find('Imaging amp ttl').set(1);
-    sq.delay(2.5e-3);
-    sq.find('Imaging amp ttl').set(0);
-    sq.delay(1e-3);
-end
 
-% set second imaging detuning
-sq.find('imaging freq').set(imgFreq2);
 
 % Image atoms in the F = 1 state
 sq.anchor(timeAtDrop);
-sq.find('Imaging amp ttl').after(tof2+pulseDelay,1);
-sq.find('repump amp ttl').after(tof2 + pulseDelay,0).before(repumpTime,1);
-sq.find('Top repump shutter').after(tof2 + pulseDelay,1).before(repumpTime + 2e-3,0);
-sq.find(camChannel).after(tof2,1);
-sq.find('imaging amp ttl').after(pulseTime,0);
-sq.find(camChannel).after(camTime,0);
-
+sq.find('Imaging amp ttl').after(tof2+pulseDelay,1).after(pulseTime,0);
+sq.find(camChannel).after(tof2,1).after(camTime,0);
+sq.find('repump amp ttl').after(tof2 - pulseDelay,0).before(repumpTime,1);
+sq.find('Top repump shutter').after(tof2 - pulseDelay - repumpShutterDelay,0).after(repumpTime+repumpShutterDelay,1);
 sq.anchor(sq.latest);
 sq.delay(cycleTime);
 

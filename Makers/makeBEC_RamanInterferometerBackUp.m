@@ -1,7 +1,4 @@
-function sq = makeBEC_Raman4(varargin)
-
-% This Transfers atoms from |1,-1> to |2,0>
-
+function sq = makeBEC_RamanInterferometerBackUp(varargin)
 % Check if any variable is an instance of SequenceOptions
 % Get all variable names in the workspace
 allVarNames = evalin('base', 'who');
@@ -53,28 +50,22 @@ end
 %% Create a conversion object to handle conversions to volts
 convert = RunConversions;
 imageVoltage = convert.imaging(opt.detuning);
+UD = @(x) x* -0.2031 + 2.707; %this converts the input value in amps to the appropriate voltage
+
 %% Initialize sequence - defaults should be handled here
 sq = initSequence;
 
-% Bragg Calibration data used in initSequence.
-% For now I will simply load/set my own calibration data here. I'll create
-% another object later
-sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
-sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_DBM_INTERP;
-% calibData = load('RamanAOMData_formatted.mat');
-calibData = load('RamanAOMData_11042024');
+% % Bragg Calibration data used in initSequence.
+% % For now I will simply load/set my own calibration data here. I'll create
+% % another object later
+sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
+sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
+calibData = load('raman-aom-calibration-29-04-2024.mat');
 sq.dds(1).calibrationData = calibData.data_ch1;
 sq.dds(2).calibrationData = calibData.data_ch2;
 
-%    U/D bias field converter to amps to volts (possible values are -0.58 A to 14 A) which corresponds to a voltage from (2.823V to -0.14V)
-UD = @(x) x* -0.2031 + 2.707; %this converts the input value in amps to the appropriate voltage
-% UDreverse = @(y) y*-4.924 + 13.33; %This is just the inverted function to get the amps out of the voltage in case needed.
-sq.find('liquid crystal repump').set(3);
-sq.find('Top repump shutter').set(0);
-
+timeAtStart = sq.time;
 sq.find('Imaging Freq').set(convert.imaging(opt.detuning));
-sq.find('3D MOT Freq').set(convert.mot_freq(-16.75));    %Use -17 MHz for 4 s loading times,
-sq.find('Repump freq').set(convert.repump_freq(-1.5)); %2 %-1.5
 
 if opt.LoadOpticalTrap_status == 1 && opt.JustMOT ~= 1
     sq.find('50w ttl').set(1);
@@ -82,19 +73,19 @@ if opt.LoadOpticalTrap_status == 1 && opt.JustMOT ~= 1
     sq.find('50w amp').set(convert.dipole50(35)); %22 %35
     sq.find('25w amp').set(convert.dipole25(20)); %17 %22 %20
 end
+
 %% Set up the MOT loading values
-
-sq.find('MOT coil TTL').set(1);     %Turn on the MOT coils
-sq.find('3d coils').set(0.15); %42
-sq.find('bias u/d').set(0); %-1
-% sq.find('bias e/w').set(4);
+sq.find('liquid crystal repump').set(7);
+sq.find('3D MOT Freq').set(convert.mot_freq(-16.75));
+sq.find('Repump freq').set(convert.repump_freq(-1.5));
+sq.find('MOT coil TTL').set(1);
+sq.find('3d coils').set(0.15);
+sq.find('bias u/d').set(0);
+sq.find('bias e/w').set(0);
 sq.find('bias n/s').set(0);
-
-Tmot = opt.MOT_LoadTime;                           %6 s MOT loading time
-sq.delay(Tmot);                     %Wait for Tmot
+sq.delay(opt.MOT_LoadTime);
 
 %% Compressed MOT stage
-
 if opt.CMOT_status == 1
     % %Turn off the 2D MOT and push beam 10 ms before the CMOT stage
     sq.find('2D MOT Amp TTL').before(10e-3,0);
@@ -102,24 +93,19 @@ if opt.CMOT_status == 1
 
     %Increase the cooling and repump detunings to reduce re-radiation
     %pressure, and weaken the trap
-    sq.find('3D MOT freq').set(convert.mot_freq(-22)); %-18 %-19 %-21
+    sq.find('3D MOT freq').set(convert.mot_freq(-22));
     sq.find('repump freq').set(convert.repump_freq(-8));
     sq.find('3D coils').set(0.17);
-    % sq.find('bias e/w').set(4);
-    sq.find('bias n/s').set(0); %7
+    sq.find('bias e/w').set(0);
+    sq.find('bias n/s').set(0);
     sq.find('bias u/d').set(0);
 
-    %
-    Tcmot = 13*1e-3;                      %12.5 ms CMOT stage
-    sq.delay(Tcmot);                    %Wait for time Tcmot
-
+    sq.delay(13*1e-3);
 end
 
 %% PGC stage
 if opt.PGC_status == 1
-
-    Tpgc = 20*1e-3; %20 ms
-    %Define a function giving a 100 point smoothly varying curve
+    Tpgc = 20*1e-3;
     t = linspace(0,Tpgc,50);
     f = @(vi,vf) sq.linramp(t,vi,vf);
 
@@ -129,23 +115,18 @@ if opt.PGC_status == 1
     sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),0));
     sq.find('repump freq').set(convert.repump_freq(-9));
 
-
     sq.find('bias u/d').set(3);
     sq.find('bias e/w').set(0);
     sq.find('bias n/s').set(0);
 
     sq.delay(Tpgc);
+
     % Turn off the repump field for optical pumping - 1 ms
     Tdepump = 1e-3;
     sq.find('repump amp ttl').set(0);
-    sq.find('Top repump shutter').set(1);
-    sq.find('liquid crystal repump').set(-2.22);
-    % sq.find('bias u/d').set(3);
-    % sq.find('bias e/w').set(0);
-    % sq.find('bias n/s').set(0);
+    sq.find('Top repump shutter').before(2e-3,1);
     sq.delay(Tdepump);
-end %end PGC
-
+end
 
 %% Load into magnetic trap
 if opt.LoadMagTrap_status == 1 && opt.JustMOT ~= 1
@@ -159,86 +140,97 @@ end
 
 %% Microwave evaporation
 if opt.MagEvaporation_status == 1 && opt.JustMOT ~= 1
-    % Provide detunings in MHz from the Rb hyperfine splitting
     sq.delay(22*1e-3);
-    evapRate = 14; %10 %12
-    evapStart = 40; %37
+    evapRate = 14;
+    evapStart = 40;
     evapEnd = 8;
     Tevap = (evapStart-evapEnd)/evapRate;
     t = linspace(0,Tevap,100);
     sq.find('mw freq').after(t,convert.microwave(sq.linramp(t,evapStart,evapEnd)));
     sq.find('mw amp ttl').set(1);
     sq.delay(Tevap);
-    % sq.find('mw amp ttl').set(0);
-    % sq.delay(3);
-
-end %end MagEvaporation
+end
 
 %% Weaken trap while MW frequency fixed
 if opt.LoadOpticalTrap_status == 1 && opt.JustMOT ~= 1
-    dipoleposition_test = 0;
+    Trampcoils = 180e-3;
+    t = linspace(0,Trampcoils,100);
+    sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),0.5));
+    sq.find('bias e/w').after(t,sq.minjerk(t,sq.find('bias e/w').values(end),0));
+    sq.find('bias n/s').after(t,sq.minjerk(t,sq.find('bias n/s').values(end),0));
+    sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),0));
+    sq.delay(Trampcoils);
 
-    if dipoleposition_test == 0
-        Trampcoils = 180e-3;
-        t = linspace(0,Trampcoils,100);
-        sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),0.5)); %0.4
-        sq.find('bias e/w').after(t,sq.minjerk(t,sq.find('bias e/w').values(end),0));
-        sq.find('bias n/s').after(t,sq.minjerk(t,sq.find('bias n/s').values(end),0));
-        sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),0));
-        sq.delay(Trampcoils);
-
-        %Hold as atoms fall out of trap
-        sq.delay(120e-3);
-
-
-    elseif dipoleposition_test == 1
-        Trampcoils = 180e-3;
-        t = linspace(0,Trampcoils,100);
-        sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),0.45));%.45
-        sq.delay(Trampcoils);
-        sq.find('3d coils').set(-.1);
-        %         sq.find('bias e/w').after(t,sq.minjerk(t,sq.find('bias e/w').values(end),0));
-        %         sq.find('bias n/s').after(t,sq.minjerk(t,sq.find('bias n/s').values(end),0));
-        %         sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),3));
-        sq.delay(22.5e-3);
-    end
+    %Hold as atoms fall out of trap
+    sq.delay(120e-3);
 end
-
-
-
 
 %% Optical evaporation
 if opt.OpticalEvaporation_status == 1 && opt.JustMOT ~= 1
     % Ramp down magnetic trap in 1 s
-
-    Trampcoils = 0.9; %.8
+    Trampcoils = 0.9;
     t = linspace(0,Trampcoils,100);
-    sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),0.1)); %0.14
+    sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
     sq.find('mw amp ttl').anchor(sq.find('3d coils').last).before(100e-3,0);
     sq.find('mot coil ttl').at(sq.find('3d coils').last,0);
     % %
     % % At the same time, start optical evaporation
     % %
-    sq.delay(5*1e-3); %10
+    sq.delay(5*1e-3);
     Tevap =2.5;
     t = linspace(0,Tevap,100);
-    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.5),.42)); %1.6 %1.53
-    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.40),.7)); %1.26 %1.28 %1.46
+    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.5+0.2),.42));
+    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.5+0.2),.7));
 
     sq.find('bias e/w').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias e/w').values(end),0));
     sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),0));
     sq.find('bias u/d').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias u/d').values(end),0));
     sq.delay(Tevap);
+
+    %% In Trap Blow away F = 2 atoms
+    time_at_evap_end = sq.time;
+    sq.anchor(time_at_evap_end - (Tevap - 0.5));
+    sq.find('3D MOT Amp TTL').set(1);
+    sq.find('3D MOT Amp').set(5);
+    sq.delay(100e-6);
+    sq.find('3D MOT Amp TTL').set(0);
+    sq.find('3D MOT Amp').set(0);
+    sq.anchor(time_at_evap_end);
+
 end
 
-%% Drop atoms
-% sq.find('mot coil ttl').set(0);
-% sq.find('3D Coils').set(convert.mot_coil(0));
-% sq.delay(35e-3 - opt.tof);
 
-timeAtDrop = sq.time; %Store the time when the atoms are dropped for later
+
+%% In Trap MW Transfer to |2,0>
+if opt.mw.enable(1) == 1
+    MWDuration = 568e-6;
+    InTrapDelay = 5e-3;%10e-3
+    BlowDuration = 3e-3;
+    
+    % Microwave Transfer
+    sq.find('state prep ttl').before(InTrapDelay,1);
+    sq.find('state prep ttl').after(MWDuration,0);
+
+    % Turn on repump for in-trap blow away of remaining |1,-1> atoms
+    sq.find('Repump Amp TTL').before(InTrapDelay - MWDuration,1);
+    sq.find('Top Repump Shutter').before(InTrapDelay + 3e-3 - MWDuration,0);
+    sq.find('repump freq').before(InTrapDelay - MWDuration,convert.repump_freq(0));
+    sq.find('Repump Amp').before(InTrapDelay - MWDuration,10);
+    % turn off repump
+    sq.find('Repump Amp TTL').after(BlowDuration,0);
+%     sq.find('Top Repump Shutter').after(BlowDuration,1);
+
+%     sq.find('Bias E/W').before(BlowDuration,10);
+%     sq.find('Bias N/S').before(BlowDuration,5);
+%     sq.find('Bias U/D').before(BlowDuration,1);
+
+end
+
+
+%% Drop atoms
+timeAtDrop = sq.time;
 sq.anchor(timeAtDrop);
-% sq.find('DDS trig').set(0).after(10e-3,1);
+
 sq.find('3D mot amp ttl').set(0);
 sq.find('bias e/w').before(200e-3,0);
 sq.find('bias n/s').before(200e-3,0);
@@ -252,41 +244,66 @@ sq.find('50w amp').set(convert.dipole50(0));
 sq.find('25w amp').set(convert.dipole25(0));
 
 
+%% Raman Beam Alignment
+RamanAlignment = 0;
+if RamanAlignment == 1
+    Ch2_P = 0.5;
+    Ch1_P = 0.5;
+
+    % % % Inputs
+    % Timing
+    TriggerDuration = 1e-3; 
+    triggerDelay = 1e-3; 
+    PulseWidth = 1000*1e-6; %start large and make smaller as you align
+    dt = 100e-6;
+    TOF = -PulseWidth;
+
+    % Pulse Parameters    
+    delta = 0;
+
+    % Trigger DDS
+    if mod(triggerDelay,1e-6) < 1e-6 && mod(triggerDelay,1e-6) ~= 0
+        error('DDS Error: Trigger Delay requires DDS timing resolution less than 1 us')
+    end
+    sq.anchor(timeAtDrop + TOF);
+
+    sq.find('Raman DDS Trig').before(TriggerDuration,1);
+    sq.find('Raman DDS Trig').after(TriggerDuration,0);
+    sq.ddsTrigDelay = timeAtDrop + TOF - triggerDelay;
+
+    sq.anchor(timeAtDrop + TOF);
+    sq.find('repump amp ttl').set(1);
+    sq.find('Repump Amp').set(10);
+    sq.find('repump freq').set(convert.repump_freq(0));
+    sq.find('repump amp ttl').after(PulseWidth+2e-6,0);
+
+    
+    sq.anchor(timeAtDrop);
+
+    MakePulseSequence_Rhys(sq.dds,'k',5,'t0',TOF,'T',1e-3,'width',PulseWidth,'dt',dt,...
+        'phase',[0,0,0],'chirp',5,'delta',delta,...
+        'power1',1*[Ch1_P,0,0],'power2',1*[Ch2_P,0,0],'PulseType','Square');
+end
+
 %% Microwave/Raman Stuff
 % % % Inputs
-% opt.tof = 36e-3;
-
-MWDelay = 4e-3;
-MWDuration = 536e-6;
-MagDelay = 0*1e-3;
-
-SGDelay = 17e-3;
-SGDuraiton = 2e-3;
-
-BlowAway1Delay = 1e-3;
-BlowAway1Duration = 2e-3;
-
-% % % % % % % % % % % % 
 TwoStateImaging = 1;
-BiasPrep = 10e-3;
-BiasDelay = 2.5e-3;
-EWBias = 0;
-NSBias = 0;
-% EWBias = 0.6;
-% NSBias = 7;
 
-RamanTOF = 16.5*1e-3;
-RamanPulseWidth = 50*1e-6;
-dt = max(round(RamanPulseWidth*1e6/10)*1e-6,1e-6);
-BeamPower1 = 1;
-BeamPower2 = BeamPower1;
-% delta = -0.326;
-delta = opt.params;
+RamanTOF = 1*1e-3;
+RamanPulseWidth = 50e-6;
+dt = 1e-6;
 
-triggerDelay = 1e-3;
-TriggerDuration = 10e-3;
+BeamPower1 = 0.10001;
+BeamPower2 = 0.10001;
+% delta = 20 - 315e-3 - 4e-3 + opt.params;
+delta = 20 + opt.params;
 
-% % % % % % % % % % % % 
+phi_1 = 0;
+phi_2 = 0;
+
+T_Sep = 0.25e-3;
+Pulse1OnOff = 1;
+Pulse2OnOff = 0;
 
 BlowAway2Delay = 0.1e-3;
 BlowAway2Duration = 1e-3;
@@ -294,19 +311,11 @@ BlowAway2Duration = 1e-3;
 % OnOff
 Raman = 0;
 BlowAway2 = 0;
+% % % % % % % % % % % %
 
-% % Timing error checks
-if Raman + BlowAway2 ~= 0
-    if RamanTOF < (MWDelay + MWDuration) + (BlowAway1Delay + BlowAway1Duration)
-        error('Raman pulse occurs before MW/blow away1')
-    end
-    
-    if opt.tof < (RamanTOF + RamanPulseWidth) + (BlowAway2Delay + BlowAway2Duration)
-        error('Imaging starts before Raman is complete')
-    end
-end
 
-%%% Sequence 
+
+% % % % Sequence
 
 % Stern-Gerlach pulse to test MW transfer
 if opt.mw.enable_sg == 1
@@ -315,28 +324,26 @@ if opt.mw.enable_sg == 1
     % moment.  A ramp is used to ensure that the magnetic states
     % adiabatically follow the magnetic field
     %
+%     SGDelay = 17e-3;
+%     SGDuration = 2e-3;
+    SGDelay = 3e-3;
+    SGDuration = 8e-3;
+
     sq.anchor(timeAtDrop + SGDelay);
     sq.find('mot coil ttl').set(1);
-    t = linspace(0,SGDuraiton,20);
-    sq.find('3d coils').after(t,convert.mot_coil(sq.linramp(t,0,5.5)));
+    t = linspace(0,SGDuration,40);
+    sq.find('3d coils').after(t,convert.mot_coil(sq.linramp(t,0,5)));%5.5
     sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
-    sq.delay(2*SGDuraiton);
+    sq.delay(2*SGDuration);
     sq.find('mot coil ttl').set(0);
     sq.find('3d coils').set(convert.mot_coil(0));
 end
 
-% Raman transfer from |2,0> to |1,0> 
+% Raman transfer from |2,0> to |1,0>
 if Raman == 1
-    %inputs
-
-    sq.anchor(timeAtDrop + RamanTOF);
-    sq.find('bias e/w').before(BiasPrep,EWBias);
-    sq.find('Bias N/S').before(BiasPrep,NSBias);
-
-    sq.delay(BiasDelay);
-    sq.find('bias e/w').set(0);
-    sq.find('Bias N/S').set(0);    
-
+    triggerDelay = 1e-3;
+    TriggerDuration = 10e-3;
+    % % % Pulse 1
     sq.anchor(timeAtDrop + RamanTOF);
     sq.find('Raman DDS Trig').before(TriggerDuration + triggerDelay,1);
     sq.find('Raman DDS Trig').after(TriggerDuration,0);
@@ -345,16 +352,23 @@ if Raman == 1
     sq.anchor(timeAtDrop);
     chirp = 25.106258428e6;
     k = 22.731334388721734;
-    MakePulseSequence_Rhys(sq.dds,'k',k,'t0',RamanTOF,'T',1e-3,'width',RamanPulseWidth,'dt',dt,...
-        'phase',[0,0,0],'chirp',chirp,'delta',delta,...
-        'power1',[BeamPower1,0,0],'power2',[BeamPower2,0,0],'PulseType','Square');
-
-    sq.anchor(timeAtDrop + RamanTOF + RamanPulseWidth);
-    sq.find('bias e/w').set(0);
+    if Pulse1OnOff == 1 && Pulse2OnOff == 0
+        MakePulseSequence_Rhys(sq.dds,'k',k,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
+            'phase',[phi_1,phi_2,0],'chirp',chirp,'delta',delta,...
+            'power1',[BeamPower1,0,0],'power2',[BeamPower2,0,0],'PulseType','Square');
+    elseif Pulse1OnOff == 0 && Pulse2OnOff == 1
+        MakePulseSequence_Rhys(sq.dds,'k',k,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
+            'phase',[phi_1,phi_2,0],'chirp',chirp,'delta',delta,...
+            'power1',[0,BeamPower1,0],'power2',[0,BeamPower2,0],'PulseType','Square');
+    elseif Pulse1OnOff == 1 && Pulse2OnOff == 1
+        MakePulseSequence_Rhys(sq.dds,'k',k,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
+            'phase',[phi_1,phi_2,0],'chirp',chirp,'delta',delta,...
+            'power1',[BeamPower1,BeamPower1,0],'power2',[BeamPower2,BeamPower2,0],'PulseType','Square');
+    end
 
 end
 
-% Trapping light blow away |2,0> atoms 
+% Trapping light blow away |2,0> atoms
 if BlowAway2 == 1
     sq.anchor(timeAtDrop + RamanTOF + RamanPulseWidth + BlowAway2Delay);
     sq.find('3D MOT Amp').set(5);
@@ -391,7 +405,7 @@ elseif strcmpi(Abs_Analysis_parameters.camera,'drop 3') || strcmpi(Abs_Analysis_
     makeFMISequence(sq,'tof',opt.tof,'offset',30e-3,'duration',100e-3,...
         'imaging freq',imageVoltage,'manifold',1);
 end
-
+sq.find('Liquid Crystal Repump').at(timeAtDrop,7);
 
 %% Automatic start
 %If no output argument is requested, then compile and run the above
@@ -403,4 +417,13 @@ if nargout == 0
 else
     varargout{1} = sq;
 end
+end
+
+
+
+
+
+function ErrorCheck()
+
+
 end
