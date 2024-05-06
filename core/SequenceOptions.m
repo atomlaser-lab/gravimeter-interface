@@ -28,6 +28,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
         MagneticInsensitive_status
 
         JustMOT
+        TwoStateImaging
         % These are sub-groupings of options
         %
         raman
@@ -53,7 +54,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
             %SETDEFAULTS Set default property values
             self.detuning = 0;
             self.dipoles = 1.35;
-            self.tof = 216.5e-3;
+            self.tof = 25e-3;
 %             self.imaging_type = 'drop 2';
             self.params = [];
             self.MOT_LoadTime = 4;
@@ -68,7 +69,9 @@ classdef SequenceOptions < SequenceOptionsAbstract
             self.OpticalEvaporation_status = 1;
             self.BECCompression_status = 0;
             self.MagneticInsensitive_status = 0;
+            
             self.JustMOT = 0;
+            self.TwoStateImaging = 0;
 
             self.raman.setDefaults;
             self.bragg.setDefaults;

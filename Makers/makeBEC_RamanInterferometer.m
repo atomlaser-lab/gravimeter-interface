@@ -214,7 +214,7 @@ if opt.mw.enable(1) == 1 % % % Transfer to |1,-1> from |2,0>
 end
 if opt.mw.enable(2) == 1 % % % Transfer to |2,0> from |1,0>
     sq.anchor(time_at_evap_end);    
-    sq.find('R&S list step trig').before(InTrapDelay2+30e-3,0);
+    sq.find('R&S list step trig').before(InTrapDelay2+40e-3,0);
     sq.find('state prep ttl').before(InTrapDelay2,1).after(MW2Duration,0);
 
     % % % Turn on trap for in-trap blow away of remaining F = 2 atoms
@@ -240,59 +240,17 @@ sq.find('50w amp').set(convert.dipole50(0));
 sq.find('25w amp').set(convert.dipole25(0));
 
 
-%% Raman Beam Alignment
-RamanAlignment = 0;
-if RamanAlignment == 1
-    Ch2_P = 0.5;
-    Ch1_P = 0.5;
-
-    % % % Inputs
-    % Timing
-    TriggerDuration = 1e-3; 
-    triggerDelay = 1e-3; 
-    PulseWidth = 1000*1e-6; %start large and make smaller as you align
-    dt = 100e-6;
-    TOF = -PulseWidth;
-
-    % Pulse Parameters    
-    delta = 0;
-
-    % Trigger DDS
-    if mod(triggerDelay,1e-6) < 1e-6 && mod(triggerDelay,1e-6) ~= 0
-        error('DDS Error: Trigger Delay requires DDS timing resolution less than 1 us')
-    end
-    sq.anchor(timeAtDrop + TOF);
-
-    sq.find('Raman DDS Trig').before(TriggerDuration,1);
-    sq.find('Raman DDS Trig').after(TriggerDuration,0);
-    sq.ddsTrigDelay = timeAtDrop + TOF - triggerDelay;
-
-    sq.anchor(timeAtDrop + TOF);
-    sq.find('repump amp ttl').set(1);
-    sq.find('Repump Amp').set(10);
-    sq.find('repump freq').set(convert.repump_freq(0));
-    sq.find('repump amp ttl').after(PulseWidth+2e-6,0);
-
-    
-    sq.anchor(timeAtDrop);
-
-    MakePulseSequence_Rhys(sq.dds,'k',5,'t0',TOF,'T',1e-3,'width',PulseWidth,'dt',dt,...
-        'phase',[0,0,0],'chirp',5,'delta',delta,...
-        'power1',1*[Ch1_P,0,0],'power2',1*[Ch2_P,0,0],'PulseType','Square');
-end
-
-%% Microwave/Raman Stuff
+%% Raman Stuff
 % % % Inputs
-TwoStateImaging = 1;
+Raman = 0;
 
-RamanTOF = 1*1e-3;
-RamanPulseWidth = 50e-6;
+RamanTOF = 0*1e-3;
+RamanPulseWidth = 100*1e-6;
 dt = 1e-6;
 
-BeamPower1 = 0.10001;
-BeamPower2 = 0.10001;
-% delta = 20 - 315e-3 - 4e-3 + opt.params;
-delta = 20 + opt.params;
+BeamPower1 = 0.5;
+BeamPower2 = BeamPower1;
+delta = 20 + opt.params*1e-3;
 
 phi_1 = 0;
 phi_2 = 0;
@@ -300,16 +258,6 @@ phi_2 = 0;
 T_Sep = 0.25e-3;
 Pulse1OnOff = 1;
 Pulse2OnOff = 0;
-
-BlowAway2Delay = 0.1e-3;
-BlowAway2Duration = 1e-3;
-
-% OnOff
-Raman = 0;
-BlowAway2 = 0;
-% % % % % % % % % % % %
-
-
 
 % % % % Sequence
 
@@ -364,16 +312,6 @@ if Raman == 1
 
 end
 
-% Trapping light blow away |2,0> atoms
-if BlowAway2 == 1
-    sq.anchor(timeAtDrop + RamanTOF + RamanPulseWidth + BlowAway2Delay);
-    sq.find('3D MOT Amp').set(5);
-    sq.find('3D MOT Amp TTL').set(1);
-    sq.find('3D MOT Freq').set(RunConversions.mot_freq(0));
-    sq.delay(BlowAway2Duration);
-    sq.find('3D MOT Amp TTL').set(0);
-end
-
 %% Imaging stage
 %
 % Image the atoms.  Reset the pointer for the whole sequence to when
@@ -386,7 +324,7 @@ Abs_Analysis_parameters.camera = evalin('base', 'Abs_Analysis_parameters.camera'
 sq.anchor(timeAtDrop);
 sq.camDelay = timeAtDrop - 2;   %Set camera acquisition delay to be 2 s less than when image is taken
 if strcmpi(Abs_Analysis_parameters.camera,'in-trap') || strcmpi(Abs_Analysis_parameters.camera,'drop 2')
-    if TwoStateImaging == 1
+    if opt.TwoStateImaging == 1
         makeRamanImagingSequence(sq,'type',Abs_Analysis_parameters.camera,...
             'tof1',opt.tof,'repump delay',0.5e-3,'tof2',opt.tof+opt.misc.tof2,'cycle time',150e-3,...
             'repump Time',200e-6,'pulse Delay',10e-6,'pulse time',10e-6,...

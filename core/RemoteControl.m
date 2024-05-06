@@ -52,7 +52,7 @@ classdef RemoteControl < handle
             self.connected = false;
             self.mode = self.INIT;
             self.status = self.STOPPED;
-            self.makerCallback = @makeBEC_scratch;
+            self.makerCallback = @makeBEC_RamanInterferometer;
             self.c = RolloverCounter();
             self.err = RemoteControlErrorHandler;
             self.reset;

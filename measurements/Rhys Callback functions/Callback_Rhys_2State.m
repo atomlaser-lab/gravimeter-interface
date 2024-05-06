@@ -1,22 +1,26 @@
 function Callback_Rhys_2State(r)
 
 % % Inputs
-ClearImage = 1;
+ClearImage = 0;
 FigNum = 5;
-Title = 'MW Transfer';
-Param = 0:20:1000;
+Title = 'Raman: P_T = 18 mW, I2/I1 = 2.82, P_{AOM} = 0.25,\tau 100 us, 1x Mag';
+Param = 0:50:700;
 PlotParam = Param;
-ParamName = '\tau [us]';
+ParamName = ScanableParameters.TwoPhoton;
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 2;
+
 
 
 if r.isInit()
     r.data.Param = Param;
     r.data.PlotParam = PlotParam;
     r.c.setup('var',r.data.Param);
-
+    if ClearImage == 1
+        figure(FigNum);clf
+        figure(FigNum+1);clf
+    end
 elseif r.isSet()
     r.make(r.devices.opt,'params',r.data.Param(r.c(1)));
     r.upload;
@@ -95,31 +99,48 @@ elseif r.isAnalyze()
     end
 
 
-    figure(FigNum);clf
+
+
+
+
+
+    %% Plots
+    figure(FigNum);
     subplot(1,2,1)
+    if i1 == 1
+        hold on;
+    end
     scatter(r.data.PlotParam(1:i1),r.data.N(1:i1,:),'filled');
     plot_format(ParamName,'Number','',12);
-    title(' Raman frequency using fit over OD')
+    sgtitle(Title)
     grid on
     ylim([0,Inf]);
     legend('F2','F1')
     
     subplot(1,2,2)
-    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,:));
+    if i1 == 1
+        hold on;
+    end
+    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,:),'filled');
+    hold on
+    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,:),'filled','pentagram');
     plot_format(ParamName,'Population','',12);
     grid on;
 
 
     maxlength = max(numel(img(1).clouds),numel(img(2).clouds));
-    figure(FigNum+1);clf
-    sgtitle('All ROI')
+    figure(FigNum+1);
+    sgtitle(append(Title,': All ROI'))
     for ii = 1:numel(img(1).clouds)
-        subplot(maxlength,2,ii*2-1)
-        scatter(r.data.PlotParam(1:i1), r.data.F2.(F2Name{ii}).Rsum)
+        subplot(maxlength,2,ii*2-1);
+        if i1 == 1
+            hold on;
+        end
+        scatter(r.data.PlotParam(1:i1), r.data.F2.(F2Name{ii}).Rsum,'filled')
         hold on
-        scatter(r.data.PlotParam(1:i1),r.data.F2.(F2Name{ii}).R)
-        if max(r.data.F2.(F2Name{ii}).Rsum) < 0.5
-            ylim([0,0.5])
+        scatter(r.data.PlotParam(1:i1),r.data.F2.(F2Name{ii}).R,'filled')
+        if max(r.data.F2.(F2Name{ii}).Rsum) < 0.1
+            ylim([0,0.1])
         else
             ylim([0,1])
         end
@@ -134,12 +155,15 @@ elseif r.isAnalyze()
         end
     end
     for ii = 1:numel(img(2).clouds)
-        subplot(maxlength,2,ii*2)
-        scatter(r.data.PlotParam(1:i1),r.data.F1.(F1Name{ii}).Rsum)
+        subplot(maxlength,2,ii*2);
+        if i1 == 1
+            hold on;
+        end
+        scatter(r.data.PlotParam(1:i1),r.data.F1.(F1Name{ii}).Rsum,'filled')
         hold on
-        scatter(r.data.PlotParam(1:i1),r.data.F1.(F1Name{ii}).R)
-        if max(r.data.F1.(F1Name{ii}).Rsum) < 0.5
-            ylim([0,0.5])
+        scatter(r.data.PlotParam(1:i1),r.data.F1.(F1Name{ii}).R,'filled')
+        if max(r.data.F1.(F1Name{ii}).Rsum) < 0.1
+            ylim([0,0.1])
         else
             ylim([0,1])
         end        
