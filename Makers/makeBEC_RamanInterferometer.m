@@ -194,7 +194,7 @@ end
 %% In Trap MW Transfer: |1,-1> -> |2,0> -> |1,0>
     % % % Inputs
     % pulse 1
-    MW1Duration = 568e-6;
+    MW1Duration = 565*1e-6;
     InTrapDelay1 = 100e-3;
     BlowDuration1 = 3e-3;
     % pulse 2
@@ -239,18 +239,25 @@ sq.find('50w ttl').set(0);
 sq.find('50w amp').set(convert.dipole50(0));
 sq.find('25w amp').set(convert.dipole25(0));
 
+%% ARP pulse
+ARP = 0;
+
+if ARP == 1
+    
+
+end
 
 %% Raman Stuff
 % % % Inputs
-Raman = 0;
+Raman = 1;
 
-RamanTOF = 0*1e-3;
-RamanPulseWidth = 100*1e-6;
+RamanTOF = 3*1e-3;
+RamanPulseWidth = opt.params*1e-6;
 dt = 1e-6;
 
-BeamPower1 = 0.5;
-BeamPower2 = BeamPower1;
-delta = 20 + opt.params*1e-3;
+Ch1Power = 0.1;
+Ch2Power = Ch1Power;
+delta = 20 + 40*1e-3;
 
 phi_1 = 0;
 phi_2 = 0;
@@ -258,6 +265,13 @@ phi_2 = 0;
 T_Sep = 0.25e-3;
 Pulse1OnOff = 1;
 Pulse2OnOff = 0;
+
+% Bias fields
+BiasUD = 4;
+BiasNS = 9;
+BiasEW = 0;
+RamanBiasDelay = 10e-3;
+
 
 % % % % Sequence
 
@@ -268,15 +282,27 @@ if opt.mw.enable_sg == 1
     % moment.  A ramp is used to ensure that the magnetic states
     % adiabatically follow the magnetic field
     %
-%     SGDelay = 17e-3;
-%     SGDuration = 2e-3;
-    SGDelay = 3e-3;
+%     % % %     % works with 25 ms tof
+%     SGDelay = 3e-3;
+%     SGDuration = 8e-3;
+% 
+%     sq.anchor(timeAtDrop + SGDelay);
+%     sq.find('mot coil ttl').set(1);
+%     t = linspace(0,SGDuration,40);
+%     sq.find('3d coils').after(t,convert.mot_coil(sq.linramp(t,0,5)));%5.5
+%     sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
+%     sq.delay(2*SGDuration);
+%     sq.find('mot coil ttl').set(0);
+%     sq.find('3d coils').set(convert.mot_coil(0));
+
+    % % %     % works with 25 ms tof
+    SGDelay = 7e-3;
     SGDuration = 8e-3;
 
     sq.anchor(timeAtDrop + SGDelay);
     sq.find('mot coil ttl').set(1);
     t = linspace(0,SGDuration,40);
-    sq.find('3d coils').after(t,convert.mot_coil(sq.linramp(t,0,5)));%5.5
+    sq.find('3d coils').after(t,convert.mot_coil(sq.linramp(t,0,6.5)));%5.5
     sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
     sq.delay(2*SGDuration);
     sq.find('mot coil ttl').set(0);
@@ -293,21 +319,29 @@ if Raman == 1
     sq.find('Raman DDS Trig').after(TriggerDuration,0);
     sq.ddsTrigDelay = timeAtDrop + RamanTOF - triggerDelay;
 
+
+    sq.anchor(timeAtDrop + RamanTOF);
+    % % % % Turn on magnetic fields
+    sq.find('Bias U/D').before(RamanBiasDelay,BiasUD).after(RamanPulseWidth + RamanBiasDelay,0);
+    sq.find('Bias N/S').before(RamanBiasDelay,BiasNS).after(RamanPulseWidth + RamanBiasDelay,0);
+    sq.find('Bias E/W').before(RamanBiasDelay,BiasEW).after(RamanPulseWidth + RamanBiasDelay,0);
+
+    % % % % Make Raman pulse(s)
     sq.anchor(timeAtDrop);
     chirp = 25.106258428e6;
     k = 22.731334388721734;
     if Pulse1OnOff == 1 && Pulse2OnOff == 0
         MakePulseSequence_Rhys(sq.dds,'k',k,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
             'phase',[phi_1,phi_2,0],'chirp',chirp,'delta',delta,...
-            'power1',[BeamPower1,0,0],'power2',[BeamPower2,0,0],'PulseType','Square');
+            'power1',[Ch1Power,0,0],'power2',[Ch2Power,0,0],'PulseType','Square');
     elseif Pulse1OnOff == 0 && Pulse2OnOff == 1
         MakePulseSequence_Rhys(sq.dds,'k',k,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
             'phase',[phi_1,phi_2,0],'chirp',chirp,'delta',delta,...
-            'power1',[0,BeamPower1,0],'power2',[0,BeamPower2,0],'PulseType','Square');
+            'power1',[0,Ch1Power,0],'power2',[0,Ch2Power,0],'PulseType','Square');
     elseif Pulse1OnOff == 1 && Pulse2OnOff == 1
         MakePulseSequence_Rhys(sq.dds,'k',k,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
             'phase',[phi_1,phi_2,0],'chirp',chirp,'delta',delta,...
-            'power1',[BeamPower1,BeamPower1,0],'power2',[BeamPower2,BeamPower2,0],'PulseType','Square');
+            'power1',[Ch1Power,Ch1Power,0],'power2',[Ch2Power,Ch2Power,0],'PulseType','Square');
     end
 
 end

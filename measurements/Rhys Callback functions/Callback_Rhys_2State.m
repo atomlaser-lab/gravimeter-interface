@@ -1,12 +1,18 @@
 function Callback_Rhys_2State(r)
 
 % % Inputs
-ClearImage = 0;
+ClearImage = 1;
 FigNum = 5;
-Title = 'Raman: P_T = 18 mW, I2/I1 = 2.82, P_{AOM} = 0.25,\tau 100 us, 1x Mag';
-Param = 0:50:700;
+% Title = 'Raman: P_T = 10 mW, P_{AOM} = 1,\delta = 50 us, 3x Mag, t_0 = 3 ms';          % Scan Delta
+% Title = 'Raman: P_T = 10 mW, P_{AOM} = 1,\tau = 30 kHz, 3x Mag, t_0 = 3 ms';          % Scan tau
+% Title = 'Raman: P_T = 10 mW, P_{AOM} = 1,\tau = 30 kHz, \delta = 50 us, 3x Mag, t_0 = 3 ms';          % Scan other
+Title = 'Pumping: P_T = 6.8 mW, P_{AOM} = 1,\tau = 20 kHz, 3x Mag, t_0 = 3 ms';          % Scan other
+SubTitle = 'Ch2 off: Sideband on, carrier off';
+
+Param = 0:10:100;
+% Param = [0:5:15 20:1:100];
 PlotParam = Param;
-ParamName = ScanableParameters.TwoPhoton;
+ParamName = ScanableParameters.PulseDuration;
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 2;
@@ -105,14 +111,14 @@ elseif r.isAnalyze()
 
 
     %% Plots
-    figure(FigNum);
+    figure(FigNum);clf
     subplot(1,2,1)
     if i1 == 1
         hold on;
     end
     scatter(r.data.PlotParam(1:i1),r.data.N(1:i1,:),'filled');
     plot_format(ParamName,'Number','',12);
-    sgtitle(Title)
+    sgtitle({['{\bf\fontsize{14}' Title '}'],SubTitle});  
     grid on
     ylim([0,Inf]);
     legend('F2','F1')
@@ -129,8 +135,8 @@ elseif r.isAnalyze()
 
 
     maxlength = max(numel(img(1).clouds),numel(img(2).clouds));
-    figure(FigNum+1);
-    sgtitle(append(Title,': All ROI'))
+    figure(FigNum+1);clf
+    sgtitle({['{\bf\fontsize{14}' Title '}'],append(SubTitle,': All ROI')});  
     for ii = 1:numel(img(1).clouds)
         subplot(maxlength,2,ii*2-1);
         if i1 == 1
@@ -139,11 +145,11 @@ elseif r.isAnalyze()
         scatter(r.data.PlotParam(1:i1), r.data.F2.(F2Name{ii}).Rsum,'filled')
         hold on
         scatter(r.data.PlotParam(1:i1),r.data.F2.(F2Name{ii}).R,'filled')
-        if max(r.data.F2.(F2Name{ii}).Rsum) < 0.1
-            ylim([0,0.1])
-        else
-            ylim([0,1])
-        end
+%         if max(r.data.F2.(F2Name{ii}).Rsum) < 0.1
+%             ylim([0,0.1])
+%         else
+%             ylim([0,1])
+%         end
         ylabel('Pop')
         if ii == 1
             title(sprintf('F = 2 atoms \n ROI %g',ii))
@@ -162,11 +168,11 @@ elseif r.isAnalyze()
         scatter(r.data.PlotParam(1:i1),r.data.F1.(F1Name{ii}).Rsum,'filled')
         hold on
         scatter(r.data.PlotParam(1:i1),r.data.F1.(F1Name{ii}).R,'filled')
-        if max(r.data.F1.(F1Name{ii}).Rsum) < 0.1
-            ylim([0,0.1])
-        else
-            ylim([0,1])
-        end        
+%         if max(r.data.F1.(F1Name{ii}).Rsum) < 0.1
+%             ylim([0,0.1])
+%         else
+%             ylim([0,1])
+%         end        
         if ii == 1
             title(sprintf('F = 1 atoms \n ROI %g',ii))
         else

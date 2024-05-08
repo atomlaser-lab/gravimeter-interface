@@ -45,6 +45,7 @@ disp(['Moglabs DDS connected: ', '192.168.1.100'])
 % % % Just enter the address to reduce start up time
 m = mku('192.168.1.10');
 m.writeList((const.f_Rb_groundHFS/1e6 + [-315e-3+4e-3,0.069e-3])/2*1e6); %values subject to change day to day and dependng on mag field
+r.devices.mku = m;
 % Display a success message for mku connection
 % disp(['Microwave Synthetizer mku connected. IP address: ', mkuipAddress])
 disp(['Microwave Synthetizer mku connected. IP address: ', '192.168.1.10'])

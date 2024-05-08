@@ -6,7 +6,7 @@ FigNum = 5;
 TOF = 25e-3;
 
 Title = 'In Trap MW Transfer';
-Param = -3:0.2:3;
+Param = -0.3:0.1:0.3;
 ParamName = 'df (kHz)';
 
 % % % If there are multiple ROIs, what do you want to count?
@@ -14,7 +14,7 @@ F2_ROI = 3;
 F1_ROI = 2;
 
 if r.isInit()
-    r.data.freq1 = const.f_Rb_groundHFS - 315e3 - 6.6e3;
+    r.data.freq1 = const.f_Rb_groundHFS - 315e3 - 8e3;
     r.data.freq2 = const.f_Rb_groundHFS + Param*1e3;
     r.data.Param = Param;
     r.c.setup('var',r.data.Param);
@@ -122,7 +122,7 @@ elseif r.isAnalyze()
         scatter(r.data.Param(1:i1), r.data.F2.(F2Name{ii}).Rsum)
         hold on
         scatter(r.data.Param(1:i1),r.data.F2.(F2Name{ii}).R)
-        if max(r.data.F1.(F1Name{ii}).Rsum) < 0.5
+        if max(r.data.F2.(F2Name{ii}).Rsum) < 0.5
             ylim([0,0.5])
         else
             ylim([0,1])
@@ -142,7 +142,8 @@ elseif r.isAnalyze()
             ylim([0,0.5])
         else
             ylim([0,1])
-        end        title(sprintf('ROI %g',ii))
+        end        
+        title(sprintf('ROI %g',ii))
         ylabel('Pop')
         if ii == numel(img(1).clouds)
             xlabel(ParamName)

@@ -1,4 +1,4 @@
-function MakePulseSequence_Rhys(dds,varargin)
+function MakeARPPulse_Rhys(dds,varargin)
 
 %% Set up default variables and parse inputs
 f = 384.224e12;
