@@ -6,13 +6,13 @@ FigNum = 5;
 % Title = 'Raman: P_T = 10 mW, P_{AOM} = 1,\delta = 50 us, 3x Mag, t_0 = 3 ms';          % Scan Delta
 % Title = 'Raman: P_T = 10 mW, P_{AOM} = 1,\tau = 30 kHz, 3x Mag, t_0 = 3 ms';          % Scan tau
 % Title = 'Raman: P_T = 10 mW, P_{AOM} = 1,\tau = 30 kHz, \delta = 50 us, 3x Mag, t_0 = 3 ms';          % Scan other
-Title = 'Pumping: P_T = 6.8 mW, P_{AOM} = 1,\tau = 20 kHz, 3x Mag, t_0 = 3 ms';          % Scan other
-SubTitle = 'Ch2 off: Sideband on, carrier off';
+Title = 'Pumping: P_T = 6.8 mW, P_{AOM} = 0.1,\tau = 40 kHz, 1x Mag, t_0 = 3 ms';          % Scan other
+SubTitle = '';
 
-Param = 0:10:100;
+Param = [1:1:1000];
 % Param = [0:5:15 20:1:100];
 PlotParam = Param;
-ParamName = ScanableParameters.PulseDuration;
+ParamName = ScanableParameters.Run;
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 2;

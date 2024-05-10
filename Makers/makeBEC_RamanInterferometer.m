@@ -243,16 +243,36 @@ sq.find('25w amp').set(convert.dipole25(0));
 ARP = 0;
 
 if ARP == 1
+    dt = 10e-6;
+    T_ARP = 2e-3;
+    t0 = -T_ARP;
+    P_ARP = 0.4;
+    f0 = 20 + 2e-3;
+    df_max = 4e-3;
     
+    t = (0:dt:T_ARP)';
+    P = P_ARP*ones(size(t));
+    P([1,end]) = 0;
+    f = f0 + df_max*linspace(-1,1,numel(t));
+    ph = zeros(size(t));
+    t = t0 + t;
 
+    raman_trigger_delay = 50e-3;
+    sq.ddsTrigDelay = timeAtDrop - raman_trigger_delay;
+    sq.find('Raman DDS Trig').at(sq.ddsTrigDelay,0).before(50e-3,1);
+
+    freq(:,1) = DDSChannel.DEFAULT_FREQ + f/4;
+    freq(:,2) = DDSChannel.DEFAULT_FREQ - f/4;
+    sq.dds(1).after(t,freq(:,1),P,ph);
+    sq.dds(2).after(t,freq(:,2),P,ph);
 end
 
 %% Raman Stuff
 % % % Inputs
-Raman = 1;
+Raman = 0;
 
 RamanTOF = 3*1e-3;
-RamanPulseWidth = opt.params*1e-6;
+RamanPulseWidth = 50*1e-6;
 dt = 1e-6;
 
 Ch1Power = 0.1;

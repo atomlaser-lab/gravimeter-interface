@@ -71,7 +71,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
             self.MagneticInsensitive_status = 0;
             
             self.JustMOT = 0;
-            self.TwoStateImaging = 0;
+            self.TwoStateImaging = 1;
 
             self.raman.setDefaults;
             self.bragg.setDefaults;
