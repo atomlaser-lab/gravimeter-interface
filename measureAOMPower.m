@@ -25,7 +25,7 @@ end
 for nn = 1:numel(Popt)
     try
         ch.write('signal',1,'amplifier',1,'power',P_applied(nn));
-    catch err
+    catch error
         return;
     end
     if strcmpi(ch.powunits,'dbm')

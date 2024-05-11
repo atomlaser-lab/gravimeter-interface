@@ -76,7 +76,8 @@ end
 
 %% Set up the MOT loading values
 sq.find('liquid crystal repump').set(7);
-sq.find('3D MOT Freq').set(convert.mot_freq(-16.75));
+sq.find('3D MOT Amp').set(4.2)
+sq.find('3D MOT Freq').set(convert.mot_freq(-16.75 - 0.5));
 sq.find('Repump freq').set(convert.repump_freq(-1.5));
 sq.find('MOT coil TTL').set(1);
 sq.find('3d coils').set(0.15);
@@ -95,7 +96,7 @@ if opt.CMOT_status == 1
     %pressure, and weaken the trap
     sq.find('3D MOT freq').set(convert.mot_freq(-22));
     sq.find('repump freq').set(convert.repump_freq(-8));
-    sq.find('3D coils').set(0.17);
+    sq.find('3D coils').set(RunConversions.mot_coil(1.47 + 0.3));
     sq.find('bias e/w').set(0);
     sq.find('bias n/s').set(0);
     sq.find('bias u/d').set(0);
@@ -110,13 +111,13 @@ if opt.PGC_status == 1
     f = @(vi,vf) sq.linramp(t,vi,vf);
 
     %Smooth ramps for these parameters
-    sq.find('3D MOT Amp').after(t,f(5,3.8));
+    sq.find('3D MOT Amp').after(t,f(4.2,3.8 - 0.2));
     sq.find('3D MOT Freq').after(t,f(sq.find('3D MOT Freq').values(end),convert.mot_freq(-69))); %66 for 12s
-    sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),0));
+    sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),RunConversions.mot_coil(0)));
     sq.find('repump freq').set(convert.repump_freq(-9));
 
-    sq.find('bias u/d').set(3);
-    sq.find('bias e/w').set(0);
+    sq.find('bias u/d').set(3 - 2);
+    sq.find('bias e/w').set(opt.params).after(Tpgc,0);
     sq.find('bias n/s').set(0);
 
     sq.delay(Tpgc);
