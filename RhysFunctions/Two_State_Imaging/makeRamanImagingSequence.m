@@ -83,10 +83,12 @@ end
 
 %Preamble
 timeAtDrop = sq.time;
-sq.find('imaging freq').set(imgFreq);
-sq.find('Liquid Crystal Repump').set(7);
-sq.find('Repump Amp').set(9);
-sq.find('Repump Freq').set(RunConversions.repump_freq(0));
+
+sq.anchor(timeAtDrop);
+sq.find('imaging freq').after(tof1 - 1e-3,imgFreq);
+sq.find('Liquid Crystal Repump').after(tof1 - 1e-3,7);
+sq.find('Repump Amp').after(tof1 - 1e-3,9);
+sq.find('Repump Freq').after(tof1 - 1e-3,RunConversions.repump_freq(0));
 
 
 % Image atoms in the F = 2 manifold
@@ -105,8 +107,10 @@ end
 tBlow = 2e-3;
 blowDelay = 10e-6;
 sq.find('3D MOT Amp TTL').after(tof1 + camTime + blowDelay,1).after(tBlow,0);
-sq.find('3D MOT Freq').set(RunConversions.mot_freq(0));
-sq.find('3D MOT Amp').set(5);
+% sq.find('3D MOT Freq').set(RunConversions.mot_freq(0)).after(tBlow,RunConversions.mot_freq(-70));
+% sq.find('3D MOT Amp').set(5).after(tBlow,0);
+sq.find('3D MOT Freq').after(tof1 + camTime + blowDelay,RunConversions.mot_freq(0)).after(tBlow,RunConversions.mot_freq(-70));
+sq.find('3D MOT Amp').after(tof1 + camTime + blowDelay,5).after(tBlow,0);
 
 sq.delay(RepumpDelay);
 

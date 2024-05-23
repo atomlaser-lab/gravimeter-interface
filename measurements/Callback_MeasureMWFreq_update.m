@@ -2,12 +2,12 @@ function Callback_MeasureMWFreq_update(r)
 
 if r.isInit()
     
-    r.data.df = const.randomize(-10:1:10); %in kHz %broad scan
-%     r.data.df = const.randomize(-2:0.25:2); %in kHz %small scan
-    f1 = evalin('base','f1');
-    r.data.freq1 = f1 +1e3;
+%     r.data.df = const.randomize(-10:1:10); %in kHz %broad scan
+    r.data.df = const.randomize(1.5:0.25/2:2.5); %in kHz %small scan
+%     f1 = evalin('base','f1');
+%     r.data.freq1 = f1 +1e3;
 
-%     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + (17+r.data.df)*1e-3;
+    r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + (17+r.data.df)*1e-3;
 %     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3  + 4.5e-3*ones(size(r.data.df));
 %     r.data.freq2 = const.f_Rb_groundHFS/1e6 + r.data.df*1e-3;
     r.data.freq2 = const.f_Rb_groundHFS/1e6*ones(size(r.data.df));
@@ -24,7 +24,7 @@ elseif r.isSet()
 %     r.devices.mku.writeList(r.data.freq1(r.c(1))/2*1e6,r.data.freq2(r.c(1))/2*1e6);
 %     fprintf(1,'Run %d/%d, F = %.6f kHz\n',r.c.now,r.c.total,...
 %         r.data.df(r.c(1)));
-     r.devices.mku.writeList(r.data.freq1,r.data.freq2(r.c(1))/2*1e6);
+     r.devices.mku.writeList(r.data.freq1(r.c(1))/2*1e6,r.data.freq2(r.c(1))/2*1e6);
 
 %      r.devices.mku.writeList(r.data.freq1(r.c(1)),r.data.freq2(r.c(1))/2*1e6);
     fprintf(1,'Run %d/%d, F = %.6f kHz\n',r.c.now,r.c.total,...

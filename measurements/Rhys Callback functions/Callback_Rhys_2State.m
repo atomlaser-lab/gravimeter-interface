@@ -3,16 +3,17 @@ function Callback_Rhys_2State(r)
 % % Inputs
 ClearImage = 1;
 FigNum = 5;
-% Title = 'Raman: P_T = 10 mW, P_{AOM} = 1,\delta = 50 us, 3x Mag, t_0 = 3 ms';          % Scan Delta
-% Title = 'Raman: P_T = 10 mW, P_{AOM} = 1,\tau = 30 kHz, 3x Mag, t_0 = 3 ms';          % Scan tau
-% Title = 'Raman: P_T = 10 mW, P_{AOM} = 1,\tau = 30 kHz, \delta = 50 us, 3x Mag, t_0 = 3 ms';          % Scan other
-Title = 'Pumping: P_T = 6.8 mW, P_{AOM} = 0.1,\tau = 40 kHz, 1x Mag, t_0 = 3 ms';          % Scan other
+%,\tau = 20 us
+Title = 'Pumping: P_C = 1.5*0.4 mW, P_S/P_C = 2, 3x Mag, t_0 = 0 ms, \Delta = 4 GHz, \delta = -20 - 7.8e-3';
 SubTitle = '';
+% SubTitle = 'Two-Photon Scan';
+% SubTitle = 'Pulse Duration Scan';
 
-Param = [1:1:1000];
-% Param = [0:5:15 20:1:100];
+Param = 0:40:800;
+% Param = 0:1:10;
 PlotParam = Param;
-ParamName = ScanableParameters.Run;
+ParamName = ScanableParameters.PulseDuration;
+% ParamName = 'Phase';
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 2;
@@ -42,7 +43,6 @@ elseif r.isAnalyze()
         % Create a structure for each ROI for each image
         F2field_names = arrayfun(@(x) sprintf('ROI%d', x), 1:numel(img(1).clouds), 'UniformOutput', false);
         F1field_names = arrayfun(@(x) sprintf('ROI%d', x), 1:numel(img(2).clouds), 'UniformOutput', false);
-
         r.data.F2 = cell2struct(cell(size(F2field_names)), F2field_names, 2);
         r.data.F1 = cell2struct(cell(size(F1field_names)), F1field_names, 2);
     end
@@ -90,6 +90,8 @@ elseif r.isAnalyze()
     for ii = 1:size(img(1).clouds,1)
         r.data.F2.(F2Name{ii}).N(i1,:) = img(1).clouds(ii).N;
         r.data.F2.(F2Name{ii}).Nsum(i1,:) = img(1).clouds(ii).Nsum;
+        r.data.F2.(F2Name{ii}).T(i1,:) = img(1).clouds(ii).T;
+        r.data.F2.(F2Name{ii}).OD(i1) = img(1).clouds(ii).peakOD;
 
         r.data.F2.(F2Name{ii}).R(i1,:) = img(1).clouds(ii).N/(sum(vertcat(img(1).clouds(:).N)) + sum(vertcat(img(2).clouds(:).N)));
         r.data.F2.(F2Name{ii}).Rsum(i1,:) = img(1).clouds(ii).Nsum/(sum(vertcat(img(1).clouds(:).Nsum)) + sum(vertcat(img(2).clouds(:).Nsum)));
@@ -97,8 +99,11 @@ elseif r.isAnalyze()
 
     F1Name = fieldnames(r.data.F1);
     for ii = 1:size(img(2).clouds,1)
-        r.data.F1.(F1Name{ii}).N(i1,:) = img(1).clouds(ii).N;
-        r.data.F1.(F1Name{ii}).Nsum(i1,:) = img(1).clouds(ii).Nsum;
+        r.data.F1.(F1Name{ii}).N(i1,:) = img(2).clouds(ii).N;
+        r.data.F1.(F1Name{ii}).Nsum(i1,:) = img(2).clouds(ii).Nsum;
+        r.data.F1.(F1Name{ii}).T(i1,:) = img(2).clouds(ii).T;
+        r.data.F1.(F2Name{ii}).OD(i1) = img(2).clouds(ii).peakOD;
+        
 
         r.data.F1.(F2Name{ii}).R(i1,:) = img(2).clouds(ii).N/(sum(vertcat(img(1).clouds(:).N)) + sum(vertcat(img(2).clouds(:).N)));
         r.data.F1.(F2Name{ii}).Rsum(i1,:) = img(2).clouds(ii).Nsum/(sum(vertcat(img(1).clouds(:).Nsum)) + sum(vertcat(img(2).clouds(:).Nsum)));        
@@ -127,16 +132,15 @@ elseif r.isAnalyze()
     if i1 == 1
         hold on;
     end
-    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,:),'filled');
+    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,:),100,'ColorVariable',['r','b']);
     hold on
-    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,:),'filled','pentagram');
-    plot_format(ParamName,'Population','',12);
+    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,:),20,'filled','ColorVariable',['r','b']);    plot_format(ParamName,'Population','',12);
     grid on;
 
 
     maxlength = max(numel(img(1).clouds),numel(img(2).clouds));
     figure(FigNum+1);clf
-    sgtitle({['{\bf\fontsize{14}' Title '}'],append(SubTitle,': All ROI')});  
+    sgtitle({['{\bf\fontsize{14}' Title '}'],SubTitle});  
     for ii = 1:numel(img(1).clouds)
         subplot(maxlength,2,ii*2-1);
         if i1 == 1

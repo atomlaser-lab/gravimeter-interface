@@ -4,7 +4,7 @@ function sq = initSequence
     %% Name digital channels
 
     sq.channels(1).setName('50W TTL','A0').setDefault(0);
-    sq.channels(2).setName('DDS Trig','A1').setDefault(1);
+    sq.channels(2).setName('DDS Trig','A1').setDefault(0);
     sq.channels(3).setName('50W Pilot','A2').setDefault(1);
     sq.channels(4).setName('25W TTL','A3').setDefault(0);
     sq.channels(5).setName('25W Active','A4').setDefault(1);
@@ -17,6 +17,7 @@ function sq = initSequence
     sq.channels(12).setName('Push Amp TTL','B3').setDefault(1);
     sq.channels(13).setName('Repump Amp TTL','B4').setDefault(1);
     sq.channels(14).setName('Cam Trig','B5').setDefault(0);
+%     sq.channels(14).setName('Cam Trig','D7').setDefault(0);
     sq.channels(15).setName('Drop Repump','B6').setDefault(0);
     sq.channels(16).setName('Fiber Switch Repump','B7').setDefault(0);
     sq.channels(17).setName('MOT Coil TTL','C0').setDefault(1);

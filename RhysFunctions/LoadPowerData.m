@@ -1,16 +1,15 @@
-%% Inputs
-% Ch1FileLocation = "C:\Users\Apollo\Desktop\Temp\SidebandSeedDrift.csv";
-% Ch1FileLocation = "C:\Users\Apollo\Desktop\Temp\SidebandAfterOven_CarrierOff.csv";
-Ch1FileLocation = "C:\Users\Apollo\Desktop\Temp\PowerDriftData1.csv";
-Ch2FileLocation = "C:\Users\Apollo\Desktop\Temp\PowerDriftData2.csv";
-FigNum = 10;
-Title = '0-order mode of AOMs during run';
-Title1 = 'Channel 1: carrier';
-Title2 = 'Channel 2: sideband';
 
-Row2Time = 60; %minutes
+%% Inputs
+Ch1FileLocation = "C:\Users\Apollo\Desktop\Temp\PowerMonitor\data2.csv";
+Ch2FileLocation = "C:\Users\Apollo\Desktop\Temp\PowerMonitor\data1.csv";
+FigNum = 20;
+Title = '';
+Title1 = 'Channel 1';
+Title2 = 'Channel 2';
+
+Row2Time = 15; %minutes
 Row3Time = 30; %minutes
-YLIMITS = [0.9,1.3; 0.9, 1.15; 0.9, 1.15];
+% YLIMITS = [0.9,1.3; 0.9, 1.15; 0.9, 1.15];
 %% Load Ch1
 % Load data
 if exist('Ch1FileLocation','var') == 1
@@ -125,7 +124,11 @@ Row3Index = find(TotalTime_seconds - Row3Time*60 > 0,1);
 figure(FigNum);clf
 sgtitle(Title)
 subplot(3,2,1)
-plot(TotalTime_seconds/60/60,Ch1Amplitude/(Ch1Amplitude(1)),'b')
+scatter(TotalTime_seconds/60/60,Ch1Amplitude/(Ch1Amplitude(1)),5,'k')
+hold on
+plot(TotalTime_seconds/60/60,Ch1Amplitude/(Ch1Amplitude(1)),'b','LineWidth',1)
+xlim([0,TotalTime_seconds(end)/60/60])
+% plot(TotalTime_seconds/60/60,Ch1Amplitude,'b')
 title(Title1)
 xlabel('time (hours)')
 ylabel('Amp/Amp_{0}')
@@ -134,7 +137,11 @@ if exist('YLIMITS','var') == 1
 end
 
 subplot(3,2,2)
+scatter(TotalTime_seconds/60/60,Ch2Amplitude/(Ch2Amplitude(1)),5,'k')
+hold on
 plot(TotalTime_seconds/60/60,Ch2Amplitude/(Ch2Amplitude(1)),'r')
+xlim([0,TotalTime_seconds(end)/60/60])
+
 title(Title2)
 xlabel('time (hours)')
 ylabel('Amp/Amp_{0}')
@@ -143,6 +150,8 @@ if exist('YLIMITS','var') == 1
 end
 
 subplot(3,2,3)
+scatter(TotalTime_seconds(1:Row2Index)/60,Ch1Amplitude(1:Row2Index)/(Ch1Amplitude(1)),5,'k')
+hold on
 plot(TotalTime_seconds(1:Row2Index)/60,Ch1Amplitude(1:Row2Index)/(Ch1Amplitude(1)),'b')
 xlabel('time (min)')
 ylabel('Amp/Amp_{0}')
@@ -162,6 +171,8 @@ end
 
 
 subplot(3,2,5)
+scatter(TotalTime_seconds(1:Row3Index)/60,Ch1Amplitude(1:Row3Index)/(Ch1Amplitude(1)),5,'k')
+hold on
 plot(TotalTime_seconds(1:Row3Index)/60,Ch1Amplitude(1:Row3Index)/(Ch1Amplitude(1)),'b')
 xlabel('time (min)')
 ylabel('Amp/Amp_{0}')
@@ -178,3 +189,6 @@ xlim([0,Row3Time])
 if exist('YLIMITS','var') == 1
     ylim(YLIMITS(3,:))
 end
+
+
+clear VarName1 VarName2 VarName3 Var_24Hour YLIMITS Title2 Title1 Title Row3Time Row3Index Row2Time Row2Index NewHours ii HourChangeIndex FigNum

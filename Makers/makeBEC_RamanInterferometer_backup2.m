@@ -1,4 +1,4 @@
-function sq = makeBEC_RamanInterferometerBackUp(varargin)
+function sq = makeBEC_RamanInterferometer_backup2(varargin)
 % Check if any variable is an instance of SequenceOptions
 % Get all variable names in the workspace
 allVarNames = evalin('base', 'who');
@@ -207,7 +207,7 @@ BlowDuration1 = 1.5*1e-3;
 % pulse 2
 MW2Duration = 200*1e-6;
 InTrapDelay2 = 50e-3;%10e-3
-BlowDuration2 = 5*1e-6;
+BlowDuration2 = 10*1e-6;
 
 if opt.mw.enable(1) == 1 % % % Transfer |1,-1> -> |2,0>
     sq.anchor(time_at_evap_end);
@@ -244,53 +244,6 @@ sq.find('25w ttl').set(0);
 sq.find('50w ttl').set(0);
 sq.find('50w amp').set(convert.dipole50(0));
 sq.find('25w amp').set(convert.dipole25(0));
-
-%% In trap Raman: |2,0> -> |1,0>
-
-InTrapRaman = 0;
-BlowDuration2 = 10*1e-6;
-InTrapDelay2 = 50e-3;
-RamanPulseWidth = 40*1e-6;
-dt = 1e-6;
-
-Ch1Power = 1;
-Ch2Power = Ch1Power;
-delta_inTrap = 20 - 5*1e-3;
-
-% Bias fields
-BiasUD = 2;
-BiasNS = 10;
-BiasEW = 8;
-RamanBiasDelay = 20*1e-3;
-
-triggerDelay = 1e-3;
-TriggerDuration = 10e-3;
-
-if InTrapRaman == 1 && opt.mw.enable(2) ~= 1
-    % % % Bias
-    sq.anchor(time_at_evap_end - InTrapDelay2 - RamanBiasDelay);
-    t_on = linspace(0,RamanBiasDelay,30);
-    t_off = linspace(0,5e-3,15);
-    sq.find('Bias U/D').after(t_on,sq.minjerk(t_on,sq.find('bias U/D').values(end),BiasUD)).after(t_off,sq.minjerk(t_off,sq.find('bias U/D').values(end),0));
-    sq.find('Bias N/S').after(t_on,sq.minjerk(t_on,sq.find('bias N/S').values(end),BiasNS)).after(t_off,sq.minjerk(t_off,sq.find('bias N/S').values(end),0));
-    sq.find('Bias E/W').after(t_on,sq.minjerk(t_on,sq.find('bias E/W').values(end),BiasEW)).after(t_off,sq.minjerk(t_off,sq.find('bias E/W').values(end),0));
-
-    % % % Trigger
-    sq.anchor(time_at_evap_end - InTrapDelay2);
-    sq.find('DDS Trig').before(TriggerDuration + triggerDelay,1);
-    sq.find('DDS Trig').after(TriggerDuration,0);
-    sq.ddsTrigDelay = time_at_evap_end - InTrapDelay2 - triggerDelay;
-    % % % Pulse
-    sq.anchor(time_at_evap_end - InTrapDelay2);
-    MakePulseSequence_Rhys(sq.dds,'t0',0,'T',1e-3,'width',RamanPulseWidth,'dt',dt,...
-        'phase',[0,0,0],'delta',delta_inTrap,...
-        'power1',[Ch1Power,0,0],'power2',[Ch2Power,0,0],'PulseType','Square');
-    % % % Blow away
-    sq.anchor(time_at_evap_end);
-    sq.find('3D MOT Amp TTL').before(InTrapDelay2 - RamanPulseWidth - 3e-6,1).after(BlowDuration2,0);
-    sq.find('3D MOT Amp').before(InTrapDelay2 - RamanPulseWidth - 3e-6,5).after(BlowDuration2,0);
-    sq.find('3D MOT Freq').before(InTrapDelay2 - RamanPulseWidth - 3e-6,RunConversions.mot_freq(0)).after(BlowDuration2,RunConversions.mot_freq(-75));
-end
 
 
 %% ARP pulse
@@ -329,12 +282,12 @@ Raman = 1;
 RamanTOF = 1*1e-3;
 % RamanPulseWidth = 1000*1e-3; % 9
 % dt = 100e-3;
-RamanPulseWidth = 20*1e-6; % 9
+RamanPulseWidth = opt.params*1e-6; % 9
 dt = 1e-6;
 
 Ch1Power = 1;
 Ch2Power = 1;
-delta = -20;
+delta = -20 - 20*1e-3;
 
 phi_1 = 0;
 phi_2 = 0;
@@ -344,9 +297,9 @@ Pulse1OnOff = 1;
 Pulse2OnOff = 0;
 
 % Bias fields
-BiasUD = 1; %10
+BiasUD = 8; %10
 BiasNS = 10; % 5
-BiasEW = 10; %7
+BiasEW = 0; %7
 RamanBiasDelay = 20*1e-3;
 
 
@@ -371,52 +324,10 @@ if opt.mw.enable_sg == 1
     sq.delay(2*SGDuration);
     sq.find('mot coil ttl').set(0);
     sq.find('3d coils').set(convert.mot_coil(0));
-
-    %     % % %     % works with 25 ms tof
-    %     SGDelay = 7e-3;
-    %     SGDuration = 8e-3;
-    %
-    %     sq.anchor(timeAtDrop + SGDelay);
-    %     sq.find('mot coil ttl').set(1);
-    %     t = linspace(0,SGDuration,40);
-    %     sq.find('3d coils').after(t,convert.mot_coil(sq.linramp(t,0,6.5)));%5.5
-    %     sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
-    %     sq.delay(2*SGDuration);
-    %     sq.find('mot coil ttl').set(0);
-    %     sq.find('3d coils').set(convert.mot_coil(0));
 end
-
-% Raman transfer from |2,0> to |1,0>
-if Raman == 1 && InTrapRaman == 1
-    sq.anchor(timeAtDrop + RamanTOF - RamanBiasDelay);
-    t_on = linspace(0,RamanBiasDelay,30);
-    t_off = linspace(0,5e-3,15);
-    sq.find('Bias U/D').after(t_on,sq.minjerk(t_on,sq.find('bias U/D').values(end),BiasUD)).after(t_off,sq.minjerk(t_off,sq.find('bias U/D').values(end),0));
-    sq.find('Bias N/S').after(t_on,sq.minjerk(t_on,sq.find('bias N/S').values(end),BiasNS)).after(t_off,sq.minjerk(t_off,sq.find('bias N/S').values(end),0));
-    sq.find('Bias E/W').after(t_on,sq.minjerk(t_on,sq.find('bias E/W').values(end),BiasEW)).after(t_off,sq.minjerk(t_off,sq.find('bias E/W').values(end),0));
-
-    % % % % Make Raman pulse(s)
-    sq.anchor(timeAtDrop);
-    if Pulse1OnOff == 1 && Pulse2OnOff == 0
-        MakePulseSequence_Rhys(sq.dds,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
-            'phase',[phi_1,phi_2,0],'delta',delta,...
-            'power1',[Ch1Power,0,0],'power2',[Ch2Power,0,0],'PulseType','Square');
-    elseif Pulse1OnOff == 0 && Pulse2OnOff == 1
-        MakePulseSequence_Rhys(sq.dds,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
-            'phase',[phi_1,phi_2,0],'delta',delta,...
-            'power1',[0,Ch1Power,0],'power2',[0,Ch2Power,0],'PulseType','Square');
-    elseif Pulse1OnOff == 1 && Pulse2OnOff == 1
-        MakePulseSequence_Rhys(sq.dds,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
-            'phase',[phi_1,phi_2,0],'delta',delta,...
-            'power1',[Ch1Power,Ch1Power,0],'power2',[Ch2Power,Ch2Power,0],'PulseType','Square');
-    end
-
-end
-
-
 
 % Raman transfer from |1,0> to |2,0>
-if Raman == 1 && InTrapRaman ~= 1
+if Raman == 1
 
     triggerDelay = 1e-3;
     TriggerDuration = 10e-3;

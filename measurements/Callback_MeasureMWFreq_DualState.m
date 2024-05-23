@@ -3,12 +3,12 @@ function Callback_MeasureMWFreq_DualState(r)
 if r.isInit()
     
 %     r.data.df = const.randomize(15:0.5:20); %in kHz %broad scan
-    r.data.df = const.randomize(-2:0.25:2); %in kHz %small scan
+    r.data.df = const.randomize(-5:0.25:0); %in kHz %small scan
 
-%     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + r.data.df*1e-3;
-    r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3  + 16.5e-3*ones(size(r.data.df));
-    r.data.freq2 = const.f_Rb_groundHFS/1e6 + r.data.df*1e-3;
-%     r.data.freq2 = const.f_Rb_groundHFS/1e6*ones(size(r.data.df));
+    r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + r.data.df*1e-3;
+%     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3  + 16.5e-3*ones(size(r.data.df));
+%     r.data.freq2 = const.f_Rb_groundHFS/1e6 + r.data.df*1e-3;
+    r.data.freq2 = const.f_Rb_groundHFS/1e6*ones(size(r.data.df));
     
     r.c.setup('var',r.data.df);
 elseif r.isSet()
@@ -48,10 +48,11 @@ elseif r.isAnalyze()
     
 %     Get processed data
     
-    r.data.N(i1,:) = img(2).get('N');
-    r.data.Nsum(i1,:) = img(2).get('Nsum');
+    r.data.N(i1,:) = [img(1).get('N'),img(2).get('N')];
+    r.data.Nsum(i1,:) = [img(1).get('Nsum'),img(2).get('Nsum')];
     r.data.R(i1,:) = r.data.N(i1,:)./sum(r.data.N(i1,:));
     r.data.Rsum(i1,:) = r.data.Nsum(i1,:)./sum(r.data.Nsum(i1,:));
+    r.data.R2(i1,:) = r.data.N(i1,[3,6])./sum(r.data.N(i1,[3,6]));
 % 
 %     [~,N,dout] = FMI_Analysis;
 %     r.data.N(i1,:) = [N.N1,N.N2];
@@ -61,7 +62,7 @@ elseif r.isAnalyze()
     
     figure(99);clf;
     subplot(1,2,1)
-    plot(r.data.df(1:i1),r.data.R(1:i1,:),'o');
+    plot(r.data.df(1:i1),r.data.R2(1:i1,:),'o');
 %     hold on
 %     plot(r.data.df(1:i1),r.data.Rsum(1:i1,:),'sq');
     plot_format('Freq [kHz]','Population','',12);
@@ -81,8 +82,8 @@ elseif r.isAnalyze()
     hold on;
     
     if r.c(1) > 4
-        nlf = nonlinfit(r.data.df(1:r.c(1))*1e-3,r.data.R(:,1),1e-2);
-        nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*350/2).^2));
+        nlf = nonlinfit(r.data.df(1:r.c(1))*1e-3,r.data.R2(:,2),1e-2);
+        nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*580/2).^2));
         [~,idx] = min(nlf.y);
         nlf.bounds2('A',[0.9,1,0.95],'R',[0,10,0.2]*1e-3,'x0',[min(nlf.x),max(nlf.x),nlf.x(idx)]);
         nlf.fit;
