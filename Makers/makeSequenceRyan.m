@@ -290,9 +290,6 @@ P2_max = 21;
 Ch2_AOMSetting = (P1_max*Ch1_AOMSetting*P2onP1)/P2_max;
 % Ch2_AOMSetting = 0.1;;
 
-
-% delta = -20 + 3.248e-3;
-% delta = -20 + 0.2*1e-3 - 10*1e-3;
 delta = -20 - 7.8*1e-3;
 % delta2 = 20 - 20*1e-3;
 % RamanPulseWidth2 = opt.params*1e-6;

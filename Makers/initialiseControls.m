@@ -30,15 +30,21 @@ if strcmpi(DDS,'Bragg')
     % disp(['Moglabs DDS connected: ', mogipAddress])
     disp(['Moglabs DDS connected: ', '192.168.1.4'])
 else
-    mog.connect('192.168.1.100');
+    %     mog.connect('192.168.1.100');
+    %     r.mog = mog;
+    %     disp(['Moglabs DDS connected: ', '192.168.1.100'])
+    % mog.connect(mogipAddress);
+    mog.connect('192.168.1.4');
     r.mog = mog;
-    disp(['Moglabs DDS connected: ', '192.168.1.100'])
+    % Display a success message for moglabs connection
+    % disp(['Moglabs DDS connected: ', mogipAddress])
+    disp(['Moglabs DDS connected: ', '192.168.1.4'])
 end
 %% MKU device initialization
 
 % % % Just enter the address to reduce start up time
 m = mku('192.168.1.10');
-m.writeList((const.f_Rb_groundHFS - 315e3 - 6.9e3)/2,(const.f_Rb_groundHFS)/2); 
+m.writeList((const.f_Rb_groundHFS - 315e3 - 6.9e3)/2,(const.f_Rb_groundHFS)/2);
 r.devices.mku = m;
 disp(['Microwave Synthetizer mku connected. IP address: ', '192.168.1.10'])
 
@@ -50,14 +56,14 @@ r.devices.opt = opt;
 % % Find the IP of the MTS setup redpitaya (currently rp-f082a6)
 % MTSmacaddress = '00-26-32-f0-82-a6';
 % MTSipAddress = MACtoIPFinder(MTSmacaddress,'no ping');
-% 
+%
 % % Store in IPaddresses struct
 % IPaddresses.MTS = MTSipAddress;
-% 
+%
 % % Find the IP of the FMI setup redpitaya (currently rp-f0919a)
 % FMImacaddress = '00-26-32-f0-91-9a';
 % FMIipAddress = MACtoIPFinder(FMImacaddress,'no ping');
-% 
+%
 % % Store in IPaddresses struct
 % IPaddresses.FMI = FMIipAddress;
 
@@ -94,10 +100,21 @@ if evalin('base', 'exist(''Abs_Analysis_parameters'', ''var'')')
 end
 
 % Open/reopen
-Abs_Analysis_GUI;
-set(figure(2),'WindowStyle','Docked');
-
+if strcmpi(DDS,'Bragg')
+    Abs_Analysis_GUI;
+    set(figure(2),'WindowStyle','Docked');
+else
+    Abs_Analysis_GUI 
+    close all
+    Abs_Analysis_DualState_RT('last',1);
+    set(figure(1),'WindowStyle','Docked');
+    set(figure(2),'WindowStyle','Docked');
+end
 % Display the remote control and options
 disp(r)
 disp(opt)
+
+%% set callback
+r.callback = @Callback_Rhys_2State_MW;
+
 end

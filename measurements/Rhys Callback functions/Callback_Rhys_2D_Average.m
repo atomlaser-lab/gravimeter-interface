@@ -1,59 +1,50 @@
-function Callback_Rhys_2State_Average(r)
+function Callback_Rhys_2D_Average(r)
 
 % % Inputs
 ClearImage = 1;
 FigNum = 5;
-%,\tau = 20 us
-Title = 'Pumping: P_C = 3.05*0.15 mW, P_{S} = 21.5*0.15, 3x Mag, t_0 = 0 ms, \Delta = 4 GHz, \delta = -20 + param, \tau = 200 us';          % Scan other
-SubTitle = 'EW = 10, NS = 10, UD = 1, Lin perp Lin';
 
-NumAverages = 1;
-Param = -20:1:20;
+Title = 'Pumping: P_{total} = 1 mW, P_S/P_C = 7/1, 3x Mag, t_0 = 0 us, \Delta = 4.95 GHz, \delta = -20 + param, \tau = 240 us';
+SubTitle = 'EW = scan, NS = 0, UD = 0';
+NumAverages = 4;
+Param1 = 1:1:2;
+Param2 = 3:1:5;
 
+PlotFactor1 = 1;
+PlotFactor2 = 1;
 
-PlotFactor = 1;
-ParamName = ScanableParameters.TwoPhoton;
+ParamName1 = ScanableParameters.TwoPhoton;
+ParamName2 = ScanableParameters.PulseDuration;
 % % % If there are multiple ROIs, what do you want to count?
-F2_ROI = 3;
-F1_ROI = 2;
 
 % % Sequence
 if r.isInit()
     % % % % Randomise data
-    r.data.RandomOrder = randperm(numel(Param)*NumAverages);
-    RepeatedParam = repmat(Param,1,NumAverages);
+    r.data.RandomOrder = randperm(numel(Param1)*NumAverages);
+    RepeatedParam = repmat(Param1,1,NumAverages);
     RandomData = RepeatedParam(r.data.RandomOrder);
 
     % % % Key to Sort Data
-    [r.data.ParamIndex, r.data.AvIndex] = ind2sub([numel(Param),NumAverages],r.data.RandomOrder);
+    [r.data.ParamIndex, r.data.AvIndex] = ind2sub([numel(Param1),NumAverages],r.data.RandomOrder);
 
     % % % % Stored data
-    r.data.Param = RandomData;
-    r.data.PlotParam = RandomData*PlotFactor;
-    r.c.setup('var',r.data.Param);
+    r.data.Param1 = RandomData;
+    r.data.PlotParam = RandomData*PlotFactor1;
+    r.c.setup('var',r.data.Param1);
     if ClearImage == 1
         figure(FigNum);clf
         figure(FigNum+1);clf
     end
 
 elseif r.isSet()
-    r.make(r.devices.opt,'params',r.data.Param(r.c(1)));
-    r.upload;
-    fprintf(1,'Run %d/%d, T = %.0f us\n',r.c.now,r.c.total,...
-        r.data.Param(r.c(1)));
+    r.make(r.devices.opt,'params',[r.data.Param1(r.c(1)),r.data.param2(r.c(2))]).upload;
+    fprintf(1,'Run %d/%d, Param = %.3f, Param2 = %.3f\n',r.c.now,r.c.total,...
+        r.data.Param1(r.c(1)),r.data.param2(r.c(2)));
 
 elseif r.isAnalyze()
     i1 = r.c(1);
     pause(0.5 + 0.5*rand);
     img = Abs_Analysis_DualState_RT('last');
-
-    if r.c(1) == 1
-        % Create a structure for each ROI for each image
-        F2field_names = arrayfun(@(x) sprintf('ROI%d', x), 1:numel(img(1).clouds), 'UniformOutput', false);
-        F1field_names = arrayfun(@(x) sprintf('ROI%d', x), 1:numel(img(2).clouds), 'UniformOutput', false);
-        r.data.F2 = cell2struct(cell(size(F2field_names)), F2field_names, 2);
-        r.data.F1 = cell2struct(cell(size(F1field_names)), F1field_names, 2);
-    end
 
     %     if ~img(1).raw.status.ok()
     %
@@ -90,10 +81,10 @@ elseif r.isAnalyze()
 
     if r.c.i == 1
         % Pre-allocate data
-        r.data.All.N = nan(numel(Param),2,NumAverages);
-        r.data.All.R = nan(numel(Param),2,NumAverages);
-        r.data.All.NSum = nan(numel(Param),2,NumAverages);
-        r.data.All.RSum = nan(numel(Param),2,NumAverages);
+        r.data.All.N = nan(numel(Param1),2,NumAverages);
+        r.data.All.R = nan(numel(Param1),2,NumAverages);
+        r.data.All.NSum = nan(numel(Param1),2,NumAverages);
+        r.data.All.RSum = nan(numel(Param1),2,NumAverages);
     end
 
     % All data
@@ -119,13 +110,13 @@ elseif r.isAnalyze()
     for ii = 1:size(img(1).clouds,1)
         if r.c.i == 1
             % Create a nan matrix that gets populated
-            r.data.F2.(F2Name{ii}).All.N = nan(numel(Param),NumAverages);
-            r.data.F2.(F2Name{ii}).All.Nsum = nan(numel(Param),NumAverages);
-            r.data.F2.(F2Name{ii}).All.T = nan(numel(Param),NumAverages,2);
-            r.data.F2.(F2Name{ii}).All.OD = nan(numel(Param),NumAverages);
+            r.data.F2.(F2Name{ii}).All.N = nan(numel(Param1),NumAverages);
+            r.data.F2.(F2Name{ii}).All.Nsum = nan(numel(Param1),NumAverages);
+            r.data.F2.(F2Name{ii}).All.T = nan(numel(Param1),NumAverages,2);
+            r.data.F2.(F2Name{ii}).All.OD = nan(numel(Param1),NumAverages);
 
-            r.data.F2.(F2Name{ii}).All.R = nan(numel(Param),NumAverages);
-            r.data.F2.(F2Name{ii}).All.Rsum = nan(numel(Param),NumAverages);
+            r.data.F2.(F2Name{ii}).All.R = nan(numel(Param1),NumAverages);
+            r.data.F2.(F2Name{ii}).All.Rsum = nan(numel(Param1),NumAverages);
         end
 
         % All data
@@ -159,13 +150,13 @@ elseif r.isAnalyze()
     for ii = 1:size(img(2).clouds,1)
         if r.c.i == 1
             % Create a nan matrix that gets populated
-            r.data.F1.(F1Name{ii}).All.N = nan(numel(Param),NumAverages);
-            r.data.F1.(F1Name{ii}).All.Nsum = nan(numel(Param),NumAverages);
-            r.data.F1.(F1Name{ii}).All.T = nan(numel(Param),NumAverages,2);
-            r.data.F1.(F1Name{ii}).All.OD = nan(numel(Param),NumAverages);
+            r.data.F1.(F1Name{ii}).All.N = nan(numel(Param1),NumAverages);
+            r.data.F1.(F1Name{ii}).All.Nsum = nan(numel(Param1),NumAverages);
+            r.data.F1.(F1Name{ii}).All.T = nan(numel(Param1),NumAverages,2);
+            r.data.F1.(F1Name{ii}).All.OD = nan(numel(Param1),NumAverages);
 
-            r.data.F1.(F1Name{ii}).All.R = nan(numel(Param),NumAverages);
-            r.data.F1.(F1Name{ii}).All.Rsum = nan(numel(Param),NumAverages);
+            r.data.F1.(F1Name{ii}).All.R = nan(numel(Param1),NumAverages);
+            r.data.F1.(F1Name{ii}).All.Rsum = nan(numel(Param1),NumAverages);
         end
         % All Data
         r.data.F1.(F1Name{ii}).All.N(ParIndex,AvIndex) = img(2).clouds(ii).N;
@@ -208,7 +199,7 @@ elseif r.isAnalyze()
         hold on;
     end
     scatter(unique(r.data.PlotParam),r.data.N(:,:),'filled');
-    plot_format(ParamName,'Number','',12);
+    plot_format(ParamName1,'Number','',12);
     sgtitle({['{\bf\fontsize{14}' Title '}'],SubTitle});
     grid on
     ylim([0,Inf]);
@@ -226,7 +217,7 @@ elseif r.isAnalyze()
     errorbar(unique(r.data.PlotParam),r.data.R(:,1),r.data.R_std(:,1),'LineStyle','none','Color','b')
     errorbar(unique(r.data.PlotParam),r.data.R(:,2),r.data.R_std(:,2),'LineStyle','none','Color','r')
     grid on;
-    plot_format(ParamName,'Population','',12);
+    plot_format(ParamName1,'Population','',12);
 
 
     maxlength = max(numel(img(1).clouds),numel(img(2).clouds));
@@ -247,7 +238,7 @@ elseif r.isAnalyze()
             title(sprintf('ROI %g',ii))
         end
         if ii == numel(img(1).clouds)
-            xlabel(ParamName)
+            xlabel(ParamName1)
         end
     end
     for ii = 1:numel(img(2).clouds)
@@ -265,7 +256,7 @@ elseif r.isAnalyze()
         end
         ylabel('Pop')
         if ii == numel(img(1).clouds)
-            xlabel(ParamName)
+            xlabel(ParamName1)
         end
     end
 end

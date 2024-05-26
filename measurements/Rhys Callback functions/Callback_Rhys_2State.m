@@ -4,21 +4,22 @@ function Callback_Rhys_2State(r)
 ClearImage = 1;
 FigNum = 5;
 %,\tau = 20 us
-Title = 'Pumping: P_C = 1.5*0.4 mW, P_S/P_C = 2, 3x Mag, t_0 = 0 ms, \Delta = 4 GHz, \delta = -20 - 7.8e-3';
-SubTitle = '';
+Title = 'Pumping: P_{total} = 1.8 mW, P_S/P_C = 10/1, 3x Mag, t_0 = 0 us, \Delta = 4.95 GHz, \delta = -20 + param MHz, \tau = 200 us';
+SubTitle = 'EW = 10, NS = 0, UD = 0: optimised IQ, PBS added to sideband path';
 % SubTitle = 'Two-Photon Scan';
 % SubTitle = 'Pulse Duration Scan';
 
-Param = 0:40:800;
-% Param = 0:1:10;
+% Param = 0:20:3000;
+Param = [-100:20:100];
 PlotParam = Param;
-ParamName = ScanableParameters.PulseDuration;
-% ParamName = 'Phase';
+ParamName = ScanableParameters.TwoPhoton;
+% ParamName = 'EW bias (V)';
+
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 2;
 
-
+Param = unique(Param);
 
 if r.isInit()
     r.data.Param = Param;

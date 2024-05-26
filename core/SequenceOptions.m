@@ -41,7 +41,6 @@ classdef SequenceOptions < SequenceOptionsAbstract
     methods
         function self = SequenceOptions(varargin)
             %SEQUENCEOPTIONS Create a SequenceOptions object
-            self.raman = RamanSequenceOptions;
             self.bragg = BraggSequenceOptions;
             self.mw = MicrowaveSequenceOptions;
             self.misc = MiscSequenceOptions;
@@ -53,7 +52,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
         function self = setDefaults(self)
             %SETDEFAULTS Set default property values
             self.detuning = 0;
-            self.dipoles = 1.35;
+            self.dipoles = 1.45;
             self.tof = 25e-3;
 %             self.imaging_type = 'drop 2';
             self.params = [];
@@ -72,8 +71,8 @@ classdef SequenceOptions < SequenceOptionsAbstract
             
             self.JustMOT = 0;
             self.TwoStateImaging = 1;
-
-            self.raman.setDefaults;
+            self.raman = 0;
+            
             self.bragg.setDefaults;
             self.mw.setDefaults;
             self.misc.setDefaults;

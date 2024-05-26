@@ -5,8 +5,8 @@ classdef ScanableParameters < handle
         PulseDuration = '\tau (us)';
         TwoPhoton = '\delta (kHz)';        
         Power = 'Power (arb)';
-        Run = 'Run Number (Arb)'
-        
+        Run = 'Run Number (Arb)';
+        Phase = 'Phase (deg)';
         
     end
 

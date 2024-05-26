@@ -12,7 +12,7 @@ classdef MiscSequenceOptions < SequenceOptionsAbstract
         end
 
         function self = setDefaults(self)
-            self.tof2 = 10e-3;
+            self.tof2 = 7e-3;
             self.detuning2 = 0;
         end
     end

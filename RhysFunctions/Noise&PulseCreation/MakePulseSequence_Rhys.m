@@ -15,7 +15,7 @@ dt = 1e-6;
 
 delta = 0;
 PulseType = 'Gaussian';
-w0 = 12.5e-3; %("~2 cm FWHM" section 4.2 of Hardman)
+w0 = 2.5e-3;
 NoiseAmp = 0;
 RampAmp = 0;
 NoiseType = 'acceleration';
