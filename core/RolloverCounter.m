@@ -108,8 +108,8 @@ classdef RolloverCounter < handle
             %   in C for COUNTER.  This value of C/COUNTER.total() is the
             %   completion rate of the counter
             c = 1;
+            im = self.imax(1:self.N);
             for nn = 1:self.N
-                im = self.imax;
                 c = c + (self.i(nn)-1)*prod(im((nn-1):-1:1));
             end
         end
@@ -181,7 +181,7 @@ classdef RolloverCounter < handle
             %   S = COUNTER.print() creates a string S with the summary
             s = '';
             for nn = 1:self.N
-                s = [s,sprintf('%d/%d',self.i(nn),self.imax)]; %#ok<*AGROW>
+                s = [s,sprintf('%d/%d',self.i(nn),self.imax(nn))]; %#ok<*AGROW>
                 if nn ~= self.N
                     s = [s,' '];
                 end
