@@ -1,9 +1,9 @@
 % Function for controls initialisation of the Gravy
 function initialiseControls(DDS)
-
+closeNoPrompt(matlab.desktop.editor.getAll);
+open makeBEC_RamanInterferometer.m
 open Callback_Rhys_2State
 open Callback_Rhys_2State_MW.m
-open makeBEC_RamanInterferometer.m
 
 %Check the input argument
 narginchk(0,1)

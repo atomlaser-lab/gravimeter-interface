@@ -4,11 +4,13 @@ Ch1FileLocation = "C:\Users\Apollo\Desktop\Temp\PowerMonitor\Ch2.csv";
 Ch2FileLocation = "C:\Users\Apollo\Desktop\Temp\PowerMonitor\Ch1.csv";
 FigNum = 20;
 Title = '';
-Title1 = 'Channel 1';
-Title2 = 'Channel 2';
+Title1 = 'Channel 1: Carrier';
+Title2 = 'Channel 2: Sideband';
 
-Row2Time = 0.5; %minutes
-Row3Time = 1; %minutes
+Row2Time = 5; %minutes
+Row3Time = 15; %minutes
+
+NormalisationPoint = 'mid';
 % YLIMITS = [0.9,1.3; 0.9, 1.15; 0.9, 1.15];
 %% Load Ch1
 % Load data
@@ -127,14 +129,21 @@ TotalTime_seconds = TotalTime_seconds - TotalTime_seconds(1);
 
 Row2Index = find(TotalTime_seconds - Row2Time*60 > 0,1);
 Row3Index = find(TotalTime_seconds - Row3Time*60 > 0,1);
+if isstr(NormalisationPoint) == 1
+    if strcmpi(NormalisationPoint,'end') == 1
+        NormalisationPoint = length(Ch1Amplitude);
+    elseif strcmpi(NormalisationPoint,'mid') == 1
+        NormalisationPoint = round(length(Ch1Amplitude)/2,0);        
+    end
+end
 
 
 figure(FigNum);clf
 sgtitle(Title)
 subplot(3,2,1)
-scatter(TotalTime_seconds/60/60,Ch1Amplitude/(Ch1Amplitude(1)),5,'k')
+scatter(TotalTime_seconds/60/60,Ch1Amplitude/(Ch1Amplitude(NormalisationPoint)),5,'k')
 hold on
-plot(TotalTime_seconds/60/60,Ch1Amplitude/(Ch1Amplitude(1)),'b','LineWidth',1)
+plot(TotalTime_seconds/60/60,Ch1Amplitude/(Ch1Amplitude(NormalisationPoint)),'b','LineWidth',1)
 xlim([0,TotalTime_seconds(end)/60/60])
 % plot(TotalTime_seconds/60/60,Ch1Amplitude,'b')
 title(Title1)
@@ -145,9 +154,9 @@ if exist('YLIMITS','var') == 1
 end
 
 subplot(3,2,2)
-scatter(TotalTime_seconds/60/60,Ch2Amplitude/(Ch2Amplitude(1)),5,'k')
+scatter(TotalTime_seconds/60/60,Ch2Amplitude/(Ch2Amplitude(NormalisationPoint)),5,'k')
 hold on
-plot(TotalTime_seconds/60/60,Ch2Amplitude/(Ch2Amplitude(1)),'r')
+plot(TotalTime_seconds/60/60,Ch2Amplitude/(Ch2Amplitude(NormalisationPoint)),'r')
 xlim([0,TotalTime_seconds(end)/60/60])
 
 title(Title2)
@@ -158,9 +167,9 @@ if exist('YLIMITS','var') == 1
 end
 
 subplot(3,2,3)
-scatter(TotalTime_seconds(1:Row2Index)/60,Ch1Amplitude(1:Row2Index)/(Ch1Amplitude(1)),5,'k')
+scatter(TotalTime_seconds(1:Row2Index)/60,Ch1Amplitude(1:Row2Index)/(Ch1Amplitude(NormalisationPoint)),5,'k')
 hold on
-plot(TotalTime_seconds(1:Row2Index)/60,Ch1Amplitude(1:Row2Index)/(Ch1Amplitude(1)),'b')
+plot(TotalTime_seconds(1:Row2Index)/60,Ch1Amplitude(1:Row2Index)/(Ch1Amplitude(NormalisationPoint)),'b')
 xlabel('time (min)')
 ylabel('Amp/Amp_{0}')
 xlim([0,Row2Time])
@@ -169,9 +178,9 @@ if exist('YLIMITS','var') == 1
 end
 
 subplot(3,2,4)
-scatter(TotalTime_seconds(1:Row2Index)/60,Ch2Amplitude(1:Row2Index)/(Ch2Amplitude(1)),5,'k')
+scatter(TotalTime_seconds(1:Row2Index)/60,Ch2Amplitude(1:Row2Index)/(Ch2Amplitude(NormalisationPoint)),5,'k')
 hold on
-plot(TotalTime_seconds(1:Row2Index)/60,Ch2Amplitude(1:Row2Index)/(Ch2Amplitude(1)),'r')
+plot(TotalTime_seconds(1:Row2Index)/60,Ch2Amplitude(1:Row2Index)/(Ch2Amplitude(NormalisationPoint)),'r')
 xlabel('time (min)')
 ylabel('Amp/Amp_{0}')
 xlim([0,Row2Time])
@@ -181,9 +190,9 @@ end
 
 
 subplot(3,2,5)
-scatter(TotalTime_seconds(1:Row3Index)/60,Ch1Amplitude(1:Row3Index)/(Ch1Amplitude(1)),5,'k')
+scatter(TotalTime_seconds(1:Row3Index)/60,Ch1Amplitude(1:Row3Index)/(Ch1Amplitude(NormalisationPoint)),5,'k')
 hold on
-plot(TotalTime_seconds(1:Row3Index)/60,Ch1Amplitude(1:Row3Index)/(Ch1Amplitude(1)),'b')
+plot(TotalTime_seconds(1:Row3Index)/60,Ch1Amplitude(1:Row3Index)/(Ch1Amplitude(NormalisationPoint)),'b')
 xlabel('time (min)')
 ylabel('Amp/Amp_{0}')
 xlim([0,Row3Time])
@@ -192,9 +201,9 @@ if exist('YLIMITS','var') == 1
 end
 
 subplot(3,2,6)
-scatter(TotalTime_seconds(1:Row3Index)/60,Ch2Amplitude(1:Row3Index)/(Ch2Amplitude(1)),5,'k')
+scatter(TotalTime_seconds(1:Row3Index)/60,Ch2Amplitude(1:Row3Index)/(Ch2Amplitude(NormalisationPoint)),5,'k')
 hold on
-plot(TotalTime_seconds(1:Row3Index)/60,Ch2Amplitude(1:Row3Index)/(Ch2Amplitude(1)),'r')
+plot(TotalTime_seconds(1:Row3Index)/60,Ch2Amplitude(1:Row3Index)/(Ch2Amplitude(NormalisationPoint)),'r')
 xlabel('time (min)')
 ylabel('Amp/Amp_{0}')
 xlim([0,Row3Time])
@@ -205,23 +214,23 @@ end
 PowerRatio = Ch1Amplitude./(Ch2Amplitude);
 figure(FigNum+1);clf
 subplot(3,1,1)
-scatter(TotalTime_seconds/60/60,PowerRatio/PowerRatio(1),5,'k')
+scatter(TotalTime_seconds/60/60,PowerRatio/PowerRatio(NormalisationPoint),5,'k')
 hold on
-plot(TotalTime_seconds/60/60,PowerRatio/PowerRatio(1),'r')
+plot(TotalTime_seconds/60/60,PowerRatio/PowerRatio(NormalisationPoint),'r')
 xlabel('time (hours)')
 ylabel('I2/I1')
 xlim([0 TotalTime_seconds(end)/60/60])
 subplot(3,1,2)
-scatter(TotalTime_seconds(1:Row2Index)/60,PowerRatio(1:Row2Index)/PowerRatio(1),5,'k')
+scatter(TotalTime_seconds(1:Row2Index)/60,PowerRatio(1:Row2Index)/PowerRatio(NormalisationPoint),5,'k')
 hold on
-plot(TotalTime_seconds(1:Row2Index)/60,PowerRatio(1:Row2Index)/PowerRatio(1),'r')
+plot(TotalTime_seconds(1:Row2Index)/60,PowerRatio(1:Row2Index)/PowerRatio(NormalisationPoint),'r')
 xlabel('time (min)')
 ylabel('I2/I1')
 xlim([0 TotalTime_seconds(Row2Index)/60])
 subplot(3,1,3)
-scatter(TotalTime_seconds(1:Row3Index)/60,PowerRatio(1:Row3Index)/PowerRatio(1),5,'k')
+scatter(TotalTime_seconds(1:Row3Index)/60,PowerRatio(1:Row3Index)/PowerRatio(NormalisationPoint),5,'k')
 hold on
-plot(TotalTime_seconds(1:Row3Index)/60,PowerRatio(1:Row3Index)/PowerRatio(1),'r')
+plot(TotalTime_seconds(1:Row3Index)/60,PowerRatio(1:Row3Index)/PowerRatio(NormalisationPoint),'r')
 xlim([0 TotalTime_seconds(Row3Index)/60])
 xlabel('time (min)')
 ylabel('I2/I1')

@@ -15,6 +15,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
         extraparams
         MOT_LoadTime    %MOT load time in seconds
         %
+        repetition
 
 
         MOT_status
@@ -58,7 +59,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
             self.params = [];
             self.MOT_LoadTime = 4;
             self.extraparams = [];
-
+            self.repetition = [];
             self.MOT_status =1 ;
             self.CMOT_status =1 ;
             self.PGC_status =1;

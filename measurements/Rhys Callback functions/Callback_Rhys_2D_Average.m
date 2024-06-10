@@ -20,9 +20,11 @@ ParamName2 = ScanableParameters.PulseDuration;
 % % Sequence
 if r.isInit()
     % % % % Randomise data
-    r.data.RandomOrder = randperm(numel(Param1)*NumAverages);
-    RepeatedParam = repmat(Param1,1,NumAverages);
-    RandomData = RepeatedParam(r.data.RandomOrder);
+    r.data.RandomOrder = randperm(numel(Param1)*numel(Param2)*NumAverages);
+    RepeatedParam1 = repmat(Param1,1,NumAverages);
+    RepeatedParam2 = repmat(Param2,1,NumAverages);
+
+    RandomData = RepeatedParam1(r.data.RandomOrder);
 
     % % % Key to Sort Data
     [r.data.ParamIndex, r.data.AvIndex] = ind2sub([numel(Param1),NumAverages],r.data.RandomOrder);
@@ -60,17 +62,6 @@ elseif r.isAnalyze()
 
     % Store raw data
     r.data.Unsorted.files{i1,1} = img(1).raw.files;
-
-    %
-    % % % ROI error Check
-    %
-
-    if F2_ROI > size(img(1).clouds,1)
-        F2_ROI = size(img(1).clouds,1);
-    end
-    if F1_ROI > size(img(2).clouds,1)
-        F1_ROI = size(img(2).clouds,1);
-    end
 
     %
     % Get processed data for input region of interest

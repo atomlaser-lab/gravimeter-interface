@@ -3,23 +3,31 @@ function Callback_Rhys_2State(r)
 % % Inputs
 ClearImage = 1;
 FigNum = 5;
-%,\tau = 20 us
-Title = 'Pumping: P_{total} = 1.8 mW, P_S/P_C = 10/1, 3x Mag, t_0 = 0 us, \Delta = 4.95 GHz, \delta = -20 + param MHz, \tau = 200 us';
-SubTitle = 'EW = 10, NS = 0, UD = 0: optimised IQ, PBS added to sideband path';
-% SubTitle = 'Two-Photon Scan';
-% SubTitle = 'Pulse Duration Scan';
+% Title inputs
+    TitleStuff.TotalPower = 'param';
+    TitleStuff.P_rat = '(7/1)';
+    TitleStuff.Mag = '2';
 
-% Param = 0:20:3000;
-Param = [-100:20:100];
+    TitleStuff.t_0 = '0';
+    TitleStuff.Tau  = '50';
+
+    TitleStuff.SPD = '4.95';
+    TitleStuff.TPD = '-20';
+
+    Title = append('Pumping: P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us');
+    SubTitle = 'EW = 10, NS = 9, UD = 0';
+
+
+Param = [1:1:29];%-300:50:300 -50:10:50
 PlotParam = Param;
-ParamName = ScanableParameters.TwoPhoton;
-% ParamName = 'EW bias (V)';
+ParamName = ScanableParameters.Power;
+% ParamName = 'UD bias (V)';
+
+% [dump r.data.Index] = sort(Param);
 
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 2;
-
-Param = unique(Param);
 
 if r.isInit()
     r.data.Param = Param;
@@ -133,9 +141,9 @@ elseif r.isAnalyze()
     if i1 == 1
         hold on;
     end
-    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,:),100,'ColorVariable',['r','b']);
-    hold on
-    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,:),20,'filled','ColorVariable',['r','b']);    plot_format(ParamName,'Population','',12);
+    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,1),100,'ColorVariable',['r','b']);
+%     hold on
+    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,1),40,'filled','ColorVariable',['r','b']);    plot_format(ParamName,'Population','',12);
     grid on;
 
 
@@ -189,3 +197,7 @@ elseif r.isAnalyze()
         end
     end
 end
+
+
+%Title = 'Pumping: P_{total} = 3 mW, P_S/P_C = 7/1, 1.5x Mag, t_0 = 0 us, \Delta = 4.95 GHz, \delta = -20 - Param MHz, \tau = 200 us';
+% 

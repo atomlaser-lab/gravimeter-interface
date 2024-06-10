@@ -4,15 +4,26 @@ function Callback_Rhys_2State_Average(r)
 ClearImage = 1;
 FigNum = 5;
 
-Title = 'Pumping: P_{total} = 1 mW, P_S/P_C = 7/1, 3x Mag, t_0 = 0 us, \Delta = 4.95 GHz, \delta = -20 + param, \tau = 240 us';
-SubTitle = 'EW = scan, NS = 0, UD = 0';
-NumAverages = 7;
-Param = -.75:0.25:.75;
+    TitleStuff.TotalPower = '28';
+    TitleStuff.P_rat = '(7/1)*param';
+    TitleStuff.Mag = '3';
+
+    TitleStuff.t_0 = '0';
+    TitleStuff.Tau  = '8';
+
+    TitleStuff.SPD = '4.95';
+    TitleStuff.TPD = '-20';
+
+    Title = append('Pumping: P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us');
+    SubTitle = 'EW = 10, NS = 0, UD = param';
+
+NumAverages = 5;
+Param = -35:1:35;
 
 
 PlotFactor = 1;
-ParamName = ScanableParameters.TwoPhoton;
-% ParamName = 'EW Bias (V)';
+% ParamName = ScanableParameters.TwoPhoton;
+ParamName = 'NS Bias (V)';
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 2;

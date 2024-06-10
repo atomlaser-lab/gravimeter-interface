@@ -4,10 +4,9 @@ classdef ScanableParameters < handle
         TOF = 'TOF (ms)';
         PulseDuration = '\tau (us)';
         TwoPhoton = '\delta (kHz)';        
-        Power = 'Power (arb)';
+        Power = 'Total Power (mW)';
         Run = 'Run Number (Arb)';
-        Phase = 'Phase (deg)';
-        
+        Phase = 'Phase (deg)';        
     end
 
     methods(Static)
