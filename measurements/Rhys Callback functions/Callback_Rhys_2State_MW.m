@@ -6,17 +6,17 @@ FigNum = 5;
 TOF = 25e-3;
 
 Title = 'In Trap MW Transfer';
-Param = ([-0.8:0.1:0.4]);
+Param = ([-0.4:0.1:0.4]);
 % Param = repmat((-5:0.1:5),[1,4]);
 ParamName = 'df (kHz)';
 
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
-F1_ROI = 1;
+F1_ROI = 2;
 
 if r.isInit()
-    r.data.freq1 = const.f_Rb_groundHFS - 315e3 + (-2.6 - 8.9  + Param)*1e3;
-    r.data.freq2 = const.f_Rb_groundHFS + 0.1e3;
+    r.data.freq1 = const.f_Rb_groundHFS - 315e3 + (-12.15)*1e3;
+    r.data.freq2 = const.f_Rb_groundHFS + (0.1 + Param)*1e3;
     r.data.Param = Param;
     r.c.setup('var',r.data.Param);
 

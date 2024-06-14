@@ -54,18 +54,13 @@ imageVoltage = convert.imaging(opt.detuning);
 %% Initialize sequence - defaults should be handled here
 sq = initSequence;
 
-
-% sq.find('Cam Trig').set(1).after(1e-3,0);
-sq.find('Cam Trig').set(0);
-sq.find('DDS Trig').set(0);
-
 % % Bragg Calibration data used in initSequence.
 % % For now I will simply load/set my own calibration data here. I'll create
 % % another object later
 sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
 sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
-% calibData = load('raman-aom-calibration-29-04-2024.mat');
-calibData = load('BraggDDS_RamanAOM');
+calibData = load('RamanAOMHex_RamanDDS_14062024');
+% calibData = load('BraggDDS_RamanAOM');
 sq.dds(1).calibrationData = calibData.data_ch1;
 sq.dds(2).calibrationData = calibData.data_ch2;
 % ch1 max = 33.68 dBm, ch2 max = 34.35 dBm
@@ -201,8 +196,8 @@ if opt.OpticalEvaporation_status == 1 && opt.LoadOpticalTrap_status == 1 && opt.
     sq.delay(5*1e-3);
     Tevap = 2.5 + 0.5;
     t = linspace(0,Tevap,100);
-    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.5 + 0.4),0.42));
-    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.4 + 0.4),0.7));
+    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.5 + 0.8),0.42));
+    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.4 + 0.9),0.7));
 
     sq.find('bias e/w').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias e/w').values(end),0));
     sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),0));
@@ -218,13 +213,13 @@ end
 % pulse 1
 
 % MW1Duration = 3*550*1e-6;
-MW1Duration = 525*1e-6;
+MW1Duration = 625*1e-6;
 InTrapDelay1 = 100e-3;
 BlowDuration1 = 1.5*1e-3;
 % pulse 2
-MW2Duration = 200*1e-6;
+MW2Duration = 230*1e-6;
 InTrapDelay2 = 50e-3;%10e-3
-BlowDuration2 = 15*1e-6;
+BlowDuration2 = 8*1e-6;
 
 if opt.mw.enable(1) == 1 % % % Transfer |1,-1> -> |2,0>
     sq.anchor(time_at_evap_end);
@@ -266,11 +261,13 @@ sq.find('50w amp').set(convert.dipole50(0));
 sq.find('25w amp').set(convert.dipole25(0));
 
 
-sq.find('raman dds trig').before(20e-3,0).after(1e-3,1);
-sq.find('dds trig').before(20e-3,0).after(1e-3,1);
-sq.ddsTrigDelay = sq.time - 20e-3;
+% sq.find('dds trig').before(20e-3,0).after(1e-3,1);
+% sq.ddsTrigDelay = sq.time - 20e-3;
 %% Raman Stuff
 % Flag (easy for ctrl f)
+SixShots = 0;
+% ch1 max = 33.68 dBm, ch2 max = 34.35 dBm
+
 % % % % Inputs
 Pulse1OnOff = 1;
 Pulse2OnOff = 0;
@@ -280,25 +277,25 @@ phi_2 = 0;
 T_Sep = 5e-3;
 
 % Bias fields
-BiasEW = 10; %9.5
-BiasUD = 0; %2
-BiasNS = 9; % 0
+BiasEW = 0;
+BiasUD = 0;
+BiasNS = 0;
 RamanBiasDelay = 40*1e-3;
 
-RamanTOF = 0*1e-6;
-RamanPulseWidth = 50*1e-6; % 9
-% RamanPulseWidth = opt.params*1e-6; % 9
+RamanTOF = 2000*1e-6;
+RamanPulseWidth = 60*1e-6;
+% RamanPulseWidth = opt.params*1e-6;
 dt = 1e-6;
 
 % delta = -20 + opt.params*1e-3;
 delta = -20 - 0*1e-3;
 
 P2onP1 = (7/1);
-% P_total = 4;
-P_total = opt.params;
+P_total = 20;
+% P_total = opt.params;
 
-P1_max = 4.155; %mW
-P2_max = 25.47; % mW
+P1_max = 4.36; %mW
+P2_max = 27.1; % mW
 
 Sideband_badPol_max = 5.5e-6; %uW
 Carrier_badPol_max = 66.6e-6; %uW
@@ -309,8 +306,8 @@ P2 = (P_total*P2onP1)/(1+P2onP1);
 
 Ch1_AOMSetting = P1/P1_max;
 Ch2_AOMSetting = P2/P2_max;
-% Ch1_AOMSetting = 1;
-% Ch2_AOMSetting = 1;
+% Ch1_AOMSetting = 0.06*1;
+% Ch2_AOMSetting = 0.02*1;
 
 if P1 > P1_max
     error('Channel 1 has insufficient power')
@@ -320,8 +317,14 @@ if P2 > P2_max
 end
 
 
-
-
+% % % % % % % % Correct pulse timing 
+% The dds adds an extra instruction equal to dt
+% e.g. a 100 us pulse made with dt = 10 us is 110 us long
+% e.g. a 100 us pulse made with dt = 100 us is 200 us long
+% e.g. a 0 us pulse made with dt = 1 is 1 us long
+% Hence:
+RamanPulseWidth = RamanPulseWidth - dt;
+% % % % % % % % 
 
 % % % % Sequence
 
@@ -350,12 +353,11 @@ end
 if opt.raman == 1
 
     triggerDelay = 1e-3;
-    TriggerDuration = 10e-3;
+    TriggerDuration = 10e-3; %10
 
     % % % Pulse 1
     sq.anchor(timeAtDrop + RamanTOF);
-    sq.find('DDS Trig').before(TriggerDuration + triggerDelay,1);
-    sq.find('DDS Trig').after(TriggerDuration,0);
+    sq.find('DDS Trig').before(TriggerDuration + triggerDelay,1).after(TriggerDuration,0);
     sq.ddsTrigDelay = timeAtDrop + RamanTOF - triggerDelay;
 
     sq.anchor(timeAtDrop + RamanTOF - RamanBiasDelay);
@@ -406,10 +408,28 @@ else
         'imaging freq',imageVoltage,'repump delay',10e-6,'repump freq',4.2,...
         'manifold',1,'includeDarkImage',true,'cycle time',150e-3);
 end
-% elseif strcmpi(Abs_Analysis_parameters.camera,'drop 3') || strcmpi(Abs_Analysis_parameters.camera,'drop 4')
-%     makeFMISequence(sq,'tof',opt.tof,'offset',30e-3,'duration',100e-3,...
-%         'imaging freq',imageVoltage,'manifold',1);
-% end
+
+if SixShots == 1
+    sq.anchor(sq.latest);
+    sq.delay(150e-3);
+    sq.dds(1).set(DDSChannel.DEFAULT_FREQ,0,0);
+    sq.find('cam trig').set(1).after(10e-6,0);
+    sq.delay(10e-6);
+    sq.dds(1).set(DDSChannel.DEFAULT_FREQ,1e-3/P1_max,0);
+%     sq.dds(1).set(DDSChannel.DEFAULT_FREQ,0.1,0);
+    sq.delay(150e-6);
+    sq.dds(1).set(DDSChannel.DEFAULT_FREQ,0,0);
+    sq.delay(150e-3);
+    sq.dds(2).set(DDSChannel.DEFAULT_FREQ,0,0);
+    sq.find('cam trig').set(1).after(10e-6,0);
+    sq.delay(10e-6);
+    sq.dds(2).set(DDSChannel.DEFAULT_FREQ,1.5e-3/P2_max,0);
+%     sq.dds(2).set(DDSChannel.DEFAULT_FREQ,0.001,0);
+
+    sq.delay(150e-6);
+    sq.dds(2).set(DDSChannel.DEFAULT_FREQ,0,0);
+end
+
 sq.find('Liquid Crystal Repump').at(timeAtDrop,7);
 
 %% Automatic start

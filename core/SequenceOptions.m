@@ -53,7 +53,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
         function self = setDefaults(self)
             %SETDEFAULTS Set default property values
             self.detuning = 0;
-            self.dipoles = 1.45;
+            self.dipoles = 1.32;
             self.tof = 25e-3;
 %             self.imaging_type = 'drop 2';
             self.params = [];

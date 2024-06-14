@@ -4,8 +4,8 @@ if r.isInit()
     %
     % Define parameters
     %
-    r.data.param1 = const.randomize((-1:0.4:1));
-    r.data.param2 = (-30:2.5:0);
+    r.data.param1 = const.randomize((0:500:2000));
+    r.data.param2 = (1:70);
     % Number of averages to do
     r.data.num_avgs = 1;
     %
@@ -47,8 +47,8 @@ elseif r.isAnalyze()
     end
     pause(0.5 + 0.5*rand);
 
-%     img = Abs_Analysis_DualState_RT('last');
-    img = Abs_Analysis_GUI('last',1);
+    img = Abs_Analysis_DualState_RT('last');
+%     img = Abs_Analysis_GUI('last',1);
     if ~img(1).raw.status.ok()
         % 
         % Checks for an error in loading the files (caused by a missed

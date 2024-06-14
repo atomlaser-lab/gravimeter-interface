@@ -30,11 +30,11 @@ if strcmpi(DDS,'Bragg')
     % disp(['Moglabs DDS connected: ', mogipAddress])
     disp(['Moglabs DDS connected: ', '192.168.1.4'])
 else
-    %     mog.connect('192.168.1.100');
+        mog.connect('192.168.1.101');
     %     r.mog = mog;
     %     disp(['Moglabs DDS connected: ', '192.168.1.100'])
     % mog.connect(mogipAddress);
-    mog.connect('192.168.1.4');
+%     mog.connect('192.168.1.4');
     r.mog = mog;
     % Display a success message for moglabs connection
     % disp(['Moglabs DDS connected: ', mogipAddress])

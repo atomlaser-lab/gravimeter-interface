@@ -128,7 +128,7 @@ elseif mod(width,1e-6) < 1e-6 && mod(width,1e-6) ~= 0
 end
 
 OffInstructionDuration = 1e-6;
-tPulse = (0: dt :width)';
+tPulse = ((-4*dt): dt : (width + 4*dt))';
 tPulse = [0;  tPulse + OffInstructionDuration; tPulse(end) + 2*OffInstructionDuration];
 t = repmat(tPulse,1,numPulses);
 

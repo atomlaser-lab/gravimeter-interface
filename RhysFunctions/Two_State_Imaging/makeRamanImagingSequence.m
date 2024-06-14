@@ -145,6 +145,7 @@ if includeDarkImage
     sq.find('fiber switch repump').set(0);
 end
 
+sq.delay(cycleTime);
 
 
 end

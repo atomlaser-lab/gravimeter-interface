@@ -189,8 +189,8 @@ if opt.OpticalEvaporation_status == 1 && opt.LoadOpticalTrap_status == 1 && opt.
     sq.delay(5*1e-3);
     Tevap = 2.5 + 0.5;
     t = linspace(0,Tevap,100);
-    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.5 + 0.4),0.42));
-    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.4 + 0.4),0.7));
+    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.5 + 0.8),0.42));
+    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.5 + 0.8),0.7));
 
     sq.find('bias e/w').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias e/w').values(end),0));
     sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),0));
@@ -275,24 +275,27 @@ Raman = 1;
 
 % RamanTOF = opt.params(3);
 % RamanPulseWidth = opt.params(1)*1e-6;
-RamanTOF = 0;
-RamanPulseWidth = opt.params*1e-6;
-dt = 10e-6;
+RamanTOF = 2000e-6;
+RamanPulseWidth = 150*1e-6;
+dt = 1e-6;
 
+P2onP1 = 7;
+P_total = 5;
 
+P1_max = 4.06; %mW
+P2_max = 27.1; % mW
 
+P1 = P_total/(1+P2onP1);
+P2 = (P_total*P2onP1)/(1+P2onP1);
 
-% Set the intensity ratio and Ch1 fractional power
-P2onP1 = 2;
-Ch1_AOMSetting = 0.4;
-P1_max = 3.05;
-P2_max = 21;
-Ch2_AOMSetting = (P1_max*Ch1_AOMSetting*P2onP1)/P2_max;
-% Ch2_AOMSetting = 0.1;;
+Ch1_AOMSetting = P1/P1_max;
+Ch2_AOMSetting = P2/P2_max;
+% Ch1_AOMSetting = 0.5;
+% Ch2_AOMSetting = 0.1;
 
-delta = -20 - 7.8*1e-3;
-% delta2 = 20 - 20*1e-3;
-% RamanPulseWidth2 = opt.params*1e-6;
+% delta = -20 + opt.params*1e-3;
+delta = -20 - 0.756e-3;
+
 
 % Bias fields
 BiasUD = 1; %1
@@ -329,9 +332,9 @@ if Raman == 1
     sq.anchor(timeAtDrop + RamanTOF - RamanBiasDelay);
     t_on = linspace(0,RamanBiasDelay,30);
     t_off = linspace(0,5e-3,51);
-    sq.find('Bias U/D').after(t_on,sq.minjerk(t_on,sq.find('bias U/D').values(end),BiasUD)).after(t_off,sq.minjerk(t_off,sq.find('bias U/D').values(end),0));
-    sq.find('Bias N/S').after(t_on,sq.minjerk(t_on,sq.find('bias N/S').values(end),BiasNS)).after(t_off,sq.minjerk(t_off,sq.find('bias N/S').values(end),0));
-    sq.find('Bias E/W').after(t_on,sq.minjerk(t_on,sq.find('bias E/W').values(end),BiasEW)).after(t_off,sq.minjerk(t_off,sq.find('bias E/W').values(end),0));
+%     sq.find('Bias U/D').after(t_on,sq.minjerk(t_on,sq.find('bias U/D').values(end),BiasUD)).after(t_off,sq.minjerk(t_off,sq.find('bias U/D').values(end),0));
+%     sq.find('Bias N/S').after(t_on,sq.minjerk(t_on,sq.find('bias N/S').values(end),BiasNS)).after(t_off,sq.minjerk(t_off,sq.find('bias N/S').values(end),0));
+%     sq.find('Bias E/W').after(t_on,sq.minjerk(t_on,sq.find('bias E/W').values(end),BiasEW)).after(t_off,sq.minjerk(t_off,sq.find('bias E/W').values(end),0));
 
     sq.anchor(timeAtDrop + RamanTOF);
     t = (-4*dt):dt:(RamanPulseWidth + 4*dt);

@@ -1,7 +1,7 @@
 function Callback_MeasureRamanFreq(r)
 
 if r.isInit()
-    r.data.freq = 0e-3 + const.randomize(500*linspace(-1,1,21));
+    r.data.freq = 0e-3 + const.randomize(6*linspace(-1,1,21));
     
     r.c.setup('var',r.data.freq);
 elseif r.isSet()
@@ -68,7 +68,7 @@ elseif r.isAnalyze()
 %     end
     if r.c(1) > 4
         nlf = nonlinfit(r.data.freq(1:r.c(1)),r.data.R2(:,2),1e-2);
-        nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*5e-3/2).^2));
+        nlf.setFitFunc(@(A,R,x0,x) A*(1 - 4*R.^2./(4*R^2+(x-x0).^2).*sin(2*pi*sqrt(4*R^2+(x-x0).^2).*150e-3/2).^2));
         [~,idx] = min(nlf.y);
         nlf.bounds2('A',[0.5,2,0.95],'R',[0,30,0.3],'x0',[min(nlf.x),max(nlf.x),nlf.x(idx)]);
         nlf.fit;
