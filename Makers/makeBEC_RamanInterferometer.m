@@ -53,14 +53,15 @@ imageVoltage = convert.imaging(opt.detuning);
 
 %% Initialize sequence - defaults should be handled here
 sq = initSequence;
+sq.find('Raman DDS Trig').set(1).after(10e-3,0);
 
 % % Bragg Calibration data used in initSequence.
 % % For now I will simply load/set my own calibration data here. I'll create
 % % another object later
 sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
 sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
-calibData = load('RamanAOMHex_RamanDDS_14062024');
-% calibData = load('BraggDDS_RamanAOM');
+% calibData = load('RamanAOMHex_RamanDDS_14062024');
+calibData = load('BraggDDS_RamanAOM_17062024');
 sq.dds(1).calibrationData = calibData.data_ch1;
 sq.dds(2).calibrationData = calibData.data_ch2;
 % ch1 max = 33.68 dBm, ch2 max = 34.35 dBm
@@ -213,13 +214,13 @@ end
 % pulse 1
 
 % MW1Duration = 3*550*1e-6;
-MW1Duration = 625*1e-6;
+MW1Duration = 600*1e-6;
 InTrapDelay1 = 100e-3;
 BlowDuration1 = 1.5*1e-3;
 % pulse 2
 MW2Duration = 230*1e-6;
 InTrapDelay2 = 50e-3;%10e-3
-BlowDuration2 = 8*1e-6;
+BlowDuration2 = 10*1e-6;
 
 if opt.mw.enable(1) == 1 % % % Transfer |1,-1> -> |2,0>
     sq.anchor(time_at_evap_end);
@@ -260,71 +261,76 @@ sq.find('50w ttl').set(0);
 sq.find('50w amp').set(convert.dipole50(0));
 sq.find('25w amp').set(convert.dipole25(0));
 
-
-% sq.find('dds trig').before(20e-3,0).after(1e-3,1);
-% sq.ddsTrigDelay = sq.time - 20e-3;
 %% Raman Stuff
-% Flag (easy for ctrl f)
+% Flag
 SixShots = 0;
-% ch1 max = 33.68 dBm, ch2 max = 34.35 dBm
+P1_max = 3.99; %mW %ch1 max at 34.14 dBm
+P2_max = 28.7; % mW %ch2 max at 34.35 dBm
+SiidbenadBadPol = 43.8e-6;
+CarrierBadPol = 30e-6;
 
 % % % % Inputs
+% % Time
+dt = 1e-6;
+T_Sep = 6e-3;
+RamanPulseWidth = 20*1e-6;
+RamanTOF = 10*1e-6;
+RamanTOF = RamanTOF + RamanPulseWidth + T_Sep;
+
 Pulse1OnOff = 1;
 Pulse2OnOff = 0;
 
+% % Phase
 phi_1 = 0;
 phi_2 = 0;
-T_Sep = 5e-3;
 
-% Bias fields
-BiasEW = 0;
-BiasUD = 0;
+% % Bias fields
+BiasEW = 10;
+BiasUD = 10;
 BiasNS = 0;
 RamanBiasDelay = 40*1e-3;
 
-RamanTOF = 2000*1e-6;
-RamanPulseWidth = 60*1e-6;
-% RamanPulseWidth = opt.params*1e-6;
-dt = 1e-6;
-
-% delta = -20 + opt.params*1e-3;
+% % Detuning
 delta = -20 - 0*1e-3;
 
-P2onP1 = (7/1);
-P_total = 20;
-% P_total = opt.params;
-
-P1_max = 4.36; %mW
-P2_max = 27.1; % mW
-
-Sideband_badPol_max = 5.5e-6; %uW
-Carrier_badPol_max = 66.6e-6; %uW
+% % Power
+P2onP1 = 7/1;
+P_total_pulse1 = 12;
+P_total_pulse2 = opt.params; % 17.5
 
 
-P1 = P_total/(1+P2onP1);
-P2 = (P_total*P2onP1)/(1+P2onP1);
+% % % % % % % % % Calculate power in each pulse & AOM setting
+if opt.raman == 1
+    P1_pulse1 = P_total_pulse1/(1+P2onP1);
+    P2_pulse1 = (P_total_pulse1*P2onP1)/(1+P2onP1);
+    P1_pulse2 = P_total_pulse2/(1+P2onP1);
+    P2_pulse2 = (P_total_pulse2*P2onP1)/(1+P2onP1);
 
-Ch1_AOMSetting = P1/P1_max;
-Ch2_AOMSetting = P2/P2_max;
-% Ch1_AOMSetting = 0.06*1;
-% Ch2_AOMSetting = 0.02*1;
-
-if P1 > P1_max
-    error('Channel 1 has insufficient power')
+    if P1_pulse1 > P1_max
+        error('Channel 1 has insufficient power')
+    end
+    if P2_pulse1 > P2_max
+        error('Channel 2 has insufficient power')
+    end
+    Ch1_AOMSetting_pulse1 = P1_pulse1/P1_max;
+    Ch2_AOMSetting_pulse1 = P2_pulse1/P2_max;
+    Ch1_AOMSetting_pulse2 = P1_pulse2/P1_max;
+    Ch2_AOMSetting_pulse2 = P2_pulse2/P2_max;
 end
-if P2 > P2_max
-    error('Channel 2 has insufficient power')
-end
 
 
-% % % % % % % % Correct pulse timing 
+% % % % % % % % Correct for pulse timing error
 % The dds adds an extra instruction equal to dt
 % e.g. a 100 us pulse made with dt = 10 us is 110 us long
 % e.g. a 100 us pulse made with dt = 100 us is 200 us long
 % e.g. a 0 us pulse made with dt = 1 is 1 us long
 % Hence:
 RamanPulseWidth = RamanPulseWidth - dt;
-% % % % % % % % 
+RamanTOF = RamanTOF - dt;
+T_Sep = T_Sep + dt;
+% % % % % % % %
+
+
 
 % % % % Sequence
 
@@ -352,13 +358,7 @@ end
 % Raman transfer from |1,0> to |2,0>
 if opt.raman == 1
 
-    triggerDelay = 1e-3;
-    TriggerDuration = 10e-3; %10
 
-    % % % Pulse 1
-    sq.anchor(timeAtDrop + RamanTOF);
-    sq.find('DDS Trig').before(TriggerDuration + triggerDelay,1).after(TriggerDuration,0);
-    sq.ddsTrigDelay = timeAtDrop + RamanTOF - triggerDelay;
 
     sq.anchor(timeAtDrop + RamanTOF - RamanBiasDelay);
     t_on = linspace(0,RamanBiasDelay,30);
@@ -369,18 +369,21 @@ if opt.raman == 1
 
     % % % % Make Raman pulse(s)
     sq.anchor(timeAtDrop);
+    sq.find('DDS Trig').set(0).after(10e-3,1);
+    sq.ddsTrigDelay = timeAtDrop;
+
     if Pulse1OnOff == 1 && Pulse2OnOff == 0
         MakePulseSequence_Rhys(sq.dds,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
             'phase',[phi_1,phi_2,0],'delta',delta,...
-            'power1',[Ch1_AOMSetting,0,0],'power2',[Ch2_AOMSetting,0,0],'PulseType','Square');
+            'power1',[Ch1_AOMSetting_pulse1,0,0],'power2',[Ch2_AOMSetting_pulse1,0,0],'PulseType','Square');
     elseif Pulse1OnOff == 0 && Pulse2OnOff == 1
         MakePulseSequence_Rhys(sq.dds,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
             'phase',[phi_1,phi_2,0],'delta',delta,...
-            'power1',[0,Ch1_AOMSetting,0],'power2',[0,Ch2_AOMSetting,0],'PulseType','Square');
+            'power1',[0,Ch1_AOMSetting_pulse2,0],'power2',[0,Ch2_AOMSetting_pulse2,0],'PulseType','Square');
     elseif Pulse1OnOff == 1 && Pulse2OnOff == 1
         MakePulseSequence_Rhys(sq.dds,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
-            'phase',[phi_1,phi_2,0],'delta',delta,'rampAmp',9.8,...,
-            'power1',[Ch1_AOMSetting,Ch1_AOMSetting,0],'power2',[Ch2_AOMSetting,Ch2_AOMSetting,0],'PulseType','Square');
+            'phase',[phi_1,phi_2,0],'delta',delta,...,
+            'power1',[Ch1_AOMSetting_pulse1,Ch1_AOMSetting_pulse2,0],'power2',[Ch2_AOMSetting_pulse1,Ch2_AOMSetting_pulse2,0],'PulseType','Square');
     end
 
 end
@@ -416,7 +419,7 @@ if SixShots == 1
     sq.find('cam trig').set(1).after(10e-6,0);
     sq.delay(10e-6);
     sq.dds(1).set(DDSChannel.DEFAULT_FREQ,1e-3/P1_max,0);
-%     sq.dds(1).set(DDSChannel.DEFAULT_FREQ,0.1,0);
+    %     sq.dds(1).set(DDSChannel.DEFAULT_FREQ,0.1,0);
     sq.delay(150e-6);
     sq.dds(1).set(DDSChannel.DEFAULT_FREQ,0,0);
     sq.delay(150e-3);
@@ -424,7 +427,7 @@ if SixShots == 1
     sq.find('cam trig').set(1).after(10e-6,0);
     sq.delay(10e-6);
     sq.dds(2).set(DDSChannel.DEFAULT_FREQ,1.5e-3/P2_max,0);
-%     sq.dds(2).set(DDSChannel.DEFAULT_FREQ,0.001,0);
+    %     sq.dds(2).set(DDSChannel.DEFAULT_FREQ,0.001,0);
 
     sq.delay(150e-6);
     sq.dds(2).set(DDSChannel.DEFAULT_FREQ,0,0);

@@ -2,7 +2,9 @@ function Callback_MeasureMWpower_update(r)
 
 if r.isInit()
     
-    r.data.param = const.randomize(100:100:700);
+%     r.data.param = const.randomize(400:50:600); %for f1
+        r.data.param = const.randomize(200:40:400); %for f2
+
 r.data.ParamName = 'Pulse duration';
 r.data.ParamUnits = 'us';
     r.c.setup('var', r.data.param);
@@ -32,7 +34,7 @@ elseif r.isAnalyze()
 
     figure(98);clf;
     subplot(1,2,1)
-    plot(r.data.param(1:i1),r.data.R(1:i1,:),'o');
+    plot(r.data.param(1:i1),r.data.Rsum(1:i1,:),'o');
     enhformat('Pulse duration [us]','Population');
 % %     h = legend('m = -1','m = 0');
 %     set(h,'Location','West');

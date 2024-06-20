@@ -65,8 +65,8 @@ sq.find('Raman DDS Trig').set(1);
 % % another object later
 % sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
 % sq.dds(2).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
-% calibData = load('raman-aom-calibration-29-04-2024.mat');
-calibData = load('BraggDDS_RamanAOM');
+% calibData = load('BraggDDS_RamanAOM');
+calibData = load('RamanAOMHex_RamanDDS_14062024');
 sq.dds(1).calibrationData = calibData.data_ch1;
 sq.dds(2).calibrationData = calibData.data_ch2;
 sq.dds(1).power_conversion_method = DDSChannel.POWER_CONVERSION_HEX_INTERP;
@@ -210,7 +210,7 @@ BlowDuration1 = 1.5*1e-3;
 % pulse 2
 MW2Duration = 200*1e-6;
 InTrapDelay2 = 50e-3;%10e-3
-BlowDuration2 = 5*1e-6;
+BlowDuration2 = 10*1e-6;
 
 if opt.mw.enable(1) == 1 % % % Transfer |1,-1> -> |2,0>
     sq.anchor(time_at_evap_end - InTrapDelay1);
@@ -276,13 +276,13 @@ Raman = 1;
 % RamanTOF = opt.params(3);
 % RamanPulseWidth = opt.params(1)*1e-6;
 RamanTOF = 2000e-6;
-RamanPulseWidth = 150*1e-6;
+RamanPulseWidth = 150*1e-6; %pi = 300 for mag 3
 dt = 1e-6;
 
 P2onP1 = 7;
 P_total = 5;
 
-P1_max = 4.06; %mW
+P1_max = 4.36; %mW
 P2_max = 27.1; % mW
 
 P1 = P_total/(1+P2onP1);

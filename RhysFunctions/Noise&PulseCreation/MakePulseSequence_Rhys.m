@@ -3,7 +3,7 @@ function MakePulseSequence_Rhys(dds,varargin)
 %% Set up default variables and parse inputs
 f = 384.224e12;
 k = 2*pi*f/const.c;
-t0 = 10e-3;
+t0 = 10e-6;
 width = 30e-6;
 T = 1e-3;
 appliedPhase = 0;
@@ -99,7 +99,7 @@ recoil = const.hbar*k^2/(2*const.mRb*2*pi);
 Stark = 0.1304;
 
 
-numPulses = max(sum(power2 ~= 0),sum(power1 ~= 0));
+numPulses = max(sum(power2 ~= 0),sum(power1 ~= 0)); % need max incase ch1 or ch2 is off
 fwhm = width/(2*sqrt(log(2)));
 
 if numel(appliedPhase) == 0
@@ -110,7 +110,7 @@ end
 
 %% Checks
 if T < width && numPulses>1
-    error('Pulse separation time is less than the pulse duration: pulses are not separated')
+%     error('Pulse separation time is less than the pulse duration: pulses are not separated')
 end
 if t0 < width
 %     warning('initial drop time less than pulse width: pulse starts before the desired initial drop time')
@@ -121,7 +121,7 @@ end
 % % % Check for DDS Errors
 if dt < 1e-6
     error('DDS error: instructions duration less than 1 us')
-elseif mod(T,1e-6) < 1e-6 && mod(T,1e-6)~= 0
+elseif round(mod(T,1e-6),7) < 1e-6 && round(mod(T,1e-6),7)~= 0
     error('DDS error: Pulse separation time requires DDS instruction less than 1 us')
 elseif mod(width,1e-6) < 1e-6 && mod(width,1e-6) ~= 0
     error('DDS error: Pulse duration requires DDS instruction less than 1 us')    
@@ -130,14 +130,13 @@ end
 OffInstructionDuration = 1e-6;
 tPulse = ((-4*dt): dt : (width + 4*dt))';
 tPulse = [0;  tPulse + OffInstructionDuration; tPulse(end) + 2*OffInstructionDuration];
-t = repmat(tPulse,1,numPulses);
 
-% for  nn = 1:numPulses
-%     t(:,nn) = t(:,nn) + t0 + (nn-1)*T + (nn~=3)*(nn-1)*width + (nn==3)*(nn-1)*width;
-% end
+t = repmat(tPulse,1,numPulses);
 
 for  nn = 1:numPulses
     if numPulses == 1
+        % If ch1 or ch2 is off while the other is on, use the on channel to
+        % determine which pulse should be on
         if sum(power1 ~= 0) ~= 0
             nn = find(power1 ~= 0);
         elseif sum(power1 ~= 0) == 0

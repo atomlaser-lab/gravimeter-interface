@@ -4,8 +4,8 @@ if r.isInit()
     %
     % Define parameters
     %
-    r.data.param1 = const.randomize(50*linspace(-1,1,21));
-    r.data.param2 = [0,1,2];
+    r.data.param1 = const.randomize((0:20:360));
+    r.data.param2 = [1:1:100];
     % Number of averages to do
     r.data.num_avgs = 4;
     %

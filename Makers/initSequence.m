@@ -4,7 +4,7 @@ function sq = initSequence
     %% Name digital channels
 
     sq.channels(1).setName('50W TTL','A0').setDefault(0);
-    sq.channels(2).setName('DDS Trig','A1').setDefault(0);
+    sq.channels(2).setName('DDS Trig','A1').setDefault(1);
     sq.channels(3).setName('50W Pilot','A2').setDefault(1);
     sq.channels(4).setName('25W TTL','A3').setDefault(0);
     sq.channels(5).setName('25W Active','A4').setDefault(1);
@@ -25,7 +25,7 @@ function sq = initSequence
     sq.channels(19).setName('3D Trap Shutter','C2').setDefault(0);
     sq.channels(20).setName('C3 - N/C','C3').setDefault(0);
     sq.channels(21).setName('Gradiometry Coil','C4').setDefault(0);
-    sq.channels(22).setName('Raman DDS Trig','C5').setDefault(0);
+    sq.channels(22).setName('Raman DDS Trig','C5').setDefault(1);
     sq.channels(23).setName('C6 - N/C','C6').setDefault(0);
     sq.channels(24).setName('C7 - N/C','C7').setDefault(0);
     sq.channels(25).setName('MW Amp TTL','D0').setDefault(0);

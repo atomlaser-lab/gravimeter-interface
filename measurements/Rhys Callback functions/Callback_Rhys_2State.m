@@ -4,25 +4,27 @@ function Callback_Rhys_2State(r)
 ClearImage = 1;
 FigNum = 5;
 % Title inputs
-TitleStuff.TotalPower = '20';
+TitleStuff.TotalPower = 'param';
 TitleStuff.P_rat = '(7/1)';
-TitleStuff.Mag = '3';
+TitleStuff.Mag = '1.5';
 
-TitleStuff.t_0 = '2000';
-TitleStuff.Tau  = '60';
+TitleStuff.t_0 = '6030';
+TitleStuff.T = '1';
+TitleStuff.Tau  = '20';
 
 TitleStuff.SPD = '4.95';
 TitleStuff.TPD = '-20';
 
-Title = append('Pumping: P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us');
-SubTitle = 'EW = 0, NS = 0, UD = 0: EW & NS turned off';
+Title = append('Pumping: P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us', ', T = ',TitleStuff.T,' ms');
+TitleStuff.SubTitle = 'EW = -10, NS = 0, UD = 10: Optical Evap end point + 0.8';
 
 
-Param = [1:1:120];%-300:50:300 -50:10:50
-% Param = ([20:20:500]);%-300:50:300 -50:10:50
-PlotParam = Param;
-ParamName = ScanableParameters.Run;
-% ParamName = 'UD bias (V)';
+% Param = [0:1000:5000, 500];%-300:50:300 -50:10:50
+% Param = [0:5:180];
+Param = [0:2:30 31.5];
+PlotParam = 1*Param;
+ParamName = ScanableParameters.Power;
+% ParamName = 'Time of Flight (us)';
 
 % [dump r.data.Index] = sort(Param);
 
@@ -93,6 +95,9 @@ elseif r.isAnalyze()
     r.data.R(i1,:) = r.data.N(i1,:)./sum(r.data.N(i1,:));
     r.data.Rsum(i1,:) = r.data.Nsum(i1,:)./sum(r.data.Nsum(i1,:));
 
+    r.data.T_F1(i1,:) = [img(2).clouds(F1_ROI).T];
+    r.data.T_F2(i1,:) = [img(1).clouds(F2_ROI).T];
+
     %
     % Get processed data for all regions of interest
     %
@@ -150,7 +155,7 @@ elseif r.isAnalyze()
     end
     scatter(r.data.PlotParam(1:i1),r.data.N(1:i1,:),'filled');
     plot_format(ParamName,'Number','',12);
-    sgtitle({['{\bf\fontsize{14}' Title '}'],SubTitle});
+    sgtitle({['{\bf\fontsize{14}' Title '}'],TitleStuff.SubTitle});
     grid on
     ylim([0,Inf]);
     legend('F2','F1')
@@ -164,11 +169,14 @@ elseif r.isAnalyze()
     ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,:),40,'filled','ColorVariable',['r','b']);
     plot_format(ParamName,'Population','',12);
     grid on;
+%     ylim([0.65,0.8])
+
+
 
     % % % % % % % % % % % %
     maxlength = max(numel(img(1).clouds),numel(img(2).clouds));
     figure(FigNum+1);clf
-    sgtitle({['{\bf\fontsize{14}' Title '}'],SubTitle});
+    sgtitle({['{\bf\fontsize{14}' Title '}'],TitleStuff.SubTitle});
     for ii = 1:numel(img(1).clouds)
         subplot(maxlength,2,ii*2-1);
         if i1 == 1

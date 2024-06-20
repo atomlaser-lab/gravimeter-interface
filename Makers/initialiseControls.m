@@ -30,7 +30,9 @@ if strcmpi(DDS,'Bragg')
     % disp(['Moglabs DDS connected: ', mogipAddress])
     disp(['Moglabs DDS connected: ', '192.168.1.4'])
 else
-        mog.connect('192.168.1.101');
+%         mog.connect('192.168.1.101');
+            mog.connect('192.168.1.4');
+
     %     r.mog = mog;
     %     disp(['Moglabs DDS connected: ', '192.168.1.100'])
     % mog.connect(mogipAddress);
@@ -116,5 +118,7 @@ disp(opt)
 
 %% set callback
 r.callback = @Callback_Rhys_2State_MW;
-
+opt.mw.enable(1) = 1;
+opt.mw.enable_sg = 1;
+opt.mw.analyze(1) = 1;
 end
