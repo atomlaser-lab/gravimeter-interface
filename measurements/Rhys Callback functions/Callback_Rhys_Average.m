@@ -6,8 +6,8 @@ FigNum = 5;
 
 Title = 'MOT Scan';
 SubTitle = 'Mot coil = 5 A';
-NumAverages = 3;
-Param = -40:1:-4;
+NumAverages = 20;
+Param = [0.5:0.5:5, 5:1:10];
 
 
 PlotFactor = 1;
@@ -106,19 +106,19 @@ elseif r.isAnalyze()
 
     %% Plots
     figure(FigNum);clf
-    if NumAverages ~= 1
-        errorbar(unique(r.data.PlotParam),r.data.NSum(:,1),r.data.NSum_std(:,1),'-s','MarkerSize',10,'LineStyle','none','Color','r')
-        hold on
-        errorbar(unique(r.data.PlotParam),r.data.N(:,1),r.data.N_std(:,1),'-s','MarkerSize',10,'LineStyle','none','Color','b')
-        
-    else
-        scatter(unique(r.data.PlotParam),r.data.N(:,1),'Color','b')
-        hold on
-        scatter(unique(r.data.PlotParam),r.data.NSum(:,1),'Color','r')
-        
-    end
-    sgtitle({['{\bf\fontsize{14}' Title '}'],SubTitle});
-    grid on
+%     if NumAverages ~= 1
+%         errorbar(unique(r.data.PlotParam),r.data.NSum(:,1),r.data.NSum_std(:,1),'-s','MarkerSize',10,'LineStyle','none','Color','r')
+%         hold on
+%         errorbar(unique(r.data.PlotParam),r.data.N(:,1),r.data.N_std(:,1),'-s','MarkerSize',10,'LineStyle','none','Color','b')
+%         
+%     else
+%         scatter(unique(r.data.PlotParam),r.data.N(:,1),'Color','b')
+%         hold on
+%         scatter(unique(r.data.PlotParam),r.data.NSum(:,1),'Color','r')
+%         
+%     end
+%     sgtitle({['{\bf\fontsize{14}' Title '}'],SubTitle});
+%     grid on
 
 end
 end

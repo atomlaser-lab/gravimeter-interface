@@ -4,10 +4,11 @@ if r.isInit()
     %
     % Define parameters
     %
-    r.data.param1 = const.randomize((0:20:360));
-    r.data.param2 = [1:1:100];
+%     r.data.param1 = const.randomize(([0:0.1:10]));
+    r.data.param1 = 0:10:180;
+    r.data.param2 = 0.5:0.25:10;
     % Number of averages to do
-    r.data.num_avgs = 4;
+    r.data.num_avgs = 1;
     %
     % When to average controls when averaging is done.  If it is 'first',
     % then num_avgs repetitions are done of each set of parameters (param1,

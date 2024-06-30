@@ -82,7 +82,7 @@ sq.find('25w amp').set(convert.dipole25(0));
 
 %% Interferometry
 enableDDS = 1;      %Enable DDS and DDS trigger
-enableBragg = 0;    %Enable Bragg diffraction
+enableBragg = 1;    %Enable Bragg diffraction
 enableRaman = 0;    %Enable Raman transition
 enableGrad = 0;     %Enable gradiometry
 if enableDDS

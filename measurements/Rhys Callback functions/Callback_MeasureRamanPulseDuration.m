@@ -5,7 +5,7 @@ XLabel = 'Pulse Duration [us]';
 
 
 if r.isInit()
-    r.data.duration = [10:20:310];
+    r.data.duration = [2:20];
     
     r.c.setup('var',r.data.duration);
 elseif r.isSet()
@@ -44,7 +44,8 @@ elseif r.isAnalyze()
 %     end
     r.data.R(i1,:) = r.data.N(i1,:)./sum(r.data.N(i1,:));
     r.data.Rsum(i1,:) = r.data.Nsum(i1,:)./sum(r.data.Nsum(i1,:));
-    r.data.R2(i1,:) = r.data.N(i1,[3,7])./sum(r.data.N(i1,[3,7]));
+%     r.data.R2(i1,:) = r.data.N(i1,[3,7])./sum(r.data.N(i1,[3,7]));
+    r.data.R2 = r.data.R;
     
     figure(FigNum);
     subplot(1,2,1)
@@ -74,7 +75,7 @@ elseif r.isAnalyze()
     if r.c(1) > 4
         nlf = nonlinfit(r.data.duration(1:r.c(1)),r.data.R2(:,2),1e-2);
         nlf.setFitFunc(@(A,R,D,x) A*(1 - 4*R.^2./(4*R^2+D.^2).*sin(2*pi*sqrt(4*R^2+D.^2).*x/2).^2));
-        nlf.bounds2('A',[0.5,1,2],'R',[0,1,0.03]*1e-3,'D',[-0.01,0.01,0]);
+        nlf.bounds2('A',[0.5,1,2],'R',[0,20,10]*1e-3,'D',[-0.01,0.01,0]);
         nlf.fit;
         fprintf(1,'Rabi frequency: %.3f kHz, Detuning = %.3f kHz\n',nlf.c(2,1)*1e3,nlf.c(3,1)*1e3);
         subplot(1,2,2);

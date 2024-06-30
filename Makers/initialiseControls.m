@@ -3,6 +3,7 @@ function initialiseControls(DDS)
 closeNoPrompt(matlab.desktop.editor.getAll);
 open makeBEC_RamanInterferometer.m
 open Callback_Rhys_2State
+open Abs_Analysis_DualState_RT.m
 open Callback_Rhys_2State_MW.m
 
 %Check the input argument

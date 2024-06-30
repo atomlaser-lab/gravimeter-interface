@@ -4,33 +4,35 @@ function Callback_Rhys_2State(r)
 ClearImage = 1;
 FigNum = 5;
 % Title inputs
-TitleStuff.TotalPower = 'param';
-TitleStuff.P_rat = '(7/1)';
+
+TitleStuff.TotalPower = '10';
+TitleStuff.P_rat = '7';
 TitleStuff.Mag = '1.5';
 
-TitleStuff.t_0 = '6030';
-TitleStuff.T = '1';
-TitleStuff.Tau  = '20';
+TitleStuff.t_0 = '10';
+TitleStuff.T = '0';
+TitleStuff.Tau  = '41';
 
 TitleStuff.SPD = '4.95';
-TitleStuff.TPD = '-20';
+TitleStuff.TPD = '-20 - 0.1*e-3 + param';
+TitleStuff.SubTitle = 'No Ramp, UD = 10, EW = 0, Waltz';
 
 Title = append('Pumping: P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us', ', T = ',TitleStuff.T,' ms');
-TitleStuff.SubTitle = 'EW = -10, NS = 0, UD = 10: Optical Evap end point + 0.8';
 
 
-% Param = [0:1000:5000, 500];%-300:50:300 -50:10:50
-% Param = [0:5:180];
-Param = [0:2:30 31.5];
+Param = -0.0:0.01:0.04;
 PlotParam = 1*Param;
+% ParamName = 'Time of flight (ms)';
+% ParamName = 'Pulse Type';
 ParamName = ScanableParameters.Power;
-% ParamName = 'Time of Flight (us)';
 
-% [dump r.data.Index] = sort(Param);
+
 
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 2;
+allROI = 1;
+
 
 if r.isInit()
     r.data.Param = Param;
@@ -101,29 +103,30 @@ elseif r.isAnalyze()
     %
     % Get processed data for all regions of interest
     %
-    F2Name = fieldnames(r.data.F2);
-    for ii = 1:size(img(1).clouds,1)
-        r.data.F2.(F2Name{ii}).N(i1,:) = img(1).clouds(ii).N;
-        r.data.F2.(F2Name{ii}).Nsum(i1,:) = img(1).clouds(ii).Nsum;
-        r.data.F2.(F2Name{ii}).T(i1,:) = img(1).clouds(ii).T;
-        r.data.F2.(F2Name{ii}).OD(i1) = img(1).clouds(ii).peakOD;
+    if allROI == 1
+        F2Name = fieldnames(r.data.F2);
+        for ii = 1:size(img(1).clouds,1)
+            r.data.F2.(F2Name{ii}).N(i1,:) = img(1).clouds(ii).N;
+            r.data.F2.(F2Name{ii}).Nsum(i1,:) = img(1).clouds(ii).Nsum;
+            r.data.F2.(F2Name{ii}).T(i1,:) = img(1).clouds(ii).T;
+            r.data.F2.(F2Name{ii}).OD(i1) = img(1).clouds(ii).peakOD;
 
-        r.data.F2.(F2Name{ii}).R(i1,:) = img(1).clouds(ii).N/(sum(vertcat(img(1).clouds(:).N)) + sum(vertcat(img(2).clouds(:).N)));
-        r.data.F2.(F2Name{ii}).Rsum(i1,:) = img(1).clouds(ii).Nsum/(sum(vertcat(img(1).clouds(:).Nsum)) + sum(vertcat(img(2).clouds(:).Nsum)));
+            r.data.F2.(F2Name{ii}).R(i1,:) = img(1).clouds(ii).N/(sum(vertcat(img(1).clouds(:).N)) + sum(vertcat(img(2).clouds(:).N)));
+            r.data.F2.(F2Name{ii}).Rsum(i1,:) = img(1).clouds(ii).Nsum/(sum(vertcat(img(1).clouds(:).Nsum)) + sum(vertcat(img(2).clouds(:).Nsum)));
+        end
+
+        F1Name = fieldnames(r.data.F1);
+        for ii = 1:size(img(2).clouds,1)
+            r.data.F1.(F1Name{ii}).N(i1,:) = img(2).clouds(ii).N;
+            r.data.F1.(F1Name{ii}).Nsum(i1,:) = img(2).clouds(ii).Nsum;
+            r.data.F1.(F1Name{ii}).T(i1,:) = img(2).clouds(ii).T;
+            r.data.F1.(F2Name{ii}).OD(i1) = img(2).clouds(ii).peakOD;
+
+
+            r.data.F1.(F2Name{ii}).R(i1,:) = img(2).clouds(ii).N/(sum(vertcat(img(1).clouds(:).N)) + sum(vertcat(img(2).clouds(:).N)));
+            r.data.F1.(F2Name{ii}).Rsum(i1,:) = img(2).clouds(ii).Nsum/(sum(vertcat(img(1).clouds(:).Nsum)) + sum(vertcat(img(2).clouds(:).Nsum)));
+        end
     end
-
-    F1Name = fieldnames(r.data.F1);
-    for ii = 1:size(img(2).clouds,1)
-        r.data.F1.(F1Name{ii}).N(i1,:) = img(2).clouds(ii).N;
-        r.data.F1.(F1Name{ii}).Nsum(i1,:) = img(2).clouds(ii).Nsum;
-        r.data.F1.(F1Name{ii}).T(i1,:) = img(2).clouds(ii).T;
-        r.data.F1.(F2Name{ii}).OD(i1) = img(2).clouds(ii).peakOD;
-
-
-        r.data.F1.(F2Name{ii}).R(i1,:) = img(2).clouds(ii).N/(sum(vertcat(img(1).clouds(:).N)) + sum(vertcat(img(2).clouds(:).N)));
-        r.data.F1.(F2Name{ii}).Rsum(i1,:) = img(2).clouds(ii).Nsum/(sum(vertcat(img(1).clouds(:).Nsum)) + sum(vertcat(img(2).clouds(:).Nsum)));
-    end
-
     %
     % % % Grab Beam position IF image exists
     %
@@ -164,58 +167,90 @@ elseif r.isAnalyze()
     if i1 == 1
         hold on;
     end
-    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,:),100,'ColorVariable',['r','b']);
-    %     hold on
-    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,:),40,'filled','ColorVariable',['r','b']);
+    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,1),100,'ColorVariable',['r','b']);
+    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,1),40,'filled','ColorVariable',['r','b']);
     plot_format(ParamName,'Population','',12);
     grid on;
-%     ylim([0.65,0.8])
+
+    figure(FigNum + 1)
+    subplot(1,2,1)
+    scatter(r.data.PlotParam(1:i1),r.data.T_F1(1:i1,:)*1e6,100,'ColorVariable',['r','b']);
+        plot_format(ParamName,'Temperature (uk)','',12);
+    title('F = 1')
+    subplot(1,2,2)
+    scatter(r.data.PlotParam(1:i1),r.data.T_F1(1:i1,:)*1e6,100,'ColorVariable',['r','b']);
+    title('F = 2')
+            plot_format(ParamName,'Temperature (uk)','',12);
+
+
+
+    %     figure(FigNum + 1)
+    %     subplot(1,2,1)
+    %     if i1 == 1
+    %         hold on;
+    %     end
+    %     scatter(0.5*9.8*(r.data.PlotParam(1:i1)*1e-3).^2*1e3,r.data.N(1:i1,:),'filled');
+    %     plot_format('Displacement (mm)','Number','',12);
+    %     sgtitle({['{\bf\fontsize{14}' Title '}'],TitleStuff.SubTitle});
+    %     grid on
+    %     ylim([0,Inf]);
+    %     legend('F2','F1')
+    %
+    %     subplot(1,2,2)
+    %     if i1 == 1
+    %         hold on;
+    %     end
+    %     scatter(0.5*9.8*(r.data.PlotParam(1:i1)*1e-3).^2*1e3,r.data.Rsum(1:i1,:),100,'ColorVariable',['r','b']);
+    %     ax = scatter(0.5*9.8*(r.data.PlotParam(1:i1)*1e-3).^2*1e3,r.data.R(1:i1,:),40,'filled','ColorVariable',['r','b']);
+    %     plot_format('Displacement (mm)','Population','',12);
+    %     grid on;
 
 
 
     % % % % % % % % % % % %
-    maxlength = max(numel(img(1).clouds),numel(img(2).clouds));
-    figure(FigNum+1);clf
-    sgtitle({['{\bf\fontsize{14}' Title '}'],TitleStuff.SubTitle});
-    for ii = 1:numel(img(1).clouds)
-        subplot(maxlength,2,ii*2-1);
-        if i1 == 1
-            hold on;
-        end
-        scatter(r.data.PlotParam(1:i1), r.data.F2.(F2Name{ii}).Rsum,'filled')
-        hold on
-        scatter(r.data.PlotParam(1:i1),r.data.F2.(F2Name{ii}).R,'filled')
+    if allROI == 1
+        maxlength = max(numel(img(1).clouds),numel(img(2).clouds));
+        figure(FigNum+1);clf
+        sgtitle({['{\bf\fontsize{14}' Title '}'],TitleStuff.SubTitle});
+        for ii = 1:numel(img(1).clouds)
+            subplot(maxlength,2,ii*2-1);
+            if i1 == 1
+                hold on;
+            end
+            scatter(r.data.PlotParam(1:i1), r.data.F2.(F2Name{ii}).Rsum,'filled')
+            hold on
+            scatter(r.data.PlotParam(1:i1),r.data.F2.(F2Name{ii}).R,'filled')
 
-        ylabel('Pop')
-        if ii == 1
-            title(sprintf('F = 2 atoms \n ROI %g',ii))
-        else
-            title(sprintf('ROI %g',ii))
+            ylabel('Pop')
+            if ii == 1
+                title(sprintf('F = 2 atoms \n ROI %g',ii))
+            else
+                title(sprintf('ROI %g',ii))
+            end
+            if ii == numel(img(1).clouds)
+                xlabel(ParamName)
+            end
         end
-        if ii == numel(img(1).clouds)
-            xlabel(ParamName)
+        for ii = 1:numel(img(2).clouds)
+            subplot(maxlength,2,ii*2);
+            if i1 == 1
+                hold on;
+            end
+            scatter(r.data.PlotParam(1:i1),r.data.F1.(F1Name{ii}).Rsum,'filled')
+            hold on
+            scatter(r.data.PlotParam(1:i1),r.data.F1.(F1Name{ii}).R,'filled')
+
+            if ii == 1
+                title(sprintf('F = 1 atoms \n ROI %g',ii))
+            else
+                title(sprintf('ROI %g',ii))
+            end
+            ylabel('Pop')
+            if ii == numel(img(1).clouds)
+                xlabel(ParamName)
+            end
         end
     end
-    for ii = 1:numel(img(2).clouds)
-        subplot(maxlength,2,ii*2);
-        if i1 == 1
-            hold on;
-        end
-        scatter(r.data.PlotParam(1:i1),r.data.F1.(F1Name{ii}).Rsum,'filled')
-        hold on
-        scatter(r.data.PlotParam(1:i1),r.data.F1.(F1Name{ii}).R,'filled')
-
-        if ii == 1
-            title(sprintf('F = 1 atoms \n ROI %g',ii))
-        else
-            title(sprintf('ROI %g',ii))
-        end
-        ylabel('Pop')
-        if ii == numel(img(1).clouds)
-            xlabel(ParamName)
-        end
-    end
-
 
     % % % % % % % % % % % % % %
     if size(img(1).raw.images,3) == 6

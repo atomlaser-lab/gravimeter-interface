@@ -7,15 +7,15 @@ function Callback_Rhys(r)
 
 
 % % % Inputs
-ClearImage = 0;
+ClearImage = 1;
 FigNum = 5;
 % TOF = 216.5e-3;
-TOF = 30e-3;
+TOF = 20e-3;
 
 Title = 'Raman Test: TOF  ms, detuning = 0';
 
 
-Param = const.randomize(0:0.5:10);
+Param = [-15:1:10];
 
 ParamName = 'AOM Power';
 Unit = ' (Arb.)';  %do not forget to put a space before the unit
