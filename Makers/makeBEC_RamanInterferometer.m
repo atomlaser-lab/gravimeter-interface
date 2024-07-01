@@ -144,10 +144,9 @@ if opt.PGC_status == 1
     sq.find('repump freq').set(convert.repump_freq(-8.9));
     sq.find('Repump Amp').set(6.25);
 
-    sq.find('bias u/d').set(1 + 3);
+    sq.find('bias u/d').set(1);
     sq.find('bias e/w').set(0).after(Tpgc,0); %"Flipped" EW bias
     sq.find('bias n/s').set(0).after(Tpgc,0);
-    %     sq.find('bias n/s').before(10e-3,0).after(Tpgc,0);
     sq.delay(Tpgc);
 
 end
@@ -157,9 +156,8 @@ if opt.LoadMagTrap_status == 1 && opt.JustMOT ~= 1
     % Turn off the repump field for optical pumping - 1 ms
     Tdepump = 1e-3;
     sq.find('repump amp ttl').set(0);
-%     sq.find('Top repump shutter').before(2e-3,1);
+    sq.find('Top repump shutter').before(2e-3,1);
     sq.delay(Tdepump);
-
 
     sq.find('liquid crystal bragg').set(-3);
     sq.find('3D MOT Amp').set(0);
