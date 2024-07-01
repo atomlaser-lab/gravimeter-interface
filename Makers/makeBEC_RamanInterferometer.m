@@ -79,7 +79,6 @@ end
 
 %% Set up the MOT loading values
 sq.find('liquid crystal repump').set(7);
-
 sq.find('3d coils').set(RunConversions.mot_coil(1.35));
 sq.find('3D MOT Freq').set(convert.mot_freq(-14));
 sq.find('3D MOT Amp').set(5);
@@ -136,7 +135,7 @@ if opt.PGC_status == 1
 %     sq.find('bias n/s').set(10 - 10).after(Tpgc,0);
 %     sq.delay(Tpgc);
 
-% % % Dipole load
+% % % % Dipole load
     %Smooth ramps for these parameters
     sq.find('3D MOT Amp').after(t,f(sq.find('3D MOT Amp').values(end),3.8));
     sq.find('3D MOT Freq').after(t,f(sq.find('3D MOT Freq').values(end),convert.mot_freq(-67.5)));
@@ -158,7 +157,7 @@ if opt.LoadMagTrap_status == 1 && opt.JustMOT ~= 1
     % Turn off the repump field for optical pumping - 1 ms
     Tdepump = 1e-3;
     sq.find('repump amp ttl').set(0);
-    sq.find('Top repump shutter').before(2e-3,1);
+%     sq.find('Top repump shutter').before(2e-3,1);
     sq.delay(Tdepump);
 
 
@@ -167,7 +166,7 @@ if opt.LoadMagTrap_status == 1 && opt.JustMOT ~= 1
     sq.find('3D mot amp ttl').set(0);
     sq.find('MOT coil ttl').set(1);
     sq.find('3D coils').set(RunConversions.mot_coil(10.05));
-    % sq.delay(3.0); %test lifetime in mag trap
+%     sq.delay(0.1); %test lifetime in mag trap
 end
 
 %% Microwave evaporation
@@ -211,8 +210,8 @@ if opt.OpticalEvaporation_status == 1 && opt.LoadOpticalTrap_status == 1 && opt.
     sq.delay(5*1e-3);
     Tevap = 2.5 + 0.5;
     t = linspace(0,Tevap,100);
-    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.5),0.42)); %+0.8, -0.3 for small
-    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.4),0.7)); % +0.9
+    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.5 + 0.8),0.42)); %+0.8, -0.3 for small
+    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.4 + 0.8),0.7)); % +0.9
 
     sq.find('bias e/w').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias e/w').values(end),0));
     sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),0));
@@ -225,7 +224,7 @@ end
 
 %% In Trap MW Transfer: |1,-1> -> |2,0> -> |1,0>
 % % % Inputs
-ExtraDelay = 300*1e-3;
+ExtraDelay = 0*1e-3;
 
 % pulse 1
 MW1Duration = 600*1e-6;
@@ -241,6 +240,9 @@ if opt.mw.enable(1) == 1 % % % Transfer |1,-1> -> |2,0>
     sq.find('state prep ttl').before(InTrapDelay1,1).after(MW1Duration,0);
     if opt.mw.analyze(1) ~= 1
         % % % Turn on repump for in-trap blow away of remaining F = 1 atoms
+        sq.find('Bias U/D').set(0);
+        sq.find('Bias E/W').set(0);
+        sq.find('Bias N/S').set(0);
         sq.find('Repump Amp TTL').before(InTrapDelay1 - MW1Duration,1).after(BlowDuration1,0);
         sq.find('Top Repump Shutter').before(InTrapDelay1 + 3e-3 - MW1Duration,0).after(BlowDuration1 + 1e-3,1);
         sq.find('repump freq').before(InTrapDelay1 - MW1Duration,convert.repump_freq(0));

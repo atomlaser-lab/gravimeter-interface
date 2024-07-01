@@ -271,7 +271,7 @@ sq.ddsTrigDelay = sq.time - 20e-3;
 
 %% Raman Stuff
 % % % Inputs
-Raman = 1;
+Raman = 0;
 
 % RamanTOF = opt.params(3);
 % RamanPulseWidth = opt.params(1)*1e-6;
@@ -376,25 +376,25 @@ end
 % from the time at which the atoms are dropped to when the first
 % imaging pulse occurs
 %
-Abs_Analysis_parameters.camera = evalin('base', 'Abs_Analysis_parameters.camera');
+% Abs_Analysis_parameters.camera = evalin('base', 'Abs_Analysis_parameters.camera');
 sq.anchor(timeAtDrop);
 sq.camDelay = timeAtDrop - 2;   %Set camera acquisition delay to be 2 s less than when image is taken
-if strcmpi(Abs_Analysis_parameters.camera,'in-trap') || strcmpi(Abs_Analysis_parameters.camera,'drop 2')
+% if strcmpi(Abs_Analysis_parameters.camera,'in-trap') || strcmpi(Abs_Analysis_parameters.camera,'drop 2')
     if opt.TwoStateImaging == 1
-        makeRamanImagingSequence(sq,'type',Abs_Analysis_parameters.camera,...
+        makeRamanImagingSequence(sq,'type','in trap',...
             'tof1',opt.tof,'repump delay',0.5e-3,'tof2',opt.tof+opt.misc.tof2,'cycle time',150e-3,...
             'repump Time',200e-6,'pulse Delay',10e-6,'pulse time',10e-6,...
             'imaging freq',imageVoltage,'image freq2',imageVoltage,'repump freq',4.3,'includeDarkImage',true);
     else
-        makeImagingSequence(sq,'type',Abs_Analysis_parameters.camera,'tof',opt.tof,...
+        makeImagingSequence(sq,'type','in trap','tof',opt.tof,...
             'repump Time',100e-6,'pulse Delay',10e-6,'pulse time',[],...
             'imaging freq',imageVoltage,'repump delay',10e-6,'repump freq',4.2,...
             'manifold',1,'includeDarkImage',true,'cycle time',150e-3);
     end
-elseif strcmpi(Abs_Analysis_parameters.camera,'drop 3') || strcmpi(Abs_Analysis_parameters.camera,'drop 4')
-    makeFMISequence(sq,'tof',opt.tof,'offset',30e-3,'duration',100e-3,...
-        'imaging freq',imageVoltage,'manifold',1);
-end
+% elseif strcmpi(Abs_Analysis_parameters.camera,'drop 3') || strcmpi(Abs_Analysis_parameters.camera,'drop 4')
+%     makeFMISequence(sq,'tof',opt.tof,'offset',30e-3,'duration',100e-3,...
+%         'imaging freq',imageVoltage,'manifold',1);
+% end
 sq.find('Liquid Crystal Repump').at(timeAtDrop,7);
 
 %% Automatic start

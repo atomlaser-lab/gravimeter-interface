@@ -2,7 +2,7 @@ function Callback_Rhys_2State(r)
 
 % % Inputs
 ClearImage = 1;
-FigNum = 5;
+FigNum = 3;
 % Title inputs
 
 TitleStuff.TotalPower = '10';
@@ -20,17 +20,17 @@ TitleStuff.SubTitle = 'No Ramp, UD = 10, EW = 0, Waltz';
 Title = append('Pumping: P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us', ', T = ',TitleStuff.T,' ms');
 
 
-Param = -0.0:0.01:0.04;
+Param = 1:1:1000;
 PlotParam = 1*Param;
 % ParamName = 'Time of flight (ms)';
 % ParamName = 'Pulse Type';
-ParamName = ScanableParameters.Power;
+ParamName = ScanableParameters.Run;
 
 
 
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
-F1_ROI = 2;
+F1_ROI = 1;
 allROI = 1;
 
 
@@ -167,8 +167,8 @@ elseif r.isAnalyze()
     if i1 == 1
         hold on;
     end
-    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,1),100,'ColorVariable',['r','b']);
-    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,1),40,'filled','ColorVariable',['r','b']);
+    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,:),100,'ColorVariable',['r','b']);
+    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,:),40,'filled','ColorVariable',['r','b']);
     plot_format(ParamName,'Population','',12);
     grid on;
 

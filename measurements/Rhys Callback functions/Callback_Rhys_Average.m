@@ -6,8 +6,9 @@ FigNum = 5;
 
 Title = 'MOT Scan';
 SubTitle = 'Mot coil = 5 A';
-NumAverages = 20;
-Param = [0.5:0.5:5, 5:1:10];
+NumAverages = 4;
+Param = [2:2:10];
+% Param = [0.5:0.5:5, 5:1:10];
 
 
 PlotFactor = 1;

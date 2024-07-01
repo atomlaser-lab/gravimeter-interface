@@ -2,21 +2,21 @@ function Callback_Rhys_2State_MW(r)
 
 % % % Inputs
 ClearImage = 0;
-FigNum = 5;
+FigNum = 3;
 TOF = 25e-3;
 
 Title = 'In Trap MW Transfer';
-Param = ([-8:0.25:8]);
+Param = (-1.5:0.2:8);
 % Param = repmat((-5:0.1:5),[1,4]);
 ParamName = 'df (kHz)';
 
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
-F1_ROI = 2;
+F1_ROI = 1;
 
 if r.isInit()
-    r.data.freq1 = const.f_Rb_groundHFS - 315e3 + (-11.9)*1e3;
-    r.data.freq2 = const.f_Rb_groundHFS + (0.1 + Param)*1e3;
+    r.data.freq1 = const.f_Rb_groundHFS - 315e3 + (-15.65 + Param)*1e3;
+    r.data.freq2 = const.f_Rb_groundHFS + (0.1)*1e3;
     r.data.Param = Param;
     r.c.setup('var',r.data.Param);
 
