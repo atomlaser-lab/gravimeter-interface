@@ -266,14 +266,14 @@ sq.find('25w amp').set(convert.dipole25(0));
 %% Raman Stuff
 % Flag
 SixShots = 0;
-P1_max = 3.97; %mW %ch1 max at 34.14 dBm
-P2_max = 30.75; % mW %ch2 max at 34.35 dBm
+P1_max = 4.15; %mW %ch1 max at 34.14 dBm
+P2_max = 29.5; % mW %ch2 max at 34.35 dBm
 
 % % % % Inputs
 % % Time
 dt = 1e-6;
 T_Sep = 0*1e-3;
-RamanPulseWidth = 20*1e-6;
+RamanPulseWidth = 28*1e-6;
 RamanTOF = 10e-6 + 5*1e-3;
 
 Pulse1OnOff = 1;
@@ -290,7 +290,7 @@ BiasNS = 0;
 RamanBiasDelay = 50*1e-3;
 % % Detuning
 % delta = -20 + -7.5*1e-3 + 3.95e-3 + 4e-3 + 3.7e-3 + 4e-3;
-delta = -20 + opt.params*1e-3;
+delta = -20 + 0*1e-3;
 
 % % Power
 P2onP1 = 7;
@@ -388,15 +388,15 @@ if opt.raman == 1
     if Pulse1OnOff == 1 && Pulse2OnOff == 0
         MakePulseSequence_Rhys(sq.dds,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
             'phase',[phi_1,phi_2,0],'delta',delta,...
-            'power1',[Ch1_AOMSetting_pulse1,0,0],'power2',[Ch2_AOMSetting_pulse1,0,0],'PulseType','Square','w0',2.65/2*1e-3);
+            'power1',[Ch1_AOMSetting_pulse1,0,0],'power2',[Ch2_AOMSetting_pulse1,0,0],'Pulseshape','Square','w0',2.65/2*1e-3);
     elseif Pulse1OnOff == 0 && Pulse2OnOff == 1
         MakePulseSequence_Rhys(sq.dds,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
             'phase',[phi_1,phi_2,0],'delta',delta,...
-            'power1',[0,Ch1_AOMSetting_pulse2,0],'power2',[0,Ch2_AOMSetting_pulse2,0],'PulseType','Square');
+            'power1',[0,Ch1_AOMSetting_pulse2,0],'power2',[0,Ch2_AOMSetting_pulse2,0],'Pulseshape','Square');
     elseif Pulse1OnOff == 1 && Pulse2OnOff == 1
         MakePulseSequence_Rhys(sq.dds,'t0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'dt',dt,...
             'phase',[phi_1,phi_2,0],'delta',delta,...,
-            'power1',[Ch1_AOMSetting_pulse1,Ch1_AOMSetting_pulse2,0],'power2',[Ch2_AOMSetting_pulse1,Ch2_AOMSetting_pulse2,0],'PulseType','Square');
+            'power1',[Ch1_AOMSetting_pulse1,Ch1_AOMSetting_pulse2,0],'power2',[Ch2_AOMSetting_pulse1,Ch2_AOMSetting_pulse2,0],'Pulseshape','Square');
     end
 
 end

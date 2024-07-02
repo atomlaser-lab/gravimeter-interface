@@ -85,7 +85,7 @@ sq.find('3D MOT Amp').set(5);
 sq.find('Repump freq').set(convert.repump_freq(-1.1));
 sq.find('Repump Amp').set(8);
 sq.find('MOT coil TTL').set(1);
-sq.find('bias u/d').set(0);
+sq.find('bias u/d').set(0 + 2.2);
 sq.find('bias e/w').set(0);
 sq.find('bias n/s').set(0);
 
@@ -98,9 +98,9 @@ if opt.CMOT_status == 1
     sq.find('push amp ttl').before(10e-3,0);
 
     %reduce re-radiation pressure, and tighten the trap
-    sq.find('3D MOT freq').set(convert.mot_freq(-22 -1));
+    sq.find('3D MOT freq').set(convert.mot_freq(-23));
     sq.find('3D MOT Amp').set(RunConversions.mot_power(0.883)); %0.883
-    sq.find('3D coils').set(RunConversions.mot_coil(1.47 + 0.3));
+    sq.find('3D coils').set(RunConversions.mot_coil(1.77));
 
     %     sq.find('3D MOT freq').set(convert.mot_freq(-14 -5));
     %     sq.find('3D MOT Amp').set(RunConversions.mot_power(0.884));
@@ -109,7 +109,7 @@ if opt.CMOT_status == 1
     sq.find('repump freq').set(convert.repump_freq(-8 - 1));
     sq.find('Repump Amp').set(RunConversions.repump_power(0.9575));
 
-    sq.find('bias e/w').set(0);
+%     sq.find('bias e/w').set(0);
     sq.find('bias n/s').set(0);
     sq.find('bias u/d').set(0);
 
@@ -137,15 +137,15 @@ if opt.PGC_status == 1
 
 % % % % Dipole load
     %Smooth ramps for these parameters
-    sq.find('3D MOT Amp').after(t,f(sq.find('3D MOT Amp').values(end),3.8));
+    sq.find('3D MOT Amp').after(t,f(sq.find('3D MOT Amp').values(end),RunConversions.mot_power(0.666 - 0.116)));
     sq.find('3D MOT Freq').after(t,f(sq.find('3D MOT Freq').values(end),convert.mot_freq(-67.5)));
     sq.find('3D coils').after(t,f(sq.find('3D coils').values(end),RunConversions.mot_coil(0)));
 
-    sq.find('repump freq').set(convert.repump_freq(-8.9));
-    sq.find('Repump Amp').set(6.25);
+    sq.find('repump freq').set(convert.repump_freq(-8.9 + 0.8));
+    sq.find('Repump Amp').set(RunConversions.repump_power(0.824)); %0.824
 
-    sq.find('bias u/d').set(1);
-    sq.find('bias e/w').set(0).after(Tpgc,0); %"Flipped" EW bias
+    sq.find('bias u/d').set(3.5);
+%     sq.find('bias e/w').set(0).after(Tpgc,0); %"Flipped" EW bias
     sq.find('bias n/s').set(0).after(Tpgc,0);
     sq.delay(Tpgc);
 
@@ -170,9 +170,9 @@ end
 %% Microwave evaporation
 if opt.MagEvaporation_status == 1 && opt.LoadMagTrap_status == 1 && opt.JustMOT ~= 1
     sq.delay(22*1e-3);
-    evapRate = 14;
+    evapRate = 14  - 1;
     evapStart = 40;
-    evapEnd = 9.5;
+    evapEnd = 9.5 - 2;
     Tevap = (evapStart-evapEnd)/evapRate;
     t = linspace(0,Tevap,100);
     sq.find('mw freq').after(t,convert.microwave(sq.linramp(t,evapStart,evapEnd)));
@@ -182,9 +182,9 @@ end
 
 %% Weaken trap while MW frequency fixed
 if opt.LoadOpticalTrap_status == 1 && opt.JustMOT ~= 1
-    Trampcoils = 80e-3; %180
+    Trampcoils = 80e-3;
     t = linspace(0,Trampcoils,100);
-    sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),RunConversions.mot_coil(4.45)));
+    sq.find('3d coils').after(t,sq.minjerk(t,sq.find('3d coils').values(end),RunConversions.mot_coil(4.45 + 1)));
     sq.find('bias e/w').after(t,sq.minjerk(t,sq.find('bias e/w').values(end),0));
     sq.find('bias n/s').after(t,sq.minjerk(t,sq.find('bias n/s').values(end),0));
     sq.find('bias u/d').after(t,sq.minjerk(t,sq.find('bias u/d').values(end),0));
@@ -197,7 +197,7 @@ end
 %% Optical evaporation
 if opt.OpticalEvaporation_status == 1 && opt.LoadOpticalTrap_status == 1 && opt.JustMOT ~= 1
     % Ramp down magnetic trap in 1 s
-    Trampcoils = 0.9 - 0.1;
+    Trampcoils = 0.9 - 0.1 + 0.1;
     t = linspace(0,Trampcoils,100);
     sq.find('3d coils').after(t,sq.linramp(t,sq.find('3d coils').values(end),convert.mot_coil(0)));
     sq.find('mw amp ttl').anchor(sq.find('3d coils').last).before(100e-3,0);
@@ -206,10 +206,10 @@ if opt.OpticalEvaporation_status == 1 && opt.LoadOpticalTrap_status == 1 && opt.
     % % At the same time, start optical evaporation
     % %
     sq.delay(5*1e-3);
-    Tevap = 2.5 + 0.5;
+    Tevap = 3 - 0.5;
     t = linspace(0,Tevap,100);
-    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.5 + 0.8),0.42)); %+0.8, -0.3 for small
-    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.4 + 0.8),0.7)); % +0.9
+    sq.find('50W amp').after(t,sq.expramp(t,sq.find('50w amp').values(end),convert.dipole50(1.5 + 0.4),0.42)); %+0.8, -0.3 for small
+    sq.find('25W amp').after(t,sq.expramp(t,sq.find('25w amp').values(end),convert.dipole25(1.4 + 0.4),0.7)); % +0.9
 
     sq.find('bias e/w').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias e/w').values(end),0));
     sq.find('bias n/s').after(t(1:end/2),@(x) sq.linramp(x,sq.find('bias n/s').values(end),0));
@@ -238,9 +238,6 @@ if opt.mw.enable(1) == 1 % % % Transfer |1,-1> -> |2,0>
     sq.find('state prep ttl').before(InTrapDelay1,1).after(MW1Duration,0);
     if opt.mw.analyze(1) ~= 1
         % % % Turn on repump for in-trap blow away of remaining F = 1 atoms
-        sq.find('Bias U/D').set(0);
-        sq.find('Bias E/W').set(0);
-        sq.find('Bias N/S').set(0);
         sq.find('Repump Amp TTL').before(InTrapDelay1 - MW1Duration,1).after(BlowDuration1,0);
         sq.find('Top Repump Shutter').before(InTrapDelay1 + 3e-3 - MW1Duration,0).after(BlowDuration1 + 1e-3,1);
         sq.find('repump freq').before(InTrapDelay1 - MW1Duration,convert.repump_freq(0));
@@ -266,7 +263,7 @@ sq.anchor(timeAtDrop);
 sq.find('3D mot amp ttl').set(0);
 sq.find('bias e/w').before(200e-3,0);
 sq.find('bias n/s').before(200e-3,0);
-sq.find('bias u/d').before(200e-3,0);
+% % % sq.find('bias u/d').before(200e-3,0);
 sq.find('mw amp ttl').set(0);
 sq.find('mot coil ttl').set(0);
 sq.find('3D Coils').set(convert.mot_coil(0));
@@ -294,16 +291,16 @@ Pulse3OnOff = 0;
 % % Time
 dt = 1e-6;
 T_Sep = 1*1e-3;
-RamanPulseWidth = 50*1e-6; 
+RamanPulseWidth = 20*1e-6; 
 RamanPulseWidth2 = RamanPulseWidth;
 RamanTOF = 10e-6 + 0*1e-3;
 
 % % Power
-P2onP1 = 12;
-P_total = 2;
+P2onP1 = 7;
+P_total = 7;
 
 % % Detuning
-delta = -20 + -0.1*1e-3 + 12*1e-3;
+delta = -20 + -0.1*1e-3 + 0*1e-3;
 
 % % Phase
 phi_1 = 0;
@@ -317,7 +314,7 @@ RampOnOff = 0;
 
 % % Bias fields
 BiasEW = 10;
-BiasUD = 10;
+BiasUD = 1.5;
 BiasNS = 0;
 RamanBiasRampTime = 50e-3;
 RamanBiasDelay = 100e-3;
@@ -413,25 +410,25 @@ if opt.raman == 1
     sq.find('Bias U/D').after(t_off,sq.minjerk(t_off,sq.find('bias U/D').values(end),0));
     sq.find('Bias N/S').after(t_off,sq.minjerk(t_off,sq.find('bias N/S').values(end),0));
     sq.find('Bias E/W').after(t_off,sq.minjerk(t_off,sq.find('bias E/W').values(end),0));
-
-    % % % % Make Raman pulse(s)
-    sq.anchor(timeAtDrop);
-    sq.find('DDS Trig').set(0).after(10e-3,1);
-    sq.ddsTrigDelay = timeAtDrop;
-
-    if CompositePulseOnOff == 1
-        MakeCompositePulse_Rhys(sq.dds,...
-            'PulseType',PulseType,'delta',delta,...
-            'P1_max',P1_max,'P2_max',P2_max,'P_pi',P_total,'P_rat',P2onP1,...
-            't0',RamanTOF,'width',RamanPulseWidth,'dt',dt);
-    else
-        MakePulseSequence_Rhys(sq.dds,...
-            't0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'width2',RamanPulseWidth2,'dt',dt,...
-            'phase',[phi_1,phi_2,phi_3],'delta',delta,...,
-            'power1',[Ch1_AOMSetting_pulse1,Ch1_AOMSetting_pulse2,Ch1_AOMSetting_pulse3],...
-            'power2',[Ch2_AOMSetting_pulse1,Ch2_AOMSetting_pulse2,Ch2_AOMSetting_pulse3],...
-            'PulseShape','Square');
-    end
+% 
+%     % % % % Make Raman pulse(s)
+%     sq.anchor(timeAtDrop);
+%     sq.find('DDS Trig').set(0).after(10e-3,1);
+%     sq.ddsTrigDelay = timeAtDrop;
+% 
+%     if CompositePulseOnOff == 1
+%         MakeCompositePulse_Rhys(sq.dds,...
+%             'PulseType',PulseType,'delta',delta,...
+%             'P1_max',P1_max,'P2_max',P2_max,'P_pi',P_total,'P_rat',P2onP1,...
+%             't0',RamanTOF,'width',RamanPulseWidth,'dt',dt);
+%     else
+%         MakePulseSequence_Rhys(sq.dds,...
+%             't0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'width2',RamanPulseWidth2,'dt',dt,...
+%             'phase',[phi_1,phi_2,phi_3],'delta',delta,...,
+%             'power1',[Ch1_AOMSetting_pulse1,Ch1_AOMSetting_pulse2,Ch1_AOMSetting_pulse3],...
+%             'power2',[Ch2_AOMSetting_pulse1,Ch2_AOMSetting_pulse2,Ch2_AOMSetting_pulse3],...
+%             'PulseShape','Square');
+%     end
 end
 
 %% Imaging stage
