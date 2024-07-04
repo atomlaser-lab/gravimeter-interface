@@ -5,25 +5,30 @@ ClearImage = 1;
 FigNum = 3;
 % Title inputs
 
-TitleStuff.TotalPower = '10';
+TitleStuff.TotalPower = '30';
 TitleStuff.P_rat = '7';
 TitleStuff.Mag = '1.5';
 
-TitleStuff.t_0 = '10';
+TitleStuff.t_0 = '-100e3';
 TitleStuff.T = '0';
-TitleStuff.Tau  = '41';
+TitleStuff.Tau  = '13';
+% TitleStuff.Tau  = 'param';
 
 TitleStuff.SPD = '4.95';
-TitleStuff.TPD = '-20 - 0.1*e-3 + param';
-TitleStuff.SubTitle = 'No Ramp, UD = 10, EW = 0, Waltz';
+TitleStuff.TPD = '-20 + 310e-3';
+% TitleStuff.TPD  = '-20 + param';
 
-Title = append('Pumping: P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us', ', T = ',TitleStuff.T,' ms');
+TitleStuff.SubTitle = 'In-Trap, UD = 4, EW = 2';
 
+Title = append('P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us', ', T = ',TitleStuff.T,' ms');
+% Title = '';
+% TitleStuff.SubTitle = '';
 
 Param = 1:1:1000;
+% Param = [-100:5:100] + 300;
+% Param = 2:1:26;
 PlotParam = 1*Param;
-% ParamName = 'Time of flight (ms)';
-% ParamName = 'Pulse Type';
+ParamName = ScanableParameters.TwoPhoton;
 ParamName = ScanableParameters.Run;
 
 

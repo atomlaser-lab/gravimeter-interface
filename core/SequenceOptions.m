@@ -32,6 +32,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
         TwoStateImaging
         % These are sub-groupings of options
         %
+        StatePrep
         raman
         bragg
         mw
@@ -73,6 +74,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
             self.JustMOT = 0;
             self.TwoStateImaging = 1;
             self.raman = 0;
+            self.StatePrep = 0;
             
             self.bragg.setDefaults;
             self.mw.setDefaults;
