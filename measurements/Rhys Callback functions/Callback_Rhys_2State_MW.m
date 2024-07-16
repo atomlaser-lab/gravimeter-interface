@@ -6,17 +6,16 @@ FigNum = 3;
 TOF = 25e-3;
 
 Title = 'In Trap MW Transfer';
-Param = (-1.5:0.2:8);
-% Param = repmat((-5:0.1:5),[1,4]);
+Param = (-1.5:0.2:1.5) - 4;
 ParamName = 'df (kHz)';
 
-% % % If there are multiple ROIs, what do you want to count?
+% If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 1;
 
 if r.isInit()
-    r.data.freq1 = const.f_Rb_groundHFS - 315e3 + (-15.65 + Param)*1e3;
-    r.data.freq2 = const.f_Rb_groundHFS + (0.1)*1e3;
+    r.data.freq1 = const.f_Rb_groundHFS - 357e3 + Param*1e3; %-357 for EW = 2.7 V, in trap 
+    r.data.freq2 = const.f_Rb_groundHFS + 0.1e3 + 0*1e3;
     r.data.Param = Param;
     r.c.setup('var',r.data.Param);
 
@@ -103,8 +102,10 @@ elseif r.isAnalyze()
     figure(FigNum);clf
     subplot(1,2,1)
     scatter(r.data.Param(1:i1),r.data.N(1:i1,:),'filled');
+    hold on
+    scatter(r.data.Param(1:i1),r.data.Nsum(1:i1,:),'filled');
     plot_format(ParamName,'Number','',12);
-    title(' Raman frequency using fit over OD')
+    sgtitle(Title)
     grid on
     ylim([0,Inf]);
     legend('F2','F1')

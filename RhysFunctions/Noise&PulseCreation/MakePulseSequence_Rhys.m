@@ -1,6 +1,9 @@
 function MakePulseSequence_Rhys(dds,varargin)
 
 %% Set up default variables and parse inputs
+f = 384.224e12;
+k = 2*pi*f/const.c;
+
 t0 = 10e-6;
 width = 30e-6;
 width2 = 30e-6;
@@ -8,6 +11,7 @@ T = 1e-3;
 appliedPhase = 0;
 power1 = 0.05*[1,2,1];
 dt = 1e-6;
+chirp = 2*k*9.795/(2*pi);
 
 delta = 0;
 PulseShape = 'square';
@@ -40,6 +44,8 @@ else
                 RampAmp = v;
             case 'noisetype'
                 NoiseType = v;
+            case 'chirp'
+                chirp = v;
 
             % % % % Light Properties
             case 'w0'
@@ -200,8 +206,8 @@ for nn = 1:numPulses
     %
     % Set frequencies
     %
-    freq(:,1) = DDSChannel.DEFAULT_FREQ + delta/4;
-    freq(:,2) = DDSChannel.DEFAULT_FREQ - delta/4;   
+    freq(:,1) = DDSChannel.DEFAULT_FREQ + delta/4 + 0.25/1e6*(chirp*t);
+    freq(:,2) = DDSChannel.DEFAULT_FREQ - delta/4 - 0.25/1e6*(chirp*t);   
 end
 
 freq(freq == 0) = DDSChannel.DEFAULT_FREQ;

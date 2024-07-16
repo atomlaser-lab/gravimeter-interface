@@ -7,11 +7,11 @@ x_label = 'Two Photon Detuning (kHz)';
 y_label = 'F = 2 Population';
 FigNum = 10;
 
-y(1) = 0;
-y(3) = 0;
+% y(1) = 0;
+y(17) = NaN;
 
 
-[fitresult, gof] = createFit(x, y, -5, max(y), 50);
+[fitresult, ~] = createFit(x, y, 80, max(y), 50);
 x2 = linspace(x(1),x(end),numel(x)*10);
 
 
@@ -25,7 +25,7 @@ annotation('textbox', [0.25, 0.1, 0.1, 0.1], 'String', sprintf('Centre: %g, Widt
 xlabel(x_label,'Interpreter','latex','FontSize',14)
 ylabel(y_label,'Interpreter','latex','FontSize',14)
 
-
+clear x y x_label ylabel FigNum x2 
 
 
 

@@ -3,6 +3,8 @@ classdef MiscSequenceOptions < SequenceOptionsAbstract
     properties
         tof2
         detuning2
+        P1Max
+        P2Max
     end
 
     methods
@@ -14,6 +16,8 @@ classdef MiscSequenceOptions < SequenceOptionsAbstract
         function self = setDefaults(self)
             self.tof2 = 7e-3;
             self.detuning2 = 0;
+            self.P1Max = 5;
+            self.P2Max = 5;
         end
     end
 end

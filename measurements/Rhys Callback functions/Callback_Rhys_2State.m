@@ -5,38 +5,35 @@ ClearImage = 1;
 FigNum = 3;
 % Title inputs
 
-TitleStuff.TotalPower = '30';
+TitleStuff.TotalPower = 'param';
 TitleStuff.P_rat = '7';
 TitleStuff.Mag = '1.5';
 
-TitleStuff.t_0 = '-100e3';
+TitleStuff.t_0 = '10 ';
 TitleStuff.T = '0';
-TitleStuff.Tau  = '13';
-% TitleStuff.Tau  = 'param';
+TitleStuff.Tau  = '30';
 
 TitleStuff.SPD = '4.95';
-TitleStuff.TPD = '-20 + 310e-3';
-% TitleStuff.TPD  = '-20 + param';
+TitleStuff.TPD = '20 + 4e-3';
 
-TitleStuff.SubTitle = 'In-Trap, UD = 4, EW = 2';
+TitleStuff.SubTitle = 'UD = 10, EW = 3.5';
 
 Title = append('P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us', ', T = ',TitleStuff.T,' ms');
-% Title = '';
+% Title = 'In trap MW';
 % TitleStuff.SubTitle = '';
 
-Param = 1:1:1000;
-% Param = [-100:5:100] + 300;
-% Param = 2:1:26;
-PlotParam = 1*Param;
-ParamName = ScanableParameters.TwoPhoton;
-ParamName = ScanableParameters.Run;
+% Param = round(linspace(1,2000,20),0)*1e-3;
+Param = (1:1:1000);
 
+PlotParam = 1*Param;
+ParamName = ScanableParameters.T;
+% ParamName = 'UD bias';
 
 
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 1;
-allROI = 1;
+allROI = 0;
 
 
 if r.isInit()

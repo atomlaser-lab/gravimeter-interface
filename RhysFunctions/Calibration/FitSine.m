@@ -1,14 +1,14 @@
 
 x = r.data.Param(1:numel(r.data.R(:,1)));
 y = r.data.R(:,1).';
-% x = unique(T2p5_EW10_2.Param);
-% y = T2p5_EW10_2.R(:,1);
+% x = r.data.Param(1:8);
+% y = r.data.R(1:8,1).';
 
 FigNum = 10;
-x_label = 'Phase (deg)';
+x_label = 'T (ms)';
 y_label = 'F = 2 Population';
 
-PeriodEstimate = 180;
+PeriodEstimate = 50;
 
 [fitresult, gof] = FitSin(x, y,PeriodEstimate,max(y));
 x2 = linspace(x(1),x(end),numel(x)*10);

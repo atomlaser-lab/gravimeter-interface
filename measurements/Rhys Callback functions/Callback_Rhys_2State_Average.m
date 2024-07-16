@@ -2,24 +2,29 @@ function Callback_Rhys_2State_Average(r)
 
 % % Inputs
 ClearImage = 1;
-FigNum = 5;
+FigNum = 3;
 
-TitleStuff.TotalPower = '10';
+TitleStuff.TotalPower = 'param';
 TitleStuff.P_rat = '7';
 TitleStuff.Mag = '1.5';
 
-TitleStuff.t_0 = '10';
+TitleStuff.t_0 = '10 ';
 TitleStuff.T = '0';
-TitleStuff.Tau  = '41';
+TitleStuff.Tau  = '30';
 
 TitleStuff.SPD = '4.95';
-TitleStuff.TPD = '-20 - 0.1*e-3 + param';
-TitleStuff.SubTitle = 'No Ramp, UD = 10, EW = 0, Waltz';
+TitleStuff.TPD = '20 + 4e-3';
+
+TitleStuff.SubTitle = 'UD = 10, EW = 3.5';
 
 Title = append('P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us', ', T = ',TitleStuff.T,' ms');
+% Title = 'In trap MW';
+% TitleStuff.SubTitle = '';
 
-NumAverages = 3;
-Param = -8:0.5:8;
+NumAverages = 5;
+% Param = round(linspace(0.01,2,20)*1e3,0)*1e-3;
+Param = 0:5:180;
+
 PlotFactor = 1;
 ParamName = ScanableParameters.Phase;
 

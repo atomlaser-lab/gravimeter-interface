@@ -1,26 +1,36 @@
 
+FigNum = 10;
+XLABEL = 'Total Power (mW)';
+YLABEL = 'F = 2 Pop';
 
-
-[x_sorted idx] = sort(PulseDuratrion.data.Param);
-y_sorted = PulseDuratrion.data.R(idx,1).';
-y_sorted(1:3) = 0.01;
-y_sorted(y_sorted == 1) = nan;
+x_sorted = r.data.Param(1:numel(r.data.R(:,1)));
+y_sorted = r.data.R(:,1);
 
 [unique_x, ~, idx_uniq] = unique(x_sorted);
 averaged_y = accumarray(idx_uniq, y_sorted, [], @mean);
 
 
-[fitresult, gof] = createFit(unique_x, averaged_y);
+[fitresult, ~] = createFit(unique_x, averaged_y);
 
 x2 = linspace(unique_x(1),unique_x(end),numel(unique_x)*5);
 y2 = fitresult(x2);
 
 
-figure(10);clf
+tau_pi = fitresult.g + (atan(fitresult.b/fitresult.d) + 0*pi - fitresult.c)/fitresult.b;
+
+
+figure(FigNum);clf
 scatter(unique_x, averaged_y); % Example plot
 hold on
 plot(x2,y2)
+xlabel(XLABEL,'Interpreter','latex','FontSize',16)
+ylabel(YLABEL,'Interpreter','latex','FontSize',16)
 
+annotation('textbox', [0.25, 0.1, 0.1, 0.1], 'String', sprintf('Tau_pi: %g', tau_pi), ...
+    'EdgeColor', 'none', 'BackgroundColor', 'white', 'FitBoxToText', 'on');
+
+
+clear x2 y2 XLABEL YLABEL FigNum x2  x_sorted y_sorted unique_x averaged_y idx_uniq
 
 
 function [fitresult, gof] = createFit(unique_x, averaged_y)
