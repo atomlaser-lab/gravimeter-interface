@@ -3,7 +3,7 @@ function Callback_MeasureMWpower_update(r)
 if r.isInit()
     
 %     r.data.param = const.randomize(400:50:600); %for f1
-        r.data.param = const.randomize(200:40:400); %for f2
+        r.data.param = const.randomize(200:40:900); %for f2
 
 r.data.ParamName = 'Pulse duration';
 r.data.ParamUnits = 'us';

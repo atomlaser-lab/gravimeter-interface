@@ -6,7 +6,7 @@ FigNum = 3;
 TOF = 25e-3;
 
 Title = 'In Trap MW Transfer';
-Param = (-1.5:0.2:1.5) - 4;
+Param = (-1:0.1:1) - 0.35;
 ParamName = 'df (kHz)';
 
 % If there are multiple ROIs, what do you want to count?

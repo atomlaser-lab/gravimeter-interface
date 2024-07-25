@@ -2,8 +2,8 @@ function Callback_MeasureMWFreq_update(r)
 
 if r.isInit()
     
-%     r.data.df = const.randomize(-10:1:10); %in kHz %broad scan
-    r.data.df = const.randomize(-7.2:.2:-5.2); %in kHz %small scan for f1!
+    r.data.df = const.randomize(-9:.25/4:-7.8); %in kHz %broad scan
+%     r.data.df = const.randomize(-7.2:.2:-5.2); %in kHz %small scan for f1!
 %         r.data.df = const.randomize(-2:0.2:2); %in kHz %small scan
 %         r.data.df = const.randomize(-.35:0.1:.35); %in kHz %small scan for f2!
 

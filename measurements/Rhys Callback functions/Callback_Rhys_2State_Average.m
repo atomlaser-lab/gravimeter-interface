@@ -3,30 +3,30 @@ function Callback_Rhys_2State_Average(r)
 % % Inputs
 ClearImage = 1;
 FigNum = 3;
-
-TitleStuff.TotalPower = 'param';
+TitleStuff.TotalPower = '6.5/2';
 TitleStuff.P_rat = '7';
 TitleStuff.Mag = '1.5';
 
 TitleStuff.t_0 = '10 ';
-TitleStuff.T = '0';
+TitleStuff.T = '1';
 TitleStuff.Tau  = '30';
 
 TitleStuff.SPD = '4.95';
-TitleStuff.TPD = '20 + 4e-3';
+TitleStuff.TPD = '-20 + 1.465e-3';
 
 TitleStuff.SubTitle = 'UD = 10, EW = 3.5';
 
 Title = append('P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us', ', T = ',TitleStuff.T,' ms');
-% Title = 'In trap MW';
+TitleStuff.Title = Title;
+
 % TitleStuff.SubTitle = '';
 
-NumAverages = 5;
+NumAverages = 2;
 % Param = round(linspace(0.01,2,20)*1e3,0)*1e-3;
-Param = 0:5:180;
+Param = -1.5:0.25:1.5;
 
 PlotFactor = 1;
-ParamName = ScanableParameters.Phase;
+ParamName = ScanableParameters.TwoPhoton;
 
 
 

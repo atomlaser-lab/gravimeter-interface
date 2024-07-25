@@ -1,16 +1,19 @@
 
 %% Inputs
-Ch1FileLocation = "C:\Users\Apollo\Desktop\Temp\PowerMonitor\Ch2.csv";
-Ch2FileLocation = "C:\Users\Apollo\Desktop\Temp\PowerMonitor\Ch1.csv";
+Ch1FileLocation = "C:\Users\Apollo\Desktop\Temp\Ch2.csv";
+Ch2FileLocation = "C:\Users\Apollo\Desktop\Temp\Ch1.csv";
 FigNum = 20;
 Title = '';
 Title1 = 'Channel 1: Carrier';
 Title2 = 'Channel 2: Sideband';
 
-Row2Time = 5; %minutes
-Row3Time = 15; %minutes
+Row2Time = 30; %minutes
+Row3Time = 60; %minutes
 
 NormalisationPoint = 'mid';
+
+MovingAverage = 20;
+
 % YLIMITS = [0.9,1.3; 0.9, 1.15; 0.9, 1.15];
 %% Load Ch1
 % Load data
@@ -51,6 +54,9 @@ if exist('Ch1FileLocation','var') == 1
 else
     Ch1Amplitude = [];
 end
+
+Ch1Amplitude = movmean(Ch1Amplitude,MovingAverage);
+
 %% Load Ch2
 if exist('Ch2FileLocation','var') == 1
     warning('off','all')    
@@ -90,6 +96,9 @@ if exist('Ch2FileLocation','var') == 1
 else
     Ch2Amplitude = [];
 end
+
+Ch2Amplitude = movmean(Ch2Amplitude,MovingAverage);
+
 
 %% Make nan values
 if exist('Ch2FileLocation','var') == 0
