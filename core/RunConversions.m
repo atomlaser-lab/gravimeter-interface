@@ -1,6 +1,21 @@
 classdef RunConversions < handle
     methods(Static)
 
+
+        function V = UD_A_to_V(I)
+            if I > 16
+                warning('UD bias current limit is 17 A. Current has been set to 17 A')
+                I = 17;
+            end
+
+            if I <= 13.2
+                V = 0.166667 * I + 0.000000;
+            else
+                V = 0.163366 * I + 0.041584;
+            end
+        end
+
+
         function V = mot_power(power)
             % This is a percentage of total power
             Voltage = [0,1.4000,1.5000,1.6000,1.7000,1.8000,1.9000,2.0000,2.2500,2.5000,3.0000,3.5000,4.0000,4.5000,4.7500,5.0000];
@@ -12,7 +27,7 @@ classdef RunConversions < handle
             V = func(power);
             if power == 0
                 V = 0;
-            end            
+            end
         end
 
         function V = repump_power(power)
@@ -26,8 +41,8 @@ classdef RunConversions < handle
             V = func(power);
             if power == 0
                 V = 0;
-            end            
-        end        
+            end
+        end
 
         function V = dipole25(power)
             V = (power + 0.15)/2.76;    % 12/04/2024, with servo

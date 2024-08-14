@@ -23,7 +23,7 @@ function sq = initSequence
     sq.channels(17).setName('MOT Coil TTL','C0').setDefault(1);
     sq.channels(18).setName('Stern-Gerlach Trigger','C1').setDefault(0);
     sq.channels(19).setName('3D Trap Shutter','C2').setDefault(0);
-    sq.channels(20).setName('C3 - N/C','C3').setDefault(0);
+    sq.channels(20).setName('Raman Phase Lock','C3').setDefault(0);
     sq.channels(21).setName('Gradiometry Coil','C4').setDefault(0);
     sq.channels(22).setName('Raman DDS Trig','C5').setDefault(1);
     sq.channels(23).setName('C6 - N/C','C6').setDefault(0);
@@ -59,7 +59,7 @@ function sq = initSequence
     sq.analog(19).setName('3D Coils','CO/2').setDefault(0.42);
     sq.analog(20).setName('Bias E/W','CO/3').setDefault(0);
     sq.analog(21).setName('Bias N/S','CO/4').setDefault(0);
-    sq.analog(22).setName('Bias U/D','CO/5').setDefault(0);
+    sq.analog(22).setName('Bias U/D','CO/5').setDefault(2);
     sq.analog(23).setName('Raman Freq','CO/6').setDefault(10);
     sq.analog(24).setName('3D Coils Loop','CO/7').setDefault(0);
 

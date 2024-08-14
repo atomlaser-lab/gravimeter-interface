@@ -1,7 +1,7 @@
 function BasicCallback(r)
 
 if r.isInit()
-    r.data.param = const.randomize(5:15);
+    r.data.param = const.randomize(0:10:180);
     r.c.setup('var',r.data.param);
 elseif r.isSet()
     r.make(r.devices.opt,'params',r.data.param(r.c(1))).upload;

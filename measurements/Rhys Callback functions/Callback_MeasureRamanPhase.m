@@ -1,18 +1,18 @@
-function Callback_MeasureRamanPulseDuration(r)
+function Callback_MeasureRamanPhase(r)
 FigNum = 1500;
 % XLabel = 'Run Number';
-XLabel = 'Pulse Duration [us]';
+XLabel = 'Phase [deg]';
 
 
 if r.isInit()
-    r.data.duration = [2:60,62:2:100];
+    r.data.phase = const.randomize(repmat(0:20:180,8,1));
     
-    r.c.setup('var',r.data.duration);
+    r.c.setup('var',r.data.phase);
 elseif r.isSet()
-    r.make(r.devices.opt,'params',r.data.duration(r.c(1)));
+    r.make(r.devices.opt,'params',r.data.phase(r.c(1)));
     r.upload;
-    fprintf(1,'Run %d/%d, T = %.0f us\n',r.c.now,r.c.total,...
-        r.data.duration(r.c(1)));
+    fprintf(1,'Run %d/%d, ph = %.0f deg\n',r.c.now,r.c.total,...
+        r.data.phase(r.c(1)));
     
 elseif r.isAnalyze()
     i1 = r.c(1);
@@ -49,7 +49,7 @@ elseif r.isAnalyze()
     
     figure(FigNum);
     subplot(1,2,1)
-    scatter(r.data.duration(1:i1),r.data.N(1:i1,:),'filled'); %,'o'
+    scatter(r.data.phase(1:i1),r.data.N(1:i1,:),'filled'); %,'o'
     plot_format(XLabel,'Number','',12);
 %     h = legend('m = -1','m = 0','m = 1');
 %     set(h,'Location','West');
@@ -59,7 +59,7 @@ elseif r.isAnalyze()
     ylim([0,Inf]);
     
     subplot(1,2,2)
-    scatter(r.data.duration(1:i1),r.data.R2(1:i1,:),'filled'); %,'o'
+    scatter(r.data.phase(1:i1),r.data.R2(1:i1,:),'filled'); %,'o'
     hold off;
     plot_format(XLabel,'Population','',12);
     ylim([0,1])
@@ -73,13 +73,20 @@ elseif r.isAnalyze()
 %         sgtitle(caption)
 %     end
     if r.c(1) > 4
-        nlf = nonlinfit(r.data.duration(1:r.c(1)),r.data.R2(:,2),1e-2);
-        nlf.ex = sum(r.data.N,2) > 1e7;
-        nlf.setFitFunc(@(A,R,D,x) A*(1 - 4*R.^2./(4*R^2+D.^2).*sin(2*pi*sqrt(4*R^2+D.^2).*x/2).^2));
-        nlf.bounds2('A',[0.5,1,2],'R',[0,20,5]*1e-3,'D',[-0.01,0.01,0]);
+        [ph,P,dP] = average_repeated_runs(r.data.phase(1:r.c(1)),r.data.R2(:,1));
+        dP(dP == 0) = 0.02;
+        nlf = nonlinfit(ph,P,dP);
+%         nlf.ex = sum(r.data.N,2) > 1e7;
+        nlf.setFitFunc(@(y0,C,x0,x) y0 + C/2*sind(2*(x - x0)));
+        nlf.bounds2('y0',[0,1,0.5],'C',[0,1,0.8],'x0',[-180,180,0]);
         nlf.fit;
-        fprintf(1,'Rabi frequency: %.3f kHz, Detuning = %.3f kHz\n',nlf.c(2,1)*1e3,nlf.c(3,1)*1e3);
         subplot(1,2,2);
+        cla;
+        errorbar(nlf.x,nlf.y,nlf.dy,'o');
+        fill_markers(gca);
+        grid on;
+        plot_format(XLabel,'Population','',12);
+        ylim([0,1])
         hold on
         xplot = linspace(min(nlf.x),max(nlf.x),1e2);
         plot(xplot,nlf.f(xplot),'-');

@@ -5,6 +5,7 @@ classdef MiscSequenceOptions < SequenceOptionsAbstract
         detuning2
         P1Max
         P2Max
+        AbsAnalysis_AllROI
     end
 
     methods
@@ -18,6 +19,7 @@ classdef MiscSequenceOptions < SequenceOptionsAbstract
             self.detuning2 = 0;
             self.P1Max = 5;
             self.P2Max = 5;
+            self.AbsAnalysis_AllROI = 1;
         end
     end
 end

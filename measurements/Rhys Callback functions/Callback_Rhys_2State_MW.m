@@ -6,7 +6,7 @@ FigNum = 3;
 TOF = 25e-3;
 
 Title = 'In Trap MW Transfer';
-Param = (-1:0.1:1) - 0.35;
+Param = (-0.5:0.2:0.5);
 ParamName = 'df (kHz)';
 
 % If there are multiple ROIs, what do you want to count?
@@ -14,8 +14,8 @@ F2_ROI = 3;
 F1_ROI = 1;
 
 if r.isInit()
-    r.data.freq1 = const.f_Rb_groundHFS - 357e3 + Param*1e3; %-357 for EW = 2.7 V, in trap 
-    r.data.freq2 = const.f_Rb_groundHFS + 0.1e3 + 0*1e3;
+    r.data.freq1 = const.f_Rb_groundHFS + -429.3*1e3 + Param*1e3; %-357 for EW = 2.7 V, in trap 
+    r.data.freq2 = const.f_Rb_groundHFS + 0.1e3;
     r.data.Param = Param;
     r.c.setup('var',r.data.Param);
 
@@ -100,7 +100,7 @@ elseif r.isAnalyze()
     end
 
     figure(FigNum);clf
-    subplot(1,2,1)
+    subplot(1,3,1)
     scatter(r.data.Param(1:i1),r.data.N(1:i1,:),'filled');
     hold on
     scatter(r.data.Param(1:i1),r.data.Nsum(1:i1,:),'filled');
@@ -110,15 +110,26 @@ elseif r.isAnalyze()
     ylim([0,Inf]);
     legend('F2','F1')
     
-    subplot(1,2,2)
-    ax = scatter(r.data.Param(1:i1),r.data.R(1:i1,:));
-    plot_format(ParamName,'Population','',12);
+    subplot(1,3,2)
+    scatter(r.data.Param(1:i1),r.data.R(1:i1,1));
+    hold on
+    scatter(r.data.Param(1:i1),r.data.Rsum(1:i1,1))
+    grid on;
+    legend('Fit','Sum')
+    plot_format(ParamName,'F = 2 Population','',12);
+
+    subplot(1,3,3)
+    scatter(r.data.Param(1:i1),r.data.R(1:i1,2));
+    hold on
+    scatter(r.data.Param(1:i1),r.data.Rsum(1:i1,2))
+    plot_format(ParamName,'F = 1 Population','',12);
+    legend('Fit','Sum')
     grid on;
 
 
     maxlength = max(numel(img(1).clouds),numel(img(2).clouds));
     figure(FigNum+1);clf
-    sgtitle('All ROI')
+    sgtitle({['{\bf\fontsize{14}' Title '}'],'All ROI'});
     for ii = 1:numel(img(1).clouds)
         subplot(maxlength,2,ii*2-1)
         scatter(r.data.Param(1:i1), r.data.F2.(F2Name{ii}).Rsum)

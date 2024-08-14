@@ -7,8 +7,8 @@ Title = '';
 Title1 = 'Channel 1: Carrier';
 Title2 = 'Channel 2: Sideband';
 
-Row2Time = 30; %minutes
-Row3Time = 60; %minutes
+Row2Time = 15; %minutes
+Row3Time = 30; %minutes
 
 NormalisationPoint = 'mid';
 

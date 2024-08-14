@@ -3,20 +3,16 @@
 x = r.data.Param(1:numel(r.data.R(:,1)));
 y = r.data.R(:,1).';
 
-y(1:2) = NaN;
-y(end-1:end) = NaN;
-
-% y = y_av;
 x_label = 'Two Photon Detuning (kHz)';
 y_label = 'F = 2 Population';
 FigNum = 10;
 
-% y(1) = 0;
-% y(17) = NaN;
+y(8) = NaN;
+y(end-2:end) = NaN;
 
 
-[fitresult, ~] = createFit(x, y, 20, max(y), 50);
-x2 = linspace(x(1),x(end),numel(x)*10);
+[fitresult, ~] = createFit(x, y, 10, max(y), 100);
+x2 = linspace(min(x),max(x),numel(x)*10);
 
 
 figure(FigNum);clf

@@ -383,7 +383,7 @@ P2onP1 = 7;
 P_total = 20.77;
 
 % % Detuning
-delta = -20 + opt.params*1e-3;
+delta = -20 + 0*opt.params*1e-3;
 k = 2*pi/const.c*384.229441689483e12;
 chirp = 0*2*k*9.795/(2*pi); %Chirp in Hz/s.
 
@@ -518,19 +518,80 @@ if opt.raman == 1
         sq.ddsTrigDelay = timeAtDrop;
     end
 
-    if CompositePulseOnOff == 1
-        MakeCompositePulse_Rhys(sq.dds,...
-            'PulseType',PulseType,'delta',delta,...
-            'P1_max',P1_max,'P2_max',P2_max,'P_pi',P_total,'P_rat',P2onP1,...
-            't0',RamanTOF,'width',RamanPulseWidth,'dt',dt);
-    else
-        MakePulseSequence_Rhys(sq.dds,...
-            't0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'width2',RamanPulseWidth2,'dt',dt,...
-            'phase',[phi_1,phi_2,phi_3],'delta',delta,...,
-            'power1',[Ch1_AOMSetting_pulse1,Ch1_AOMSetting_pulse2,Ch1_AOMSetting_pulse3],...
-            'power2',[Ch2_AOMSetting_pulse1,Ch2_AOMSetting_pulse2,Ch2_AOMSetting_pulse3],...
-            'PulseShape','Square','chirp',chirp);
+%     if CompositePulseOnOff == 1
+%         MakeCompositePulse_Rhys(sq.dds,...
+%             'PulseType',PulseType,'delta',delta,...
+%             'P1_max',P1_max,'P2_max',P2_max,'P_pi',P_total,'P_rat',P2onP1,...
+%             't0',RamanTOF,'width',RamanPulseWidth,'dt',dt);
+%     else
+%         MakePulseSequence_Rhys(sq.dds,...
+%             't0',RamanTOF,'T',T_Sep,'width',RamanPulseWidth,'width2',RamanPulseWidth2,'dt',dt,...
+%             'phase',[phi_1,phi_2,phi_3],'delta',delta,...,
+%             'power1',[Ch1_AOMSetting_pulse1,Ch1_AOMSetting_pulse2,Ch1_AOMSetting_pulse3],...
+%             'power2',[Ch2_AOMSetting_pulse1,Ch2_AOMSetting_pulse2,Ch2_AOMSetting_pulse3],...
+%             'PulseShape','Square','chirp',chirp);
+%     end
+    
+    T = 0.05e-3; %interferometer spacing
+    numPulses = 3; %pulse count
+    % following arrays must contain at least the pulse number of points
+    pulsewidth = 1e-6*[4,8,4];
+    power1 = 0.5*[1,2,1];
+    power2 = 0.5*[1,2,1];
+    appliedPhase = [0,0,180];
+
+    %frequnecy
+
+    delta = 20; %Mhz
+    freq1 = 110 + delta/4;
+    freq2 = 110 - delta/4;
+    
+    %time array at pulse points, 2 per pulse
+    t = zeros(1,numPulses*2);
+    for i =1:numPulses
+        t(2*i-1) = (i-1)*T; %start of pulse is at nT 
+        t(2*i) = (i-1)*T+pulsewidth(i); %end of pulse after width
     end
+    
+    %interleve powers with zeros
+    B =zeros(size(power1));
+    C = [power1;B];
+    power1 = C(:)';
+    B =zeros(size(power2));
+    C = [power2;B];
+    power2 = C(:)';
+
+    %duplicate phases
+    appliedPhase = repelem(appliedPhase,2);
+    
+    % Set powers, phases, and frequencies
+    %
+    [P,ph,freq] = deal(zeros(numel(t),2));
+    %
+    % Set powers
+    P(:,2) = power2;
+    P(:,1) = power1;
+    %
+    % Set phases
+    %
+   ph(:,2) = appliedPhase;
+
+
+    %
+    % Set frequencies
+    %
+    freq(:,1) = freq(:,1) +freq1;
+    freq(:,2) = freq(:,2) +freq2;   
+    
+    % Populate DDS values
+    for nn = 1:numel(sq.dds)
+        if nn == 1
+            sq.dds(nn).after(t,freq(:,nn),P(:,nn),ph(:,nn));        
+        elseif nn == 2
+            sq.dds(nn).after(t,freq(:,nn),P(:,nn),ph(:,nn));
+        end
+end
+
 end
 
 %% Imaging stage

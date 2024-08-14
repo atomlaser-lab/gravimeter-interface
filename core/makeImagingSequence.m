@@ -68,7 +68,7 @@ switch lower(imgType)
         camChannel = 'drop 1 camera trig';
         imgType = 1;
         if isempty(pulseTime)
-            pulseTime = 1.4*60e-6; %60
+            pulseTime = 20e-6; %60
         end
     otherwise
         error('Unsupported imaging type %s',imgType);

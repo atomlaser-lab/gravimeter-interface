@@ -1,12 +1,13 @@
 
 FigNum = 10;
 XLABEL = 'Total Power (mW)';
+XLABEL = 'Pulse Duration (us)';
 YLABEL = 'F = 2 Pop';
 
 x_sorted = r.data.Param(1:numel(r.data.R(:,1)));
-y_sorted = r.data.R(:,1);
+y_sorted = r.data.Rsum(:,1);
 
-y_sorted(3) = NaN;
+% y_sorted(1) = NaN;
 
 
 [unique_x, ~, idx_uniq] = unique(x_sorted);
@@ -20,7 +21,7 @@ y2 = fitresult(x2);
 
 
 tau_pi = fitresult.g + (atan(fitresult.b/fitresult.d) + 0*pi - fitresult.c)/fitresult.b;
-
+tau_pi = x2(find(y2 == max(y2)));
 
 figure(FigNum);clf
 scatter(unique_x, averaged_y); % Example plot
@@ -28,7 +29,7 @@ hold on
 plot(x2,y2)
 xlabel(XLABEL,'Interpreter','latex','FontSize',16)
 ylabel(YLABEL,'Interpreter','latex','FontSize',16)
-
+scatter(tau_pi,fitresult(tau_pi),'filled','k','LineWidth',2)
 annotation('textbox', [0.25, 0.1, 0.1, 0.1], 'String', sprintf('Tau_pi: %g', tau_pi), ...
     'EdgeColor', 'none', 'BackgroundColor', 'white', 'FitBoxToText', 'on');
 

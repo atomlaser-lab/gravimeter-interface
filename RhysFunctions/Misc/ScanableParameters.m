@@ -6,7 +6,7 @@ classdef ScanableParameters < handle
         TwoPhoton = '\delta (kHz)';        
         Power = 'Total Power (mW)';
         Run = 'Run Number (Arb)';
-        Phase = 'Phase (deg)'; 
+        Phase = 'DDS Phase (deg)'; 
         T = 'T (ms)';
     end
 

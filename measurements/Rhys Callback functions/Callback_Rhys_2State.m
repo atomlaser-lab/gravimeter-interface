@@ -3,34 +3,35 @@ function Callback_Rhys_2State(r)
 % % Inputs
 ClearImage = 1;
 FigNum = 3;
-% Title inputs
 
-TitleStuff.TotalPower = '3.5078';
-TitleStuff.P_rat = '12';
+TitleStuff.TotalPower = '20.77';
+TitleStuff.P_rat = '7';
 TitleStuff.Mag = '1.5';
-
 TitleStuff.t_0 = '10';
 TitleStuff.T = '0.1';
-TitleStuff.Tau  = '30';
-
+TitleStuff.Tau  = '8';
 TitleStuff.SPD = '4.95';
-TitleStuff.TPD = '-20 - 1.76*1e-3';
+TitleStuff.TPD = '-20 + 8.2*1e-3';
 
-TitleStuff.SubTitle = 'UD = 10, EW = 3.5, Carrier Off, RS drive amp = 22 dBm';
-
+TitleStuff.SubTitle = 'UD = 4.5 A, EW = 20 V, 3-Pulse';
 Title = append('P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us', ', T = ',TitleStuff.T,' ms');
 TitleStuff.Title = Title;
 
 
+% Title = 'In-Trap MW';
+% TitleStuff.SubTitle = 'pi stability of pulse 1';
 
-Param = 0:15:180;
+Param = -100:5:100;
 PlotParam = 1*Param;
-ParamName = ScanableParameters.Phase;
+% ParamName = ScanableParameters.Run;
+% ParamName = 'I_{sideband}/I_{carrier}';
+ParamName = '2 Photon detuning (kHz)';
 
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
 F1_ROI = 2;
-allROI = 0;
+allROI = 1;
+MovAv = 0;
 
 
 if r.isInit()
@@ -96,105 +97,97 @@ elseif r.isAnalyze()
     r.data.R(i1,:) = r.data.N(i1,:)./sum(r.data.N(i1,:));
     r.data.Rsum(i1,:) = r.data.Nsum(i1,:)./sum(r.data.Nsum(i1,:));
 
-%     r.data.T_F1(i1,:) = [img(2).clouds(F1_ROI).T];
-%     r.data.T_F2(i1,:) = [img(1).clouds(F2_ROI).T];
+    %     r.data.T_F1(i1,:) = [img(2).clouds(F1_ROI).T];
+    %     r.data.T_F2(i1,:) = [img(1).clouds(F2_ROI).T];
 
-%     %
-%     % Get processed data for all regions of interest
-%     %
-%     if allROI == 1
-%         F2Name = fieldnames(r.data.F2);
-%         for ii = 1:size(img(1).clouds,1)
-%             r.data.F2.(F2Name{ii}).N(i1,:) = img(1).clouds(ii).N;
-%             r.data.F2.(F2Name{ii}).Nsum(i1,:) = img(1).clouds(ii).Nsum;
-%             r.data.F2.(F2Name{ii}).T(i1,:) = img(1).clouds(ii).T;
-%             r.data.F2.(F2Name{ii}).OD(i1) = img(1).clouds(ii).peakOD;
-% 
-%             r.data.F2.(F2Name{ii}).R(i1,:) = img(1).clouds(ii).N/(sum(vertcat(img(1).clouds(:).N)) + sum(vertcat(img(2).clouds(:).N)));
-%             r.data.F2.(F2Name{ii}).Rsum(i1,:) = img(1).clouds(ii).Nsum/(sum(vertcat(img(1).clouds(:).Nsum)) + sum(vertcat(img(2).clouds(:).Nsum)));
-%         end
-% 
-%         F1Name = fieldnames(r.data.F1);
-%         for ii = 1:size(img(2).clouds,1)
-%             r.data.F1.(F1Name{ii}).N(i1,:) = img(2).clouds(ii).N;
-%             r.data.F1.(F1Name{ii}).Nsum(i1,:) = img(2).clouds(ii).Nsum;
-%             r.data.F1.(F1Name{ii}).T(i1,:) = img(2).clouds(ii).T;
-%             r.data.F1.(F2Name{ii}).OD(i1) = img(2).clouds(ii).peakOD;
-% 
-% 
-%             r.data.F1.(F2Name{ii}).R(i1,:) = img(2).clouds(ii).N/(sum(vertcat(img(1).clouds(:).N)) + sum(vertcat(img(2).clouds(:).N)));
-%             r.data.F1.(F2Name{ii}).Rsum(i1,:) = img(2).clouds(ii).Nsum/(sum(vertcat(img(1).clouds(:).Nsum)) + sum(vertcat(img(2).clouds(:).Nsum)));
-%         end
-%     end
-%     %
-%     % % % Grab Beam position IF image exists
-%     %
-%     if size(img(1).raw.images,3) == 6
-%         [Beam1_cy,Beam1_cx] = find_beam_position(img(1).raw.images(:,:,5));
-%         [Beam2_cy,Beam2_cx] = find_beam_position(img(1).raw.images(:,:,6));
-% 
-%         r.data.Beam1.y.amp(i1) = Beam1_cy(1);
-%         r.data.Beam1.y.pos(i1) = Beam1_cy(2);
-%         r.data.Beam1.y.width(i1) = Beam1_cy(3);
-%         r.data.Beam1.x.amp(i1) = Beam1_cx(1);
-%         r.data.Beam1.x.pos(i1) = Beam1_cx(2);
-%         r.data.Beam1.x.width(i1) = Beam1_cx(3);
-% 
-%         r.data.Beam2.y.amp(i1) = Beam2_cy(1);
-%         r.data.Beam2.y.pos(i1) = Beam2_cy(2);
-%         r.data.Beam2.y.width(i1) = Beam2_cy(3);
-%         r.data.Beam2.x.amp(i1) = Beam2_cx(1);
-%         r.data.Beam2.x.pos(i1) = Beam2_cx(2);
-%         r.data.Beam2.x.width(i1) = Beam2_cx(3);
-%     end
+        %
+        % Get processed data for all regions of interest
+        %
+        if allROI == 1
+            F2Name = fieldnames(r.data.F2);
+            for ii = 1:size(img(1).clouds,1)
+                r.data.F2.(F2Name{ii}).N(i1,:) = img(1).clouds(ii).N;
+                r.data.F2.(F2Name{ii}).Nsum(i1,:) = img(1).clouds(ii).Nsum;
+                r.data.F2.(F2Name{ii}).T(i1,:) = img(1).clouds(ii).T;
+                r.data.F2.(F2Name{ii}).OD(i1) = img(1).clouds(ii).peakOD;
+    
+                r.data.F2.(F2Name{ii}).R(i1,:) = img(1).clouds(ii).N/(sum(vertcat(img(1).clouds(:).N)) + sum(vertcat(img(2).clouds(:).N)));
+                r.data.F2.(F2Name{ii}).Rsum(i1,:) = img(1).clouds(ii).Nsum/(sum(vertcat(img(1).clouds(:).Nsum)) + sum(vertcat(img(2).clouds(:).Nsum)));
+            end
+    
+            F1Name = fieldnames(r.data.F1);
+            for ii = 1:size(img(2).clouds,1)
+                r.data.F1.(F1Name{ii}).N(i1,:) = img(2).clouds(ii).N;
+                r.data.F1.(F1Name{ii}).Nsum(i1,:) = img(2).clouds(ii).Nsum;
+                r.data.F1.(F1Name{ii}).T(i1,:) = img(2).clouds(ii).T;
+                r.data.F1.(F2Name{ii}).OD(i1) = img(2).clouds(ii).peakOD;
+    
+    
+                r.data.F1.(F2Name{ii}).R(i1,:) = img(2).clouds(ii).N/(sum(vertcat(img(1).clouds(:).N)) + sum(vertcat(img(2).clouds(:).N)));
+                r.data.F1.(F2Name{ii}).Rsum(i1,:) = img(2).clouds(ii).Nsum/(sum(vertcat(img(1).clouds(:).Nsum)) + sum(vertcat(img(2).clouds(:).Nsum)));
+            end
+        end
+        
+        % % % Grab Beam position IF image exists
+        %
+        if size(img(1).raw.images,3) == 6
+            [Beam1_cy,Beam1_cx] = find_beam_position(img(1).raw.images(:,:,5));
+            [Beam2_cy,Beam2_cx] = find_beam_position(img(1).raw.images(:,:,6));
+    
+            r.data.Beam1.y.amp(i1) = Beam1_cy(1);
+            r.data.Beam1.y.pos(i1) = Beam1_cy(2);
+            r.data.Beam1.y.width(i1) = Beam1_cy(3);
+            r.data.Beam1.x.amp(i1) = Beam1_cx(1);
+            r.data.Beam1.x.pos(i1) = Beam1_cx(2);
+            r.data.Beam1.x.width(i1) = Beam1_cx(3);
+    
+            r.data.Beam2.y.amp(i1) = Beam2_cy(1);
+            r.data.Beam2.y.pos(i1) = Beam2_cy(2);
+            r.data.Beam2.y.width(i1) = Beam2_cy(3);
+            r.data.Beam2.x.amp(i1) = Beam2_cx(1);
+            r.data.Beam2.x.pos(i1) = Beam2_cx(2);
+            r.data.Beam2.x.width(i1) = Beam2_cx(3);
+        end
 
 
     %% Plots
     figure(FigNum);clf
-    subplot(1,2,1)
-    if i1 == 1
-        hold on;
-    end
+    subplot(4,2,[1 3 5])
     scatter(r.data.PlotParam(1:i1),r.data.N(1:i1,:),'filled');
-    plot_format(ParamName,'Number','',12);
-    sgtitle({['{\bf\fontsize{14}' Title '}'],TitleStuff.SubTitle});
+    plot_format(ParamName,'N_{F = i}','',12);
     grid on
     ylim([0,Inf]);
     legend('F2','F1')
 
-    subplot(1,2,2)
-    if i1 == 1
-        hold on;
-    end
-    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,:),100,'ColorVariable',['r','b']);
-    ax = scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,:),40,'filled','ColorVariable',['r','b']);
-    plot_format(ParamName,'Population','',12);
+    subplot(4,2,7)
+    scatter(r.data.PlotParam(1:i1),r.data.N(1:i1,1) + r.data.N(1:i1,2),'filled');
+    plot_format(ParamName,'N_{Total}','',12);
+
+    subplot(4,2,[2 4])
+    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,1),100,'b');
+    hold on
+    scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,1),40,'b','filled');
+    plot_format(ParamName,'F = 2 Population','',12);
     grid on;
-%     ylim([0.44,0.56])
+
+    subplot(4,2,[6 8])
+    scatter(r.data.PlotParam(1:i1),r.data.Rsum(1:i1,2),100,'r');
+    hold on
+    scatter(r.data.PlotParam(1:i1),r.data.R(1:i1,2),40,'r','filled');
+    plot_format(ParamName,'F = 1 Population','',12);
+    grid on;
+
+    if MovAv == 1
+        subplot(4,2,[2 4])
+        scatter(r.data.PlotParam(1:i1),movmean(r.data.Rsum(1:i1,1),5),20,'k','filled');
+        legend('Sum','Fit','Moving Average')
+        subplot(4,2,[6 8])
+        scatter(r.data.PlotParam(1:i1),movmean(r.data.Rsum(1:i1,2),5),20,'k','filled');
+    end
 
 
-    %     figure(FigNum + 1)
-    %     subplot(1,2,1)
-    %     if i1 == 1
-    %         hold on;
-    %     end
-    %     scatter(0.5*9.8*(r.data.PlotParam(1:i1)*1e-3).^2*1e3,r.data.N(1:i1,:),'filled');
-    %     plot_format('Displacement (mm)','Number','',12);
-    %     sgtitle({['{\bf\fontsize{14}' Title '}'],TitleStuff.SubTitle});
-    %     grid on
-    %     ylim([0,Inf]);
-    %     legend('F2','F1')
-    %
-    %     subplot(1,2,2)
-    %     if i1 == 1
-    %         hold on;
-    %     end
-    %     scatter(0.5*9.8*(r.data.PlotParam(1:i1)*1e-3).^2*1e3,r.data.Rsum(1:i1,:),100,'ColorVariable',['r','b']);
-    %     ax = scatter(0.5*9.8*(r.data.PlotParam(1:i1)*1e-3).^2*1e3,r.data.R(1:i1,:),40,'filled','ColorVariable',['r','b']);
-    %     plot_format('Displacement (mm)','Population','',12);
-    %     grid on;
 
-
+    sgtitle({['{\bf\fontsize{14}' Title '}'],TitleStuff.SubTitle});
 
     % % % % % % % % % % % %
     if allROI == 1
