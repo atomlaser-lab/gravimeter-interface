@@ -1,4 +1,4 @@
-function makeBraggSequence(dds,varargin)
+function makeBraggSequence_Rhys(dds,varargin)
 
 %% Set up variables and parse inputs
 f = 384.224e12;
@@ -14,6 +14,10 @@ chirp = 2*k*9.795/(2*pi);
 order = 1;
 start_order = 0;
 mirrorSwitch = 1;
+NoiseType = 'acceleration';
+NoiseAmp = 0;
+w0 = 2.5e-3;
+t0_effective = 0;
 
 if mod(numel(varargin),2) ~= 0
     error('Arguments must appear as name/value pairs!');
@@ -21,6 +25,14 @@ else
     for nn = 1:2:numel(varargin)
         v = varargin{nn+1};
         switch lower(varargin{nn})
+            case 'noisetype'
+                NoiseType = v;
+            case 'noiseamp'
+                NoiseAmp = v;
+            case 'beamradius'
+                w0 = v;
+            case 't0_effective'
+                t0_effective = v;
             case 't0'
                 t0 = v;
             case 't'
@@ -109,6 +121,7 @@ if numel(appliedPhase) == 0
     appliedPhase = tmp;
 end
 
+
 %% Create vectors
 tPulse = (-5*width:dt:5*width)';
 t = repmat(tPulse,1,numPulses);
@@ -116,6 +129,33 @@ for  nn = 1:numPulses
     t(:,nn) = t(:,nn) + t0 + (nn-1)*T + max((nn-2),0)*Tasym;
 end
 t = t(:);
+
+% % % % Create intensitity noise profile
+if strcmpi(NoiseType,'acceleration')
+    r_final = NoiseAmp*w0;
+    t_final = (2*T + t0_effective);
+    a_effective = 2*r_final/(t_final^2);
+    t_effective = t - (t0 - t0_effective);
+    r = 0.5*a_effective*(t - (t0 - t0_effective)).^2;
+    I_Noise_factor = exp(-2*r.^2/w0^2);
+elseif strcmpi(NoiseType,'white')
+    if NoiseAmp > 1
+        warning('Noise Amplitude cannot be greater than 100%. Noise set to 100%')
+        NoiseAmp = 1;
+    end
+    I_Noise_factor = NoiseAmp*rand(1,length(t),1);
+elseif strcmpi(NoiseType,'Offset')
+    if NoiseAmp < 0
+        warning('Noise Amplitude less than zero means no pulses. Noise set to 0.1')
+        NoiseAmp = 0.1;
+    end
+    I_Noise_factor = NoiseAmp;
+elseif strcmpi(NoiseType,'white') == 0 && strcmpi(NoiseType,'acceleration')
+    warning('Type must be "white" or "acceleration"')
+    return
+end
+
+
 %
 % Set powers, phases, and frequencies
 %
@@ -123,30 +163,14 @@ t = t(:);
 for nn = 1:numPulses
     tc = t0 + (nn-1)*T + max((nn-2),0)*Tasym;
     idx = (t - t0) > (nn-1-0.5)*T;
-    %
-    % Set powers
-    %
-    P(:,1) = P(:,1) + power1(nn)*exp(-(t - tc).^2/fwhm.^2);
-    P(:,2) = P(:,2) + power2(nn)*exp(-(t - tc).^2/fwhm.^2);
-    %
-    % Set phases
-    %
-    ph(idx,2) = appliedPhase(nn);
-    %
-    % Set frequencies.  Need channel 1 frequency to be higher than channel
-    % 2 frequency so that we use the lattice formed from retroreflecting
-    % from the vibrationally isolated mirror
-    %
 
-% %     Original used (method 1)
+    P(:,1) = P(:,1) + I_Noise_factor.*(power1(nn)*exp(-(t - tc).^2/fwhm.^2));
+    P(:,2) = P(:,2) + I_Noise_factor.*(power2(nn)*exp(-(t - tc).^2/fwhm.^2));
+
+    ph(idx,2) = appliedPhase(nn);
+
     freq(idx,1) = DDSChannel.DEFAULT_FREQ + mirrorSwitch*0.25/1e6*(chirp*tc + (2*start_order+order)*4*recoil);
     freq(idx,2) = DDSChannel.DEFAULT_FREQ - mirrorSwitch*0.25/1e6*(chirp*tc + (2*start_order+order)*4*recoil); 
-   
-% % % % Test (method 2)
-%     freq(idx,1) = DDSChannel.DEFAULT_FREQ - mirrorSwitch*0.25/1e6*(chirp*tc + (2*start_order+order)*4*recoil);
-%     freq(idx,2) = DDSChannel.DEFAULT_FREQ + mirrorSwitch*0.25/1e6*(chirp*tc + (2*start_order+order)*4*recoil); 
-
-
 end
 
 freq(freq == 0) = DDSChannel.DEFAULT_FREQ;

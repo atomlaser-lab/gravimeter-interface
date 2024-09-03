@@ -1,34 +1,32 @@
-function Callback_Rhys_MW(r)
+function Callback_Rhys_2ROI_MW(r)
 FigNum = 5;
-
-Title = 'Microwave Transfer';
-Param = -10:1:10;
-
-ParamName = 'MW Frequency';
-Unit = ' (kHz)';  %do not forget to put a space before the unit
+Title = 'Out of Trap MW Pulse 1';
+Param = (-0.5:0.1:0.5);
+ParamName = 'MW Freq';
 
 
 if r.isInit()
     r.data.df = Param;
-    r.data.freq1 = const.f_Rb_groundHFS - 428.65 + Param*1e3;
-    r.data.freq2 = const.f_Rb_groundHFS*ones(size(Param));
-    
+    r.data.freq1 = const.f_Rb_groundHFS - 435*1e3 + Param*1e3;
+    r.data.freq2 = const.f_Rb_groundHFS ;
     r.data.ParamName = ParamName;
-    r.data.ParamUnits = Unit;
     r.c.setup('var',r.data.df);
 
 elseif r.isSet()
-
-    r.devices.mku.writeList(r.data.freq1(r.c(1))/2,r.data.freq2(r.c(1))/2);
+    if numel(r.data.freq1) > 1
+        r.devices.mku.writeList(r.data.freq1(r.c(1))/2,r.data.freq2/2);
+    else
+        r.devices.mku.writeList(r.data.freq1/2,r.data.freq2(r.c(1))/2);
+    end
     r.make(r.devices.opt).upload;
-
-    fprintf(1,'Run  %d/%d, %s = %.3f %s\n',r.c.now,r.c.total,r.data.ParamName,r.data.df(r.c(1)),r.data.ParamUnits);
+    fprintf(1,'Run %d/%d, T = %.0f us\n',r.c.now,r.c.total,...
+        r.data.df(r.c(1)));
 
 elseif r.isAnalyze()
     i1 = r.c(1);
     i2 = 1;
     pause(0.1 + 0.5*rand);
-    img = Abs_Analysis_GUI('last',1);
+    img = Abs_Analysis_GUI('last',1);    
     if ~img(1).raw.status.ok()
         %
         % Checks for an error in loading the files (caused by a missed
@@ -41,6 +39,7 @@ elseif r.isAnalyze()
         return;
     end
 
+
     % % % Data stored
     r.data.files{i1,1} = img.raw.files;
     r.data.N(i1,:) = img.get('N');
@@ -50,10 +49,12 @@ elseif r.isAnalyze()
     r.data.C1.N(i1) = img.clouds(1).fit.N;
     r.data.C1.xPos(i1) = img.clouds(1).fit.pos(1);
     r.data.C1.yPos(i1) = img.clouds(1).fit.pos(2);
+    r.data.C1.peakOD(i1) = img.clouds(1).peakOD;
 
     r.data.C2.N(i1)= img.clouds(2).fit.N;
     r.data.C2.xPos(i1) = img.clouds(2).fit.pos(1);
     r.data.C2.yPos(i1) = img.clouds(2).fit.pos(2);
+    r.data.C2.peakOD(i1) = img.clouds(2).peakOD;
 
     if r.data.C2.N(i1) < 1e3
     	r.data.C2.xPos(i1) = NaN;
@@ -64,7 +65,6 @@ elseif r.isAnalyze()
         r.data.C1.yPos(i1) = NaN;
     end
 
-
     % % % Plot as you go
     figure(FigNum);clf
     sgtitle(Title)
@@ -72,25 +72,27 @@ elseif r.isAnalyze()
     scatter(r.data.df(1:i1),r.data.C1.N./(r.data.C1.N + r.data.C2.N),'r')
     hold on
     scatter(r.data.df(1:i1),r.data.C2.N./(r.data.C1.N + r.data.C2.N),'b')
-    xlabel('df')
+    xlabel(ParamName)
     ylabel('N norm')
-    legend('ROI 1', 'ROI 2')
 
     subplot(3,1,2)
-    scatter(r.data.df(1:i1),r.data.C1.N + r.data.C2.N)
-    ylabel('N total')
-    subplot(3,1,3)
-    scatter(r.data.df(1:i1),r.data.C1.yPos,'r')
+    scatter(r.data.df(1:i1),(r.data.C1.N),'k')
     hold on
-    scatter(r.data.df(1:i1),r.data.C2.yPos,'b')
-    xlabel('df')
-    ylabel('Pos')
+    scatter(r.data.df(1:i1),(r.data.C2.N),'r')
+    scatter(r.data.df(1:i1),(r.data.C1.N + r.data.C2.N),'b')
+    legend('total','ROI 1','ROI 2')
+    xlabel(ParamName)
+    ylabel('N')
+
+    subplot(3,1,3)
+    scatter(r.data.df(1:i1),r.data.C1.peakOD,'r')
+    hold on
+    scatter(r.data.df(1:i1),r.data.C2.peakOD,'b')
+    xlabel(ParamName)
+    ylabel('OD')
     legend('ROI 1', 'ROI 2')
 
 end
-
-
-
 end
 
 

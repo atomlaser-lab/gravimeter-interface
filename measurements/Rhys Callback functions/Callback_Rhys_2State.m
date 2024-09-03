@@ -1,36 +1,34 @@
 function Callback_Rhys_2State(r)
 
 % % Inputs
-ClearImage = 1;
-FigNum = 3;
+FigNum = 5;
 
-TitleStuff.TotalPower = '20.77';
+TitleStuff.TotalPower = '20';
 TitleStuff.P_rat = '7';
 TitleStuff.Mag = '1.5';
 TitleStuff.t_0 = '10';
-TitleStuff.T = '0.1';
-TitleStuff.Tau  = '8';
+TitleStuff.T = '0.5';
+TitleStuff.Tau  = '5';
 TitleStuff.SPD = '4.95';
-TitleStuff.TPD = '-20 + 8.2*1e-3';
+TitleStuff.TPD = '-20 + 33*1e-3';
 
-TitleStuff.SubTitle = 'UD = 4.5 A, EW = 20 V, 3-Pulse';
+TitleStuff.SubTitle = 'UD = 10 A, EW = 20 V, 3-Pulse';
 Title = append('P_{total} = ',TitleStuff.TotalPower,' mW, ','P_S/P_C = ',TitleStuff.P_rat,', ', TitleStuff.Mag,'x Mag, ', 't_0 = ',TitleStuff.t_0,' us, ', '\Delta = ',TitleStuff.SPD,' GHz,','\delta = ',TitleStuff.TPD,' MHz, ','\tau = ',TitleStuff.Tau,' us', ', T = ',TitleStuff.T,' ms');
 TitleStuff.Title = Title;
-
 
 % Title = 'In-Trap MW';
 % TitleStuff.SubTitle = 'pi stability of pulse 1';
 
-Param = -100:5:100;
+% Param = const.randomize(unique([0:10:360]));
+Param = [10:10:200];
 PlotParam = 1*Param;
-% ParamName = ScanableParameters.Run;
+ParamName = ScanableParameters.TwoPhoton;
 % ParamName = 'I_{sideband}/I_{carrier}';
-ParamName = '2 Photon detuning (kHz)';
 
 % % % If there are multiple ROIs, what do you want to count?
 F2_ROI = 3;
-F1_ROI = 2;
-allROI = 1;
+F1_ROI = 1;
+allROI = 0;
 MovAv = 0;
 
 
@@ -38,10 +36,6 @@ if r.isInit()
     r.data.Param = Param;
     r.data.PlotParam = PlotParam;
     r.c.setup('var',r.data.Param);
-    if ClearImage == 1
-        figure(FigNum);clf
-        figure(FigNum+1);clf
-    end
 elseif r.isSet()
     r.make(r.devices.opt,'params',r.data.Param(r.c(1)));
     r.upload;
@@ -97,8 +91,8 @@ elseif r.isAnalyze()
     r.data.R(i1,:) = r.data.N(i1,:)./sum(r.data.N(i1,:));
     r.data.Rsum(i1,:) = r.data.Nsum(i1,:)./sum(r.data.Nsum(i1,:));
 
-    %     r.data.T_F1(i1,:) = [img(2).clouds(F1_ROI).T];
-    %     r.data.T_F2(i1,:) = [img(1).clouds(F2_ROI).T];
+        r.data.T_F1(i1,:) = [img(2).clouds(F1_ROI).T];
+        r.data.T_F2(i1,:) = [img(1).clouds(F2_ROI).T];
 
         %
         % Get processed data for all regions of interest

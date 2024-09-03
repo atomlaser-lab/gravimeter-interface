@@ -72,7 +72,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
             self.MagneticInsensitive_status = 0;
             
             self.JustMOT = 0;
-            self.TwoStateImaging = 1;
+            self.TwoStateImaging = 0;
             self.raman = 0;
             self.StatePrep = 0;
             

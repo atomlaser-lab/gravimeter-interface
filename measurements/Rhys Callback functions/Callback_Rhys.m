@@ -1,36 +1,24 @@
 function Callback_Rhys(r)
-% r.reset empties the r.data field. to call this function, you must use
-% r.reset;r.data. So, I don't think you can store data from a previous scan
-% in this script
-
-% I need to save the data then run this script
-
-
 % % % Inputs
 ClearImage = 1;
-FigNum = 5;
-% TOF = 216.5e-3;
-TOF = 20e-3;
+FigNum = 6;
 
-Title = 'Raman Test: TOF  ms, detuning = 0';
-
-
-Param = [-15:1:10];
-
-ParamName = 'AOM Power';
-Unit = ' (Arb.)';  %do not forget to put a space before the unit
+Title = 'Stability';
+Param = [1:1:40];
+ParamName = 'Run';
+PlotFactor = 1;
 
 if r.isInit()
 %     r.data.param = const.randomize(Param);
     r.data.param = (Param);
+    r.data.plotparam = r.data.param*PlotFactor;
     r.data.ParamName = ParamName;
-    r.data.ParamUnits = Unit;
     r.c.setup('var',r.data.param);
 
 elseif r.isSet()
-    r.make(r.devices.opt,'params',r.data.param(r.c(1)), 'tof', TOF).upload;
+    r.make(r.devices.opt,'params',r.data.param(r.c(1))).upload;
 
-    fprintf(1,'Run  %d/%d, %s = %.3f %s\n',r.c.now,r.c.total,r.data.ParamName,r.data.param(r.c(1)),r.data.ParamUnits);
+    fprintf(1,'Run  %d/%d, %s = %.3f %s\n',r.c.now,r.c.total,r.data.ParamName,r.data.param(r.c(1)));
 
 elseif r.isAnalyze()
     i1 = r.c(1);
@@ -65,32 +53,26 @@ elseif r.isAnalyze()
     r.data.yPos(i1,i2) = img.clouds.fit.pos(2);
 
     % % % Plot as you go
-    figure(FigNum);
-    if ClearImage == 1
-        clf
-    end
+    figure(FigNum);clf
+    subplot(3,1,1)
+    scatter(r.data.plotparam(1:i1),r.data.N(1:i1),'filled');
+    plot_format(ParamName,'N_{F = i}','',12);
+    grid on
+
+    subplot(3,1,2)
+    scatter(r.data.plotparam(1:i1),r.data.peakOD(1:i1,1),'filled');
+    plot_format(ParamName,'Peak OD','',12);
+
+    subplot(3,1,3)
+    scatter(r.data.plotparam(1:i1),r.data.xwidth(1:i1),100,'b');
+    hold on
+    scatter(r.data.plotparam(1:i1),r.data.ywidth(1:i1),100,'r');
+    plot_format(ParamName,'Width','',12);
+    legend('x','y')
+    grid on;
+    
     sgtitle(Title)
-    %(x,y,YLabel,SubPlot,XName,XUnit,color,Index)
-    MakePlot(r.data.param,r.data.N,'Atom Number',1,r.data.ParamName,r.data.ParamUnits,'r',i1)
-    MakePlot(r.data.param,r.data.Nsum,'Atom Number',1,r.data.ParamName,r.data.ParamUnits,'b',i1,['Fit';'Sum'])
-
-    MakePlot(r.data.param,r.data.peakOD,'OD',2,r.data.ParamName,r.data.ParamUnits,'b',i1)
-
-    MakePlot(r.data.param,r.data.xwidth,'Width (mm)',3,r.data.ParamName,r.data.ParamUnits,'r',i1)
-    MakePlot(r.data.param,r.data.ywidth,'Width (mm)',3,r.data.ParamName,r.data.ParamUnits,'b',i1,['x';'y'])
-
-    %     MakePlot(r.data.param,r.data.becFrac,'BEC Frac',4,r.data.ParamName,r.data.ParamUnits,'r',i1)
-    MakePlot(r.data.param,r.data.T(:,1)*1e6,'Temperature (uK)',4,r.data.ParamName,r.data.ParamUnits,'r',i1)
-    MakePlot(r.data.param,r.data.T(:,2)*1e6,'Temperature (uK)',4,r.data.ParamName,r.data.ParamUnits,'b',i1,['x';'y'])
-%     MakePlot(r.data.param,r.data.xPos*1.0285/5.5e-6,'Pixel Number',4,r.data.ParamName,r.data.ParamUnits,'r',i1)
-%     MakePlot(r.data.param,r.data.yPos*1.0285/5.5e-6,'Pixel Number',4,r.data.ParamName,r.data.ParamUnits,'b',i1,['x';'y'])
-
-
-
 end
-
-
-
 end
 
 

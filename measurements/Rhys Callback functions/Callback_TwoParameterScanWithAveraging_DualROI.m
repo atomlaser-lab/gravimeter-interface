@@ -1,12 +1,11 @@
-function Callback_TwoParameterScanWithAveraging_DualState(r)
+function Callback_TwoParameterScanWithAveraging_DualROI(r)
 
 if r.isInit()
     %
     % Define parameters
     %
-%     r.data.param1 = const.randomize(([0:0.1:10]));
-    r.data.param2 = 0.8:0.02:1.2;
-    r.data.param1 = 0:10:180;
+    r.data.param1 = [0:10:200];
+    r.data.param2 = linspace(0,0.9,10);
     r.data.num_avgs = 1;
     %
     % When to average controls when averaging is done.  If it is 'first',
@@ -47,31 +46,40 @@ elseif r.isAnalyze()
     end
     pause(0.5 + 0.5*rand);
 
-    img = Abs_Analysis_DualState_RT('last');
-%     img = Abs_Analysis_GUI('last',1);
-    if ~img(1).raw.status.ok()
+%     img = Abs_Analysis_DualState_RT('last');
+    img = Abs_Analysis_GUI('last',1);
+    if ~img.raw.status.ok()
         % 
         % Checks for an error in loading the files (caused by a missed
         % image) and reruns the last sequence        
         %
         r.c.decrement;
         return;
-    elseif r.c.now > 1 && strcmpi(img(1).raw.files.name,r.data.files{r.c.now - 1}.name)
+    elseif r.c.now > 1 && strcmpi(img.raw.files.name,r.data.files{r.c.now - 1}.name)
         r.c.decrement;
         return;
     end
     %
     % Store raw data
     %
-    r.data.files{i1,i2,iavg} = img(1).raw.files;
+    r.data.files{i1,i2,iavg} = img.raw.files;
     %
     % Get processed data
     %
-    r.data.raw.N(i1,i2,iavg,:) = [img(1).get('N'),img(2).get('N')];
-    r.data.raw.Nsum(i1,i2,iavg,:) = [img(1).get('Nsum'),img(2).get('Nsum')];
+    r.data.raw.N(i1,i2,iavg,:) = [img.clouds(1).N,img.clouds(2).N];
+    r.data.raw.Nsum(i1,i2,iavg,:) = [img.clouds(1).Nsum,img.clouds(2).Nsum];
 
     r.data.raw.R = r.data.raw.N./sum(r.data.raw.N,4);
     r.data.raw.Rsum = r.data.raw.Nsum./sum(r.data.raw.Nsum,4);
+
+    r.data.raw.Width_x(i1,i2,iavg,:) = [img.clouds(1).gaussWidth(1),img.clouds(2).gaussWidth(1)];
+    r.data.raw.Width_y(i1,i2,iavg,:) = [img.clouds(1).gaussWidth(2),img.clouds(2).gaussWidth(2)];
+
+    r.data.raw.Temp_x(i1,i2,iavg,:) = [img.clouds(1).T(1),img.clouds(2).T(1)];
+    r.data.raw.Temp_y(i1,i2,iavg,:) = [img.clouds(1).T(2),img.clouds(2).T(2)];
+
+    r.data.raw.OD(i1,i2,iavg,:) = [img.clouds(1).peakOD,img.clouds(2).peakOD];
+
     %
     % Compute averaging as necessary
     %

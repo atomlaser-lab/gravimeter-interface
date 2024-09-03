@@ -532,17 +532,17 @@ if opt.raman == 1
 %             'PulseShape','Square','chirp',chirp);
 %     end
     
-    T = 0.05e-3; %interferometer spacing
-    numPulses = 3; %pulse count
+    T = 0.5e-3; %interferometer spacing
+    numPulses = 1; %pulse count
     % following arrays must contain at least the pulse number of points
-    pulsewidth = 1e-6*[4,8,4];
-    power1 = 0.5*[1,2,1];
-    power2 = 0.5*[1,2,1];
+    pulsewidth = 1e-6*[20,20,10];
+    power1 = 0.5*[1,1,1];
+    power2 = 0.5*[1,1,1];
     appliedPhase = [0,0,180];
 
     %frequnecy
 
-    delta = 20; %Mhz
+    delta = -20 + 33.9*1e-3+0*opt.params;
     freq1 = 110 + delta/4;
     freq2 = 110 - delta/4;
     
@@ -552,6 +552,8 @@ if opt.raman == 1
         t(2*i-1) = (i-1)*T; %start of pulse is at nT 
         t(2*i) = (i-1)*T+pulsewidth(i); %end of pulse after width
     end
+    t=t+10e-6;
+    
     
     %interleve powers with zeros
     B =zeros(size(power1));
@@ -569,12 +571,12 @@ if opt.raman == 1
     [P,ph,freq] = deal(zeros(numel(t),2));
     %
     % Set powers
-    P(:,2) = power2;
-    P(:,1) = power1;
+    P(:,2) = power2(1:numPulses*2);
+    P(:,1) = power1(1:numPulses*2);
     %
     % Set phases
     %
-   ph(:,2) = appliedPhase;
+   ph(:,2) = appliedPhase(1:numPulses*2);
 
 
     %
@@ -582,14 +584,14 @@ if opt.raman == 1
     %
     freq(:,1) = freq(:,1) +freq1;
     freq(:,2) = freq(:,2) +freq2;   
-    
+
     % Populate DDS values
     for nn = 1:numel(sq.dds)
         if nn == 1
             sq.dds(nn).after(t,freq(:,nn),P(:,nn),ph(:,nn));        
         elseif nn == 2
             sq.dds(nn).after(t,freq(:,nn),P(:,nn),ph(:,nn));
-        end
+    end
 end
 
 end

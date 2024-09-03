@@ -1,17 +1,26 @@
 
 % Inputs
-x = r.data.Param(1:numel(r.data.R(:,1)));
-y = r.data.R(:,1).';
+% x = r.data.Param(1:numel(r.data.R(:,1)));
+% y = r.data.Rsum(:,1).';
 
-x_label = 'Two Photon Detuning (kHz)';
-y_label = 'F = 2 Population';
+x = r.data.param(1:numel(r.data.N(:,1)));
+y = r.data.C1.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum);
+
+y(1:14) = NaN;
+y(end-12:end) = NaN;
+
+% x_label = 'Two Photon Detuning (kHz)';
+% y_label = 'F = 2 Population';
+
+x_label = 'Chirp';
+y_label = '|p_0> Pop';
 FigNum = 10;
 
-y(8) = NaN;
-y(end-2:end) = NaN;
+% y(10) = NaN;
+% y(end-2:end) = NaN;
 
 
-[fitresult, ~] = createFit(x, y, 10, max(y), 100);
+[fitresult, ~] = createFit(x, y, 2.511, 0.6, 6e-5);
 x2 = linspace(min(x),max(x),numel(x)*10);
 
 

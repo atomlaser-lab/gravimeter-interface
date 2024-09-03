@@ -6,6 +6,7 @@ classdef MiscSequenceOptions < SequenceOptionsAbstract
         P1Max
         P2Max
         AbsAnalysis_AllROI
+        DropCamera
     end
 
     methods
@@ -20,6 +21,7 @@ classdef MiscSequenceOptions < SequenceOptionsAbstract
             self.P1Max = 5;
             self.P2Max = 5;
             self.AbsAnalysis_AllROI = 1;
+            self.DropCamera = 'in-trap';
         end
     end
 end

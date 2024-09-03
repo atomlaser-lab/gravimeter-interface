@@ -1,12 +1,21 @@
 FigNum = 10;
 % 
-y = r.data.R(:,1);
-x = r.data.Param(1:numel(y));
+% y = r.data.R(:,1);
+% x = r.data.Param(1:numel(y));
 
-y(1) = NaN;
-y(2) = NaN;
+% y = r.data.C1.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum);
+% x = r.data.param(1:numel(y));
 
-x2 = linspace(0,200,1000);
+% y = r.data.raw.R(:,2,1,1);
+% x = r.data.param1;
+y = t0_7p5_T_10_w0_10.raw.R(:,end-2,1,1);
+x = t0_7p5_T_10_w0_10.param1;
+
+% y(5) = NaN;
+% y(4) = NaN;
+% y(end-6) = NaN;
+
+x2 = linspace(0,260,1000);
 [fitresult, ~] = createFit(x, y);
 y_fit = fitresult(x2);
 
@@ -28,14 +37,20 @@ hold on
 plot(x2,y_fit)
 scatter(Phi_midFringe,fitresult(Phi_midFringe),'k','LineWidth',4)
 xlabel('Phase')
-ylabel('F = 2 pop')
+ylabel('|p_0> pop')
 
 
 
-annotation('textbox', [0.25, 0.1, 0.1, 0.1], 'String', sprintf('Mid-Fringe: %g deg', Phi_midFringe), ...
+annotation('textbox', [0.15, 0.1, 0.1, 0.1], 'String', sprintf('Mid-Fringe: %g deg, offet: %g, Contrast: %g, Phase Offset: %g', Phi_midFringe, fitresult.a, fitresult.b, fitresult.c ), ...
     'EdgeColor', 'none', 'BackgroundColor', 'white', 'FitBoxToText', 'on');
+grid on
+grid minor
+if exist('TitleStuff','var') == 1
+    Title = TitleStuff.Title;
+        sgtitle({['{\bf\fontsize{14}' Title '}'],TitleStuff.SubTitle});
+end
 
-
+topaste(FigNum)
 
 function [fitresult, gof] = createFit(x, y)
 
