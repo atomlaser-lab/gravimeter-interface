@@ -1,9 +1,9 @@
 
 FigNum = 10;
-XLABEL = 'Power in each Bragg beam(mW)';
+XLABEL = 'Total Bragg beam(mW)';
 % XLABEL = 'Pulse Duration (us)';
-YLABEL = 'F = 2 Pop';
-tau_piEstimate = 200;
+YLABEL = '|p_0 + nhk> Pop';
+tau_piEstimate = 100;
 
 
 % x_sorted = r.data.Param(1:numel(r.data.R(:,1)));
@@ -11,13 +11,17 @@ tau_piEstimate = 200;
 
 
 x_sorted = r.data.param(1:numel(r.data.C2.N));
-y_sorted = r.data.C2.N./(r.data.C1.N + r.data.C2.N);
+y_sorted = r.data.C2.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum);
 
+y_sorted(end) = NaN;
 
-
+% Average
 [unique_x, ~, idx_uniq] = unique(x_sorted);
 averaged_y = accumarray(idx_uniq, y_sorted, [], @mean);
 
+% % Use all data
+% unique_x =x_sorted;
+% averaged_y = y_sorted;
 
 [fitresult, ~] = createFit(unique_x, averaged_y,tau_piEstimate,max(averaged_y));
 

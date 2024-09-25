@@ -1,16 +1,18 @@
 function Callback_Rhys(r)
 % % % Inputs
 ClearImage = 1;
-FigNum = 6;
+FigNum = 5;
 
-Title = 'Stability';
-Param = [1:1:40];
+Title = 'Stability NO MW';
+% Param = 30:30:300;
+Param = -0.3:0.05:0.4;
+
 ParamName = 'Run';
 PlotFactor = 1;
 
 if r.isInit()
-%     r.data.param = const.randomize(Param);
-    r.data.param = (Param);
+    r.data.param = const.randomize(Param);
+%     r.data.param = (Param);
     r.data.plotparam = r.data.param*PlotFactor;
     r.data.ParamName = ParamName;
     r.c.setup('var',r.data.param);
@@ -42,6 +44,8 @@ elseif r.isAnalyze()
     r.data.becFrac(i1,:) = img.clouds.becFrac;
     r.data.N(i1,:) = img.get('N');
     r.data.T(i1,:) = img.get('T');
+    r.data.Tx(i1,:) = img.clouds.T(1);
+    r.data.Ty(i1,:) = img.clouds.T(2);
     r.data.Nsum(i1,:) = img.get('Nsum');
     r.data.peakOD(i1,:) = img.get('peakOD');
     r.data.R(i1,:) = r.data.N(i1,:)./sum(r.data.N(i1,:),2);
@@ -64,10 +68,10 @@ elseif r.isAnalyze()
     plot_format(ParamName,'Peak OD','',12);
 
     subplot(3,1,3)
-    scatter(r.data.plotparam(1:i1),r.data.xwidth(1:i1),100,'b');
+    scatter(r.data.plotparam(1:i1),r.data.Tx(1:i1),100,'b');
     hold on
-    scatter(r.data.plotparam(1:i1),r.data.ywidth(1:i1),100,'r');
-    plot_format(ParamName,'Width','',12);
+    scatter(r.data.plotparam(1:i1),r.data.Ty(1:i1),100,'r');
+    plot_format(ParamName,'Temp','',12);
     legend('x','y')
     grid on;
     

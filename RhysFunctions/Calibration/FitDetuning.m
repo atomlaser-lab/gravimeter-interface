@@ -6,8 +6,8 @@
 x = r.data.param(1:numel(r.data.N(:,1)));
 y = r.data.C1.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum);
 
-y(1:14) = NaN;
-y(end-12:end) = NaN;
+y(1:2) = NaN;
+y(end) = NaN;
 
 % x_label = 'Two Photon Detuning (kHz)';
 % y_label = 'F = 2 Population';

@@ -1,45 +1,33 @@
 % % % Inputs
 
 FigNum = 10;
-% directoryPath = 'E:\R\NoIntensityRamp\DisplacementScan\T scan\T = 2 ms';
-% directoryPath = 'E:\R\NoIntensityRamp\DisplacementScan\T scan\T = 20 ms V2';
-% legend('T = 2', 'T = 20')
-
-% directoryPath = 'E:\R\NoIntensityRamp\DisplacementScan\t0 scan\t0 = 0 ms';
-% directoryPath = 'E:\R\NoIntensityRamp\DisplacementScan\t0 scan\t0 = 30 ms';
-% legend('t0 = 0', 't0 = 30')
-
-% directoryPath = 'E:\R\NoIntensityRamp\DisplacementScan\w0 scan\w0  = 1 mm';
-% directoryPath = 'E:\R\NoIntensityRamp\DisplacementScan\w0 scan\w0 = 15 mm';
-% legend('w0 = 1', 'w0 = 15')
-
-% directoryPath = 'E:\R\NoIntensityRamp\accelScan\T = 2.5 ms';
-% directoryPath = 'E:\R\NoIntensityRamp\accelScan\T = 30';
-% legend('T = 2.5', 'T = 30')
 
 % directoryPath = 'E:\R\Accelerometer Noise\Bias\T = 10,w0 = 10, t0 = 7.5\T = 10,w0 = 10, t0 = 7.5, Bias = 100e-1';
 % directoryPath = 'E:\R\Accelerometer Noise\Bias\T = 10,w0 = 10, t0 = 7.5\T = 10,w0 = 10, t0 = 7.5, Bias = 200e-6';
+% grab data from file
+% data = importfile(directoryPath);
 
-data = importfile(directoryPath);
+data = t0_7p5_T_30_w0_10;
+
 
 
 ClearFigOnOff = 0;
 
-Title = 'No Ramp';
-SubTitle = 't0 Comparison';
+Title = 'Intensity Ramp';
+SubTitle = 'Bias Comparison';
 XLabel = 'Normalised Displacement';
-XLabel = 'acceleration (m/s/s)';
+% XLabel = 'acceleration (m/s/s)';
 
 % % % load data
-% grab data from file
 
-XX = data.param2(1:end-1);
-y = data.raw.R(:,:,1,1);
-x = data.param1;
+
+XX = data.data.param2(1:end-1);
+y = data.data.raw.R(:,:,1,1);
+x = data.data.param1;
 x2 = linspace(0,200,100);
 
-N_Total = data.raw.N(:,1,1,2) + data.raw.N(:,1,1,1);
-Nsum_Total = data.raw.Nsum(:,1,1,2) + data.raw.Nsum(:,1,1,1);
+N_Total = data.data.raw.N(:,1,1,2) + data.data.raw.N(:,1,1,1);
+Nsum_Total = data.data.raw.Nsum(:,1,1,2) + data.data.raw.Nsum(:,1,1,1);
 
 for ii = 1:(size(y,2) -1)
 % % % Remove outliers

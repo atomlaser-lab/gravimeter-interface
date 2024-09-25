@@ -3,15 +3,18 @@ FigNum = 10;
 % y = r.data.R(:,1);
 % x = r.data.Param(1:numel(y));
 
-% y = r.data.C1.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum);
-% x = r.data.param(1:numel(y));
+y = r.data.C1.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum);
+x = r.data.param(1:numel(y));
 
-% y = r.data.raw.R(:,2,1,1);
+% y = t0_7p5_T_20_w0_10_ZeroDispFringe.C1.Nsum./(t0_7p5_T_20_w0_10_ZeroDispFringe.C1.Nsum + t0_7p5_T_20_w0_10_ZeroDispFringe.C2.Nsum);
+% x = t0_7p5_T_20_w0_10_ZeroDispFringe.param(1:numel(y));
+
+% y = r.data.raw.R(:,3,1,1);
 % x = r.data.param1;
-y = t0_7p5_T_10_w0_10.raw.R(:,end-2,1,1);
-x = t0_7p5_T_10_w0_10.param1;
+% y = t0_7p5_T_10_w0_10.raw.R(:,end-2,1,1);
+% x = t0_7p5_T_10_w0_10.param1;
 
-% y(5) = NaN;
+% y(1) = NaN;
 % y(4) = NaN;
 % y(end-6) = NaN;
 

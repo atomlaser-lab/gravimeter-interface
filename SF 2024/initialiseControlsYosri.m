@@ -39,7 +39,7 @@ r.devices.opt = opt;
 opt.MOT_LoadTime =12;
 opt.detuning = 0;
 opt.TwoStateImaging = 0;
-opt.dipoles = 1.28;
+opt.dipoles = 1.6;
 opt.tof = 216.5e-3;
 r.makerCallback = @CloseMZ_IntensityNoise;
 

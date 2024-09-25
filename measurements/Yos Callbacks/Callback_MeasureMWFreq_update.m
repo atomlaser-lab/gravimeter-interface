@@ -2,8 +2,8 @@ function Callback_MeasureMWFreq_update(r)
 
 if r.isInit()
     
-    r.data.df = const.randomize(-8.5:.2:-6.5); %in kHz %broad scan
-%     r.data.df = const.randomize(-7.2:.2:-5.2); %in kHz %small scan for f1!
+    r.data.df = const.randomize(-406:.25:-403); %in kHz %broad scan
+%     r.data.df = -22.5:.25:-20.25; %in kHz %small scan for f1!
 %         r.data.df = const.randomize(-2:0.2:2); %in kHz %small scan
 %         r.data.df = const.randomize(-.35:0.1:.35); %in kHz %small scan for f2!
 
@@ -11,7 +11,8 @@ if r.isInit()
 %     f1 = evalin('base','f1'); %to use when analysing f2 
 %     r.data.freq1 = f1*2/1e6*ones(size(r.data.df)); %to use when analysing f2 
 
-    r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + (17+r.data.df)*1e-3; %the one to use when analysing f1
+%     r.data.freq1 = const.f_Rb_groundHFS/1e6 - 315e-3 + (17+r.data.df)*1e-3; %the one to use when analysing f1
+    r.data.freq1 = const.f_Rb_groundHFS/1e6 + r.data.df*1e-3; %the one to use when analysing f1 with unflipped e/w bias
 
 
 %% Analysing f2 

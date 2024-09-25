@@ -6,6 +6,7 @@ closeNoPrompt(matlab.desktop.editor.getAll);
 % open Abs_Analysis_DualState_RT.m
 % open Callback_Rhys_2State_MW.m
 
+open MWOpts.m
 open makeBEC_Bragg_NewCloud.m
 open Callback_Rhys.m
 open Abs_Analysis_GUI.m
@@ -103,7 +104,7 @@ if strcmpi(DDS,'Bragg')
     Abs_Analysis_GUI;
     set(figure(2),'WindowStyle','Docked');
 else
-    close all
+%     close all
 %     Abs_Analysis_DualState_RT('last',1);
     Abs_Analysis_GUI('last',1);    
     set(figure(1),'WindowStyle','Docked');
@@ -116,7 +117,14 @@ disp(opt)
 %% set callback
 r.callback = @Callback_Rhys_2ROI_MW;
 r.makerCallback = @makeBEC_Bragg_NewCloud;
-opt.mw.enable(1) = 1;
-opt.mw.enable_sg = 1;
-opt.mw.analyze(1) = 1;
+opt.mw.enable(1) = 0;
+opt.mw.enable_sg = 0;
+opt.mw.analyze(1) = 0;
+
+
+opt.misc.DropCamera = 'drop 2';
+opt.dipoles = 1.55;
+opt.tof = 218e-3;
+opt.MOT_LoadTime = 10;
+
 end

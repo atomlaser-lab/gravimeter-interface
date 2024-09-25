@@ -135,9 +135,53 @@ if strcmpi(NoiseType,'acceleration')
     r_final = NoiseAmp*w0;
     t_final = (2*T + t0_effective);
     a_effective = 2*r_final/(t_final^2);
+%     a_effective = NoiseAmp;
+
+    ScaleFactor = 1.05;
+    Bias = 200e-6;
+    a_measure = a_effective*ScaleFactor + Bias;
+    a_ramp = a_measure;
+%     a_ramp(1:numel(tPulse)) = a_ramp(1);
+%     a_ramp(numel(tPulse)+1:2*numel(tPulse)) = a_ramp(numel(tPulse) + 1);
+%     a_ramp(2*numel(tPulse)+1:3*numel(tPulse)) = a_ramp(numel(tPulse)*2 + 1);
+    
     t_effective = t - (t0 - t0_effective);
     r = 0.5*a_effective*(t - (t0 - t0_effective)).^2;
-    I_Noise_factor = exp(-2*r.^2/w0^2);
+    r_measure = 0*0.5*a_ramp*(t - (t0 - t0_effective)).^2;
+    I_Noise_factor = exp(-2*(r - r_measure).^2/w0^2);
+    5;
+% %     r_final = NoiseAmp*w0;
+% %     t_final = (2*T + t0_effective);
+% %     a_effective = 2*r_final/(t_final^2);
+% % %     a_effective = NoiseAmp;
+% % 
+% %     ScaleFactor = 1.05;
+% %     Bias = 200e-6;
+% %     Bandwidth = 5e3;
+% % 
+% %     t_effective = t - (t(1) - t0_effective);
+% %     a_infBandwidth = a_effective*ScaleFactor + Bias;
+% %     SampleTime = 0:1/Bandwidth:t_effective(end);
+
+% % 
+% %     differences = abs(t_effective - SampleTime);
+% %     AllCases = differences < 1/(2*Bandwidth);
+% %     ValidCases = find(any(AllCases,1));
+% % 
+% % %     SamplePos = find
+% % 
+% %     a_ramp = a_infBandwidth;
+% % 
+% % 
+% % %     a_ramp(1:numel(tPulse)) = a_ramp(1);
+% % %     a_ramp(numel(tPulse)+1:2*numel(tPulse)) = a_ramp(numel(tPulse) + 1);
+% % %     a_ramp(2*numel(tPulse)+1:3*numel(tPulse)) = a_ramp(numel(tPulse)*2 + 1);
+% %     
+% %     t_effective = t - (t0 - t0_effective);
+% %     r = 0.5*a_effective*(t - (t0 - t0_effective)).^2;
+% %     r_measure = 0.5*a_ramp*(t - (t0 - t0_effective)).^2;
+% %     I_Noise_factor = exp(-2*(r - r_measure).^2/w0^2);
+
 elseif strcmpi(NoiseType,'white')
     if NoiseAmp > 1
         warning('Noise Amplitude cannot be greater than 100%. Noise set to 100%')

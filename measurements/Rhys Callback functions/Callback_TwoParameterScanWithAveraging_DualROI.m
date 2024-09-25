@@ -4,8 +4,11 @@ if r.isInit()
     %
     % Define parameters
     %
-    r.data.param1 = [0:10:200];
-    r.data.param2 = linspace(0,0.9,10);
+    r.data.param1 = [0 5 10  40 45 50 85 90 95 135 170 175 180 185 190 225 260 265 270 275 280];
+%     r.data.param1 = [0:10:250];
+%     r.data.param2 = 1.2;
+    r.data.param2 = [0:0.3:1.2];
+
     r.data.num_avgs = 1;
     %
     % When to average controls when averaging is done.  If it is 'first',
@@ -131,6 +134,8 @@ elseif r.isAnalyze()
         subplot(1,2,1);
         for nn = 1:size(r.data.N.mean,3)
             h = errorbar(r.data.param1(1:i1),r.data.N.mean(1:i1,i2,nn),r.data.N.err(1:i1,i2,nn),'o');
+            hold on
+            
             h.MarkerFaceColor = h.Color;
             hold on
         end
@@ -138,7 +143,7 @@ elseif r.isAnalyze()
         
         subplot(1,2,2);
         for nn = 1:size(r.data.R.mean,3)
-            h = errorbar(r.data.param1(1:i1),r.data.R.mean(1:i1,i2,nn),r.data.R.err(1:i1,i2,nn),'o');
+            h = errorbar(r.data.param1(1:i1),r.data.Rsum.mean(1:i1,i2,nn),r.data.R.err(1:i1,i2,nn),'o');
             h.MarkerFaceColor = h.Color;
             hold on
         end
@@ -155,7 +160,7 @@ elseif r.isAnalyze()
         
         subplot(1,2,2);
         for nn = 1:size(r.data.R.mean,3)
-            h = errorbar(r.data.param1(1:i1),r.data.R.mean(1:i1,i2,nn),r.data.R.err(1:i1,i2,nn),'o');
+            h = errorbar(r.data.param1(1:i1),r.data.Rsum.mean(1:i1,i2,nn),r.data.R.err(1:i1,i2,nn),'o');
             h.MarkerFaceColor = h.Color;
             hold on
         end

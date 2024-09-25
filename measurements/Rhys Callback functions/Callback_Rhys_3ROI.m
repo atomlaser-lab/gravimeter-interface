@@ -1,4 +1,4 @@
-function Callback_Rhys_2ROI(r)
+function Callback_Rhys_3ROI(r)
 % % % Inputs
 FigNum = 5;
 clear TitleStuff
@@ -16,7 +16,7 @@ Title = 'Bragg pi pulse Stability';
 TitleStuff.SubTitle = 'ROI 1 is mf = 0';
 
 
-Param = 50:10:200;
+Param = 25:25:400;
 % Param = [0:2:360];
 % Param = linspace(2.51097,2.51104,30);
 
@@ -39,7 +39,9 @@ elseif r.isAnalyze()
     i1 = r.c(1);
     i2 = 1;
     pause(0.1 + 0.5*rand);
-    img = Abs_Analysis_GUI('last',1);    
+%     img = Abs_Analysis_GUI('last',1);    
+    img = Abs_Analysis('last',1);    
+
     if ~img(1).raw.status.ok()
         %
         % Checks for an error in loading the files (caused by a missed
@@ -71,6 +73,12 @@ elseif r.isAnalyze()
     r.data.C2.yPos(i1) = img.clouds(2).fit.pos(2);
     r.data.C2.peakOD(i1) = img.clouds(2).peakOD;
 
+    r.data.C3.N(i1)= img.clouds(3).fit.N;
+    r.data.C3.Nsum(i1)= img.clouds(3).fit.Nsum;    
+    r.data.C3.xPos(i1) = img.clouds(3).fit.pos(1);
+    r.data.C3.yPos(i1) = img.clouds(3).fit.pos(2);
+    r.data.C3.peakOD(i1) = img.clouds(3).peakOD;    
+
     if r.data.C2.N(i1) < 1e3
     	r.data.C2.xPos(i1) = NaN;
     	r.data.C2.yPos(i1) = NaN;
@@ -84,14 +92,17 @@ elseif r.isAnalyze()
     figure(FigNum); clf
     sgtitle({['{\bf\fontsize{14}' Title '}'],TitleStuff.SubTitle});
     subplot(3,1,1)
-    scatter(r.data.PlotParam(1:i1),r.data.C1.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum),'r')
+    scatter(r.data.PlotParam(1:i1),r.data.C1.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum + r.data.C3.Nsum),'r')
     hold on
-    scatter(r.data.PlotParam(1:i1),r.data.C2.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum),'b')
+    scatter(r.data.PlotParam(1:i1),r.data.C2.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum + r.data.C3.Nsum),'b')
+    scatter(r.data.PlotParam(1:i1),r.data.C3.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum + r.data.C3.Nsum),'k')
     xlabel(ParamName)
     ylabel('N norm')
 
     subplot(3,1,2)
-    scatter(r.data.PlotParam(1:i1),(r.data.C1.N + r.data.C2.N),'r')
+    scatter(r.data.PlotParam(1:i1),(r.data.C1.N + r.data.C2.N  + r.data.C3.N),'r')
+    hold on
+    scatter(r.data.PlotParam(1:i1),(r.data.C1.Nsum + r.data.C2.Nsum  + r.data.C3.Nsum),'r')
     xlabel(ParamName)
     ylabel('N Total')
 
@@ -99,9 +110,11 @@ elseif r.isAnalyze()
     scatter(r.data.PlotParam(1:i1),r.data.C1.peakOD,'r')
     hold on
     scatter(r.data.PlotParam(1:i1),r.data.C2.peakOD,'b')
+    scatter(r.data.PlotParam(1:i1),r.data.C3.peakOD,'k')
+    
     xlabel(ParamName)
     ylabel('OD')
-    legend('ROI 1', 'ROI 2')
+    legend('ROI 1', 'ROI 2','ROI 3')
 end
 end
 
