@@ -21,13 +21,13 @@ NormalisedDisplacement = [];
 
 w0 = 2.5e-3;
 t0_effective = 0;
+RampOnOff = 0;
 
-% % % Accelerometer Inputs
+% % % Accelerometer Inputs flag
 BW = 5e3;
 ScaleFactor = 1;
-Bias = 0e-2;
-White = 10;
-RampOnOff = 0;
+Bias = 100e-5;
+White = 0;
 
 if mod(numel(varargin),2) ~= 0
     error('Arguments must appear as name/value pairs!');
@@ -188,19 +188,19 @@ if strcmpi(NoiseType,'acceleration')
 
         for ii = 1:length(MesPos)
             if ii == 1
-                a_Seen(MesPos(ii):MesPos(ii+1)) = mean(a_noBW(MesPos(ii):MesPos(ii+1)));
+%                 a_Seen(MesPos(ii):MesPos(ii+1)) = mean(a_noBW(MesPos(ii):MesPos(ii+1)));
                 a_BW(ii) = mean(a_noBW(MesPos(ii):MesPos(ii+1))) + normrnd(0,White);
                 v_BW(ii) = 0;
                 d_BW(ii) = 0;
             elseif ii == length(MesPos)
-                a_Seen(MesPos(ii):length(t)) = mean(a_noBW(MesPos(ii-1):MesPos(ii)));
+%                 a_Seen(MesPos(ii):length(t)) = mean(a_noBW(MesPos(ii-1):MesPos(ii)));
                 a_BW(ii) = mean(a_noBW(MesPos(ii-1):MesPos(ii))) + normrnd(0,White);
 
                 dt_Temp = (t_effective(MesPos(ii)) - t_effective(MesPos(ii-1)));
                 v_BW(ii) = v_BW(ii-1) + a_BW(ii-1)*dt_Temp;
                 d_BW(ii) = d_BW(ii-1) + v_BW(ii-1)*dt_Temp + 0.5*a_BW(ii-1)*dt_Temp^2;
             else
-                a_Seen(MesPos(ii):MesPos(ii+1)) = mean(a_noBW(MesPos(ii):MesPos(ii+1)));
+%                 a_Seen(MesPos(ii):MesPos(ii+1)) = mean(a_noBW(MesPos(ii):MesPos(ii+1)));
                 a_BW(ii) = mean(a_noBW(MesPos(ii):MesPos(ii+1)))+ normrnd(0,White);
 
                 dt_Temp = (t_effective(MesPos(ii)) - t_effective(MesPos(ii-1)));
@@ -212,23 +212,38 @@ if strcmpi(NoiseType,'acceleration')
         % SampleTimes)
 
         % % % previous measurement is held until next measurement is made
-        for ii = 1:length(t_effective)
-            if ii == 1
-                v_Seen(ii) = 0;
-                d_Seen(ii) = 0;
-            else
-                dt_temp = t_effective(ii) - t_effective(ii-1);
-                v_Seen(ii) = v_Seen(ii-1) + a_Seen(ii-1)*dt_temp;
-                d_Seen(ii) = d_Seen(ii-1) + v_Seen(ii-1)*dt_temp + 0.5*a_Seen(ii-1)*dt_temp^2;
-            end
-        end
+% %         for ii = 1:length(t_effective)
+% %             if ii == 1
+% %                 v_Seen(ii) = 0;
+% %                 d_Seen(ii) = 0;
+% %             else
+% %                 dt_temp = t_effective(ii) - t_effective(ii-1);
+% %                 v_Seen(ii) = v_Seen(ii-1) + a_Seen(ii-1)*dt_temp;
+% %                 d_Seen(ii) = d_Seen(ii-1) + v_Seen(ii-1)*dt_temp + 0.5*a_Seen(ii-1)*dt_temp^2;
+% %             end
+% %         end
+
+        v_Seen = v_BW;
+        d_Seen = d_BW;
         % These are the quantities seen at each time step during the "effective drop time"
         % plot against t_effective
 
         % % % Relate to true time vector
+%         for ii = 1:length(t_effective_partial)
+%             TempPos = find(t_effective-t_effective_partial(ii) < dt_eff/5);
+%             RealPos(ii) = TempPos(end);
+%         end
+%         for ii = 1:length(t_effective_partial)
+%             TempPos = find(abs(SampleTimes-t_effective_partial(ii)) < dt_eff/5);
+%             RealPos(ii) = TempPos(end);
+%         end
         for ii = 1:length(t_effective_partial)
-            TempPos = find(t_effective-t_effective_partial(ii) < dt_eff/5);
-            RealPos(ii) = TempPos(end);
+%             if ii == 1
+%                 RealPos(ii) = 1;
+%             else
+                TempPos = find((SampleTimes- t_effective_partial(ii)) < SampleRate);
+                RealPos(ii) = TempPos(end);
+%             end
         end
         d_Measured = d_Seen(RealPos).';
         % DDS instructions only exist when there's pulses. These are the

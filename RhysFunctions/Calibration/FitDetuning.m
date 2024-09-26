@@ -3,7 +3,7 @@
 % x = r.data.Param(1:numel(r.data.R(:,1)));
 % y = r.data.Rsum(:,1).';
 
-x = r.data.param(1:numel(r.data.N(:,1)));
+x = r.data.df(1:numel(r.data.N(:,1)));
 y = r.data.C1.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum);
 
 y(1:2) = NaN;

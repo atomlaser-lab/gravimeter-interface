@@ -198,7 +198,8 @@ sq.find('repump amp ttl').before(10e-3,0);
 %% out of trap MW transfer
 % % % Inputs
 % pulse 1
-MW1Duration = 700*1e-6;
+MW1Duration = 500e-6;
+% MW1Duration = 700*1e-6;
 Delay1 = 11*1e-3;
 BlowDuration1 = 0.05*1e-3; % 1
 
@@ -312,7 +313,7 @@ k = 2*pi*384229441689483/const.c;  %Frequency of Rb-85 F=3 -> F'=4 transition
 Ch1Max = 215;
 Ch2Max = 240;
 
-P_total = 130;
+P_total = 120;
 % P_total = opt.params;
 % AOMSetting = P_total/Ch2Max;
 
@@ -357,7 +358,7 @@ if opt.raman == 1
     makeBraggSequence_Rhys2(sq.dds,'k',k,'chirp',chirp,...
         'dt',1e-6,'t0',t0,'T',T,'tasym',0,'width',tau,...
         'phase',[0,0,opt.params(1)],'power1',AOM1*[0.5,1,0.5],'power2',AOM2*[0.5,1,0.5],'order',braggOrder,...
-        'NoiseType','acceleration','normdisp',opt.params(2),'BeamRadius',10e-3,'t0_effective',15e-3,'RampOnOff',0);
+        'NoiseType','acceleration','normdisp',opt.params(2),'BeamRadius',10e-3,'t0_effective',7.5e-3,'RampOnOff',1);
 end
 
 %% Imaging stage

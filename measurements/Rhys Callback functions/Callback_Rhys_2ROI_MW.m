@@ -2,15 +2,15 @@ function Callback_Rhys_2ROI_MW(r)
 FigNum = 5;
 Title = 'Out of Trap MW Pulse 1';
 % Param = ([-10:1:20 -40:1:-21 21:1:40 -60:1:-41 41:1:60 -80:1:-61 61:1:80]);
-Param = [-2:0.2:1];
+Param = [-0.6:0.2:0.6];
 
 ParamName = 'MW Freq';
 
 
 if r.isInit()
     r.data.df = Param;
-    r.data.freq1 = const.f_Rb_groundHFS - 434.55*1e3 + Param*1e3; % 2 power supply, EW normal
-%     r.data.freq1 = const.f_Rb_groundHFS - 286.9*1e3 + Param*1e3; %1 power supply, EW flipped
+%     r.data.freq1 = const.f_Rb_groundHFS - 434.55*1e3 + Param*1e3; % 2 power supply, EW normal
+    r.data.freq1 = const.f_Rb_groundHFS - 286.7*1e3 + Param*1e3; %1 power supply, EW flipped
     r.data.freq2 = const.f_Rb_groundHFS;
     r.data.ParamName = ParamName;
     r.c.setup('var',r.data.df);

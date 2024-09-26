@@ -16,7 +16,7 @@ Title = 'Bragg pi pulse Stability';
 TitleStuff.SubTitle = 'ROI 1 is mf = 0';
 
 
-Param = 50:10:200;
+Param = 0:30:400;
 % Param = [0:2:360];
 % Param = linspace(2.51097,2.51104,30);
 

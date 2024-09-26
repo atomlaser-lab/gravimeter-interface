@@ -5,6 +5,7 @@ if r.isInit()
     % Define parameters
     %
     r.data.param1 = [0 5 10  40 45 50 85 90 95 135 170 175 180 185 190 225 260 265 270 275 280];
+    r.data.param1 = [0 5 10  40 45 50 85 90 95 135 170 175 180 185 190];
 %     r.data.param1 = [0:10:250];
 %     r.data.param2 = 1.2;
     r.data.param2 = [0:0.3:1.2];
