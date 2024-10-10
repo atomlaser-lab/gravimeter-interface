@@ -74,7 +74,7 @@ switch lower(imgType)
         error('Unsupported imaging type %s',imgType);
 end
 
-%Preamble
+%Preambles
 sq.find('imaging freq').set(imgFreq);
 
 % sq.find('Top repump shutter').before(20e-3,0);

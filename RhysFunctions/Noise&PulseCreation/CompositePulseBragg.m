@@ -1,4 +1,4 @@
-function makeBraggSequence_Rhys2(dds,varargin)
+function CompositePulseBragg(dds,varargin)
 
 %% Set up variables and parse inputs
 f = 384.224e12;
@@ -26,8 +26,8 @@ RampOnOff = 0;
 % % % Pulse Fidelity
 FreqError = 0;
 
-
-% % % Accelerometer Inputs flag
+% flag3
+% % % Accelerometer Inputs
 BW = 5e3;
 ScaleFactor = 1;
 Bias = 0;
@@ -39,6 +39,8 @@ else
     for nn = 1:2:numel(varargin)
         v = varargin{nn+1};
         switch lower(varargin{nn})
+            case 'pulsetype'
+                PulseType = v;
             case 'freqerror'
                 FreqError = v;
             case 'noisetype'
@@ -114,18 +116,79 @@ else
     end
 end
 
-%% Conditions on the time step and the Bragg order
-if width<50e-6
-    dt=1e-6;
+
+%% Select Pulse Type
+% % % % Pulse Types
+if strcmpi(PulseType,'Primitive')
+    PulseAreas = [180];
+    AllPhase = [0];
+elseif strcmpi(PulseType,'Corpse')
+    PulseAreas = [60 300 420];
+    AllPhase = [0 180 0];
+elseif strcmpi(PulseType,'BB1')
+    PulseAreas = [180 360 180 180];
+    AllPhase = [104.5 313.4 104.5 0];
+elseif strcmpi(PulseType,'Knill')
+    PulseAreas = [180 180 180 180 180];
+    AllPhase = [240 210 300 210 240];
+elseif strcmpi(PulseType,'Waltz')
+    PulseAreas = [90 180 270];
+    AllPhase = [0 180 0];
+elseif strcmpi(PulseType,'N_90_360_90')
+    PulseAreas = [90 360 90];
+    AllPhase = [0 120 0];
+elseif strcmpi(PulseType,'Scrofulous')
+    PulseAreas = [180 180 180];
+    AllPhase = [60 300 60];
+elseif strcmpi(PulseType,'levitt')
+    PulseAreas = [90 180 90];
+    AllPhase = [90 0 90];
+elseif strcmpi(PulseType,'N_90_240_90')
+    PulseAreas = [90 240 90];
+    AllPhase = [240 330 240];
 else
-    intermediatewidth=width*10^6;
-    dt = ceil(intermediatewidth/50)*10^-6;
+    error('Not a listed pulse type')
 end
+% % % % 
+% Convert Pulse Area into pulse durations, assuming a constant power
+t_PiSegment = width;
+t_segments = PulseAreas/180*t_PiSegment;
+numSegments = numel(PulseAreas);
+NumStd = 1.5;
+
+% if isinteger(round(width/2*1e6,10)) == 0
+%     warning('Pulse Duration/2 must be an integer')
+%     return
+% end
+
+
+%% Creat Time Vector flag1
+t = []; 
+Phase = [];
+for ii = 1:numSegments
+    if ii == 1
+        tPulseSegment = (-NumStd*t_segments(ii):dt:NumStd*t_segments(ii))';
+        SegmentCentres(ii) = t0;
+    else
+        tPulseSegment = (-NumStd*t_segments(ii):dt:NumStd*t_segments(ii))';
+        tPulseSegment = tPulseSegment - tPulseSegment(1) + t(end);
+%         SegmentCentres(ii) = t0; %t0 + NumStd*t_segments(ii-1) + NumStd*t_segments(ii);
+        SegmentCentres(ii) = SegmentCentres(ii - 1) + NumStd*t_segments(ii-1) + NumStd*t_segments(ii);
+    end
+
+    PhaseSegment = ones(size(tPulseSegment))*AllPhase(ii);
+    Phase = [Phase PhaseSegment.'];
+
+    fwhm(ii) = t_segments(ii)/(2*sqrt(log(2)));
+    t = [t tPulseSegment.'];
+    clear tPulseSegment PhaseSegment
+end
+t = t + t0;
 
 %% Calculate intermediate values
 recoil = const.hbar*k^2/(2*const.mRb*2*pi);
 numPulses = numel(power);
-fwhm = width/(2*sqrt(log(2)));
+% fwhm = width/(2*sqrt(log(2)));
 detuning=start_order*const.hbar*k^2/const.mRb;
 
 if isempty(power1)
@@ -142,14 +205,7 @@ if numel(appliedPhase) == 0
 end
 
 
-%% Create vectors
-tPulse = (-5*width:dt:5*width)';
-t = repmat(tPulse,1,numPulses);
-for  nn = 1:numPulses
-    t(:,nn) = t(:,nn) + t0 + (nn-1)*T + max((nn-2),0)*Tasym;
-end
-t = t(:);
-
+%% Create Noise vectors
 % % % % Create intensitity noise profile
 if strcmpi(NoiseType,'acceleration')
     % % % Effective time vector
@@ -292,21 +348,29 @@ end
 % Set powers, phases, and frequencies
 %
 [P,ph,freq] = deal(zeros(numel(t),2));
-for nn = 1:numPulses
-    tc = t0 + (nn-1)*T + max((nn-2),0)*Tasym;
+for nn = 1:numSegments
+%     tc = t0 + (nn-1)*T + max((nn-2),0)*Tasym;
+    tc = SegmentCentres(nn);
     idx = (t - t0) > (nn-1-0.5)*T;
 
-    P(:,1) = P(:,1) + I_Noise_factor.*(power1(nn)*exp(-(t - tc).^2/fwhm.^2));
-    P(:,2) = P(:,2) + I_Noise_factor.*(power2(nn)*exp(-(t - tc).^2/fwhm.^2));
+    P(:,1) = P(:,1) + (I_Noise_factor.*(power1*exp(-(t - tc).^2/fwhm(nn).^2))).';
+    P(:,2) = P(:,2) + (I_Noise_factor.*(power2*exp(-(t - tc).^2/fwhm(nn).^2))).';
 
-    ph(idx,2) = appliedPhase(nn);
+%     ph(idx,2) = appliedPhase;
 
     freq(idx,1) = DDSChannel.DEFAULT_FREQ + mirrorSwitch*0.25/1e6*(chirp*tc + (2*start_order+order)*4*recoil) + (FreqError*recoil)/2e6;
     freq(idx,2) = DDSChannel.DEFAULT_FREQ - mirrorSwitch*0.25/1e6*(chirp*tc + (2*start_order+order)*4*recoil);
 end
 
-freq(freq == 0) = DDSChannel.DEFAULT_FREQ;
 
+% ph()
+figure(4312);clf
+plot((t-t0)*1e6,P*1e3)
+hold on
+plot((t-t0)*1e6,Phase)
+
+freq(freq == 0) = DDSChannel.DEFAULT_FREQ;
+%  flag2
 %% Populate DDS values
 for nn = 1:numel(dds)
     dds(nn).after(t,freq(:,nn),P(:,nn),ph(:,nn));

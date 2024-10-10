@@ -12,16 +12,18 @@ Title = append('P_{total} = ',TitleStuff.TotalPower,' mW, ', 't_0 = ',TitleStuff
 TitleStuff.Title = Title;
 TitleStuff.SubTitle = 'Intensity Factor = 1';
 
-Title = 'Bragg pi pulse Stability';
-TitleStuff.SubTitle = 'ROI 1 is mf = 0';
+Title = 'Waltz Pulse';
+TitleStuff.SubTitle = '2 Std, std = 20 us';
 
 
-Param = 0:30:400;
-% Param = [0:2:360];
-% Param = linspace(2.51097,2.51104,30);
+Param = unique([-6:0.5:6 -2:0.25:2]);
+% Param = unique([0:5:15 75:5:105 175:5:195 0:10:360 180:30:900]);
+Param = 0:20:400;
+% Param = linspace(2.5095,2.5125,120);
+
 
 PlotFactor = 1;
-ParamName = 'Run';
+ParamName = 'Power in each beam (mW)';
 
 
 if r.isInit()

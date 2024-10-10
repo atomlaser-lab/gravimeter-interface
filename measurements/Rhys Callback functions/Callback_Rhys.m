@@ -5,7 +5,7 @@ FigNum = 5;
 
 Title = 'Stability NO MW';
 % Param = 30:30:300;
-Param = -0.3:0.05:0.4;
+Param = 3:0.5:14;
 
 ParamName = 'Run';
 PlotFactor = 1;

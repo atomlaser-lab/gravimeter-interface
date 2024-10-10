@@ -74,15 +74,15 @@ end
 sq.find('liquid crystal repump').set(7);
 sq.find('Top repump shutter').set(0);
 
-sq.find('3D MOT Freq').set(convert.mot_freq(-18.5 - 0.5)); % +1
+sq.find('3D MOT Freq').set(convert.mot_freq(-18.5 + 0.5));
 sq.find('3D MOT Amp').set(RunConversions.mot_power(1 - 0.4));
-sq.find('Repump freq').set(convert.repump_freq(-0.5 - 0.5 - 0.75)); %-1.5?
+sq.find('Repump freq').set(convert.repump_freq(-1.75 + 0.25));
 sq.find('Repump Amp').set(RunConversions.repump_power(1 - 0.1));
 
 sq.find('MOT coil TTL').set(1);
 sq.find('3d coils').set(RunConversions.mot_coil(1.35));
-sq.find('bias u/d').set(convert.UD_A_to_V(13.8 - 0.5));
-sq.find('bias e/w').set(2 + 0.5);
+sq.find('bias u/d').set(convert.UD_A_to_V(13.8 - 0.5 -0.25));
+sq.find('bias e/w').set(2 + 0.5 -1.25);
 sq.find('bias n/s').set(0);
 
 sq.delay(opt.MOT_LoadTime);
@@ -99,7 +99,7 @@ if opt.CMOT_status == 1
     sq.find('Repump Amp').set(RunConversions.repump_power(1 - 0.1));
     
     sq.find('3D coils').set(RunConversions.mot_coil(1.5));
-    sq.find('bias e/w').set(1);
+    sq.find('bias e/w').set(1 + 2);
     sq.find('bias n/s').set(0.5);
     sq.find('bias u/d').set(convert.UD_A_to_V(11)); %13
 
@@ -119,7 +119,7 @@ if opt.PGC_status == 1
     sq.find('repump freq').set(convert.repump_freq(-9 - 0.25 + 0.2));
 
     sq.find('bias u/d').set(convert.UD_A_to_V(11));
-    sq.find('bias e/w').set(1);
+    sq.find('bias e/w').set(1 + 2);
     sq.find('bias n/s').set(0.5);
 
     sq.delay(Tpgc);
@@ -201,6 +201,7 @@ sq.find('repump amp ttl').before(10e-3,0);
 MW1Duration = 500e-6;
 % MW1Duration = 700*1e-6;
 Delay1 = 11*1e-3;
+
 BlowDuration1 = 0.05*1e-3; % 1
 
 BiasEW = 4;
@@ -313,8 +314,14 @@ k = 2*pi*384229441689483/const.c;  %Frequency of Rb-85 F=3 -> F'=4 transition
 Ch1Max = 215;
 Ch2Max = 240;
 
-P_total = 120;
+% P_total = 112*opt.params(1);
+% FreqError = opt.params(2); %in Hz, max ~ 3*(4wr)/4 ~ 3 wr
+% P_total = 112.5;
 % P_total = opt.params;
+
+% P_total = opt.params;
+FreqError = 0;
+% FreqError = opt.params; %in Hz, max ~ 3*(4wr)/4 ~ 3 wr
 % AOMSetting = P_total/Ch2Max;
 
 P2onP1 = 1;
@@ -331,11 +338,14 @@ end
 tau = 30*1e-6;
 T = 10e-3;
 t0 = 35e-3; %35
-
 braggOrder = 1;
+PulseType = PulseTypes.Primitive;
+NumStd = 1.5;
+
 chirp = 2.5106258428e7; %used in RT's makesequence
 % chirp = 2.511010143833653*1e7; %found on 27/08/2024
 chirp = 2.511010323051248*1e7; %found on 24/09/2024
+% chirp = opt.params*1e7;
 
 if opt.raman == 1
     sq.anchor(timeAtDrop);
@@ -344,21 +354,38 @@ if opt.raman == 1
         sq.ddsTrigDelay = timeAtDrop;
     end
 
-    % accelamp or normdisp
+%     makeBraggCompositePulse_Rhys6(sq.dds,'k',k,'chirp',chirp,...
+%         'freqerror',FreqError,'pulsetype',PulseType,'numstd',NumStd,'pulseShape','Gaussian', ...
+%         'dt',1e-6,'t0',t0,'T',T,'tasym',0,'width',tau,...
+%         'phase',0,'power1',AOM1*1,'power2',AOM2*1,'order',braggOrder,...
+%         'NoiseType','acceleration','normdisp',0,'BeamRadius',10e-3,'t0_effective',7.5e-3,'RampOnOff',0);
+
+%     % accelamp or normdisp
 %     makeBraggSequence_Rhys2(sq.dds,'k',k,'chirp',chirp,...
+%         'freqerror',FreqError,...
 %         'dt',1e-6,'t0',t0,'T',T,'tasym',0,'width',tau,...
 %         'phase',[0,0,0],'power1',AOM1*[1,0,0],'power2',AOM2*[1,0,0],'order',braggOrder,...
 %         'NoiseType','acceleration','normdisp',0,'BeamRadius',10e-3,'t0_effective',7.5e-3,'RampOnOff',0);
+% 
+    makeBraggSequence_Rhys2(sq.dds,'k',k,'chirp',chirp,...
+        'dt',1e-6,'t0',t0,'T',T,'tasym',0.e-3,'width',tau,'freqerror',FreqError,...
+        'phase',[0,0,opt.params],'power1',AOM1*[0.5,1,0.5],'power2',AOM2*[0.5,1,0.5],'order',braggOrder,...
+        'NoiseType','acceleration','normdisp',0,'BeamRadius',10e-3,'t0_effective',7.5e-3,'RampOnOff',0);
+% % %     makeBraggSequence_Rhys2(sq.dds,'k',k,'chirp',chirp,...
+% % %         'dt',1e-6,'t0',t0,'T',T,'tasym',0.e-3,'width',tau,'freqerror',FreqError,...
+% % %         'phase',[0,0,0],'power1',AOM1*[1,0,0],'power2',AOM2*[1,0,0],'order',braggOrder,...
+% % %         'NoiseType','acceleration','normdisp',0,'BeamRadius',10e-3,'t0_effective',7.5e-3,'RampOnOff',0);
 
 %     makeBraggSequence_Rhys2(sq.dds,'k',k,'chirp',chirp,...
 %         'dt',1e-6,'t0',t0,'T',T,'tasym',0,'width',tau,...
-%         'phase',[opt.params,0,0],'power1',AOM1*[0.5,1,0.5],'power2',AOM2*[0.5,1,0.5],'order',braggOrder,...
-%         'NoiseType','acceleration','normdisp',0,'BeamRadius',10e-3,'t0_effective',7.5e-3,'RampOnOff',0);
+%         'phase',[0,0,opt.params(1)],'power1',AOM1*[0.5,1,0.5],'power2',AOM2*[0.5,1,0.5],'order',braggOrder,...
+%         'NoiseType','acceleration','normdisp',opt.params(2),'BeamRadius',2.5e-3,'t0_effective',7.5e-3,'RampOnOff',1);
+%   
+%     makeBraggSequence_Rhys2(sq.dds,'k',k,'chirp',chirp,...
+%         'dt',1e-6,'t0',t0,'T',T,'tasym',0,'width',tau,...
+%         'phase',[0,0,90],'power1',AOM1*[0.5,1,0.5],'power2',AOM2*[0.5,1,0.5],'order',braggOrder,...
+%         'NoiseType','acceleration','normdisp',1.2,'BeamRadius',2.5e-3,'t0_effective',7.5e-3,'RampOnOff',1);
 
-    makeBraggSequence_Rhys2(sq.dds,'k',k,'chirp',chirp,...
-        'dt',1e-6,'t0',t0,'T',T,'tasym',0,'width',tau,...
-        'phase',[0,0,opt.params(1)],'power1',AOM1*[0.5,1,0.5],'power2',AOM2*[0.5,1,0.5],'order',braggOrder,...
-        'NoiseType','acceleration','normdisp',opt.params(2),'BeamRadius',10e-3,'t0_effective',7.5e-3,'RampOnOff',1);
 end
 
 %% Imaging stage

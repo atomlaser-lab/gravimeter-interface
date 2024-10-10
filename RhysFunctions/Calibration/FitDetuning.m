@@ -3,11 +3,19 @@
 % x = r.data.Param(1:numel(r.data.R(:,1)));
 % y = r.data.Rsum(:,1).';
 
-x = r.data.df(1:numel(r.data.N(:,1)));
-y = r.data.C1.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum);
+% x = r.data.param(1:numel(r.data.N(:,1)));
+% y = r.data.C1.Nsum./(r.data.C1.Nsum + r.data.C2.Nsum);
 
-y(1:2) = NaN;
-y(end) = NaN;
+% x = r.data.df(1:numel(r.data.N(:,1)));
+% y = r.data.Nsum(:,1)./(r.data.Nsum(:,1) + r.data.Nsum(:,2));
+% data = MW_tof_Pos30.data;
+data = r.data;
+
+x = data.param(1:numel(data.N(:,1)));
+y = data.Nsum(:,2)./(data.Nsum(:,1) + data.Nsum(:,2));
+
+% y(1:2) = NaN;
+% y(end-2) = NaN;
 
 % x_label = 'Two Photon Detuning (kHz)';
 % y_label = 'F = 2 Population';
@@ -20,7 +28,7 @@ FigNum = 10;
 % y(end-2:end) = NaN;
 
 
-[fitresult, ~] = createFit(x, y, 2.511, 0.6, 6e-5);
+[fitresult, ~] = createFit(x, y, 0, 1, 1);
 x2 = linspace(min(x),max(x),numel(x)*10);
 
 

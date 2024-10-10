@@ -4,11 +4,13 @@ if r.isInit()
     %
     % Define parameters
     %
-    r.data.param1 = [0 5 10  40 45 50 85 90 95 135 170 175 180 185 190 225 260 265 270 275 280];
-    r.data.param1 = [0 5 10  40 45 50 85 90 95 135 170 175 180 185 190];
-%     r.data.param1 = [0:10:250];
-%     r.data.param2 = 1.2;
-    r.data.param2 = [0:0.3:1.2];
+%     r.data.param1 = [0:10:270];
+%     r.data.param2 = [0:0.3:1.3];
+
+    r.data.param1 = unique([0.5:0.1:1.5 0:0.2:0.4 1.6:0.2:2 0.75:0.05:1.25]);
+    r.data.param2 = unique([-2:0.25:2 -5:0.5:-2 2:0.5:5]);
+%     r.data.param1 = unique(0:30:390);
+%     r.data.param2 = unique([-2:0.5:2]);
 
     r.data.num_avgs = 1;
     %
