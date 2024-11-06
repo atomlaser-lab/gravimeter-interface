@@ -181,9 +181,11 @@ classdef RolloverCounter < handle
             %   S = COUNTER.print() creates a string S with the summary
             s = '';
             for nn = 1:self.N
-                s = [s,sprintf('%d/%d',self.i(nn),self.imax)]; %#ok<*AGROW>
+                s = [s,sprintf('%d/%d,',self.i(nn),self.imax(nn))]; %#ok<*AGROW>
                 if nn ~= self.N
                     s = [s,' '];
+                else
+                    s = s(1:end-1);
                 end
             end
             if nargout == 0

@@ -50,14 +50,15 @@ def main():
     interface = CustomInterface()
     #Next create the controller. Provide it with your interface and any options you want to set
     controller = mlc.create_controller(interface, 
-                                       max_num_runs = 300,
-                                       max_num_runs_without_better_params = 50,
+                                       controller = 'neural_net',
+                                       max_num_runs = 3000,
+                                       # max_num_runs_without_better_params = 50,
                                        num_params = 12, 
-                                       min_boundary = [1e-3,    3,  20, 2,  30, 2,  1e-3,   0,  20, 2,  30, 2],
-                                       max_boundary = [50e-3,   10, 90, 8,  90, 8,  50e-3,  10, 90, 8,  90, 8],
-                                       first_params = [30e-3,   6.9,50, 5.5,55, 5,  2e-3,   0,  72, 5.2,55, 6],
-                                       trust_region = 0.4,
-                                       no_delay = True,
+                                       min_boundary = [1e-3,    0,  20, 0,  49, 0,    1e-3,    0,  20, 0,  48, 0],
+                                       max_boundary = [50e-3,   25, 90, 1,  65, 1,    50e-3,  10,  90, 1,  65, 1],
+                                       first_params = [30e-3,   20, 45, 1,  63, 0.4,  10e-3,   5,  65, 1,  50, 0.4],
+                                       # trust_region = 0.4,
+                                       no_delay = False,
                                        controller_archive_file_type = 'mat',
                                        learner_archive_file_type = 'mat')
     #To run M-LOOP and find the optimal parameters just use the controller method optimize

@@ -9,13 +9,19 @@ classdef SequenceOptions < SequenceOptionsAbstract
         load_time
         detuning
         redpower
-        keopsys
+        raycus
         tof
         %
+        stage
         % Other properties
         %
-        params
         nd
+        dkc
+        params
+        %%% JM ADDED THIS
+        param1
+        param2
+        param3
     end
     
     methods
@@ -27,11 +33,18 @@ classdef SequenceOptions < SequenceOptionsAbstract
         function self = setDefaults(self)
             self.load_time = 7.5;
             self.detuning = 0;
-            self.redpower = 2;
-            self.keopsys = 2;
+            self.raycus = 2;
+            self.raycus = 2;
             self.tof = 20e-3;
             self.params = [];
+            %%% JM ADDED THIS
+            self.param1 = [];
+            self.param2 = [];
+            self.param3 = [];
+           
+
             self.nd = FeedbackOptions;
+            self.dkc = DKC_Options;
         end
         
         function self = set(self,varargin)
@@ -43,7 +56,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
                 for nn = 1:2:numel(varargin)
                     switch lower(varargin{nn})
                         case 'dipoles'
-                            self.keopsys = varargin{nn+1};
+                            self.raycus = varargin{nn+1};
                             self.redpower = varargin{nn+1};
                     end
                 end

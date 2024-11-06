@@ -4,10 +4,12 @@ function makeNDImagingSequence(sq,varargin)
 % Define default parameters
 %
 pulseTime = 30e-6;
-camTime = 5e-6;
-cycleTime = 5e-3;
+camTime = 5e-6; 
+cycleTime = 5e-3; 
 imgFreq = 8.5;
-imgAmplitude = 1;
+imgAmplitude = 1e-3; % 1mW of power 
+imgPower   = imgAmplitude; %% addition
+imgVoltage = TrapPtoV_NDI(imgPower);
 num_images = 1;
 species = 85;
 pulse_delay = 0;
@@ -30,7 +32,10 @@ else
             case 'imaging freq'
                 imgFreq = v;
             case 'imaging amplitude'
-                imgAmplitude = v;
+                % imgAmplitude = v;
+                imgPower = v;
+            case 'imaging voltage' % ADDED
+                imgVoltage = v;
             case 'num_images'
                 num_images = v;
             case 'species'
@@ -57,7 +62,8 @@ if species == 87
     ch = sq.find('87 imag');
 elseif species == 85
     sq.find('85 imag freq').set(imgFreq);
-    sq.find('85 imag amp').set(TrapPtoV('nd',imgAmplitude));
+    sq.find('85 imag amp').set(TrapPtoV_NDI(imgPower)); % power in W
+    % sq.find('85 imag amp').set(imgVoltage); % Voltage sent to VVA
     ch = sq.find('85 imag');
 end
 

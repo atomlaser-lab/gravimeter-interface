@@ -23,44 +23,43 @@ function sq = initSequence
     sq.channels(19).setName('H-Bridge Helm','C2').setDefault(0);
     sq.channels(20).setName('MOT Bias','C3').setDefault(0);
     sq.channels(21).setName('Repump Switch','C4','Inverted').setDefault(0);
-    sq.channels(22).setName('C5 - N/C','C5').setDefault(0);
+    sq.channels(22).setName('LG Shutter','C5').setDefault(0);
     sq.channels(23).setName('C6 - N/C','C6').setDefault(0);
     sq.channels(24).setName('RF Switch','C7').setDefault(0);
     sq.channels(25).setName('2D MOT Coils','D0').setDefault(1);
     sq.channels(26).setName('DDS TTL','D1').setDefault(0);
-    sq.channels(27).setName('Scope','D2').setDefault(0);
-    sq.channels(28).setName('Control','D3').setDefault(0);
-    sq.channels(29).setName('Stark','D4').setDefault(0);
+    sq.channels(27).setName('Feedback Laser TTL','D2').setDefault(0);
+    sq.channels(28).setName('Raycus TTL','D3').setDefault(1);
+    sq.channels(29).setName('DKC TTL','D4').setDefault(1);
     sq.channels(30).setName('vertical cam trig','D5').setDefault(0);
-%     sq.channels(30).setDefault(0);
-    sq.channels(31).setDefault(1);
-    sq.channels(32).setDefault(0);
+    sq.channels(31).setName('n/c','D6','DO NOT USE').setDefault(0);
+    sq.channels(32).setName('n/c','D7','DO NOT USE').setDefault(0);
     
     %% Name analog channels
-    sq.analog(1).setName('RF Frequency','AO/0').setDefault(0);
+    sq.analog(1).setName('RF Frequency','AO/0').setDefault(RFtoV(20));
     sq.analog(2).setName('3DMOT Freq','AO/1').setDefault(7.1);
     sq.analog(3).setName('87 repump freq','AO/2').setDefault(4.565);
-    sq.analog(4).setName('Keopsys MO','AO/3','3.9V MAXIMUM').setDefault(0).setBounds([0,3.9]);
+    sq.analog(4).setName('Feedback laser power','AO/3').setDefault(0).setBounds([0,1.2]);
     sq.analog(5).setName('87 imag freq','AO/4').setDefault(8.498);
     sq.analog(6).setName('85 Repump freq','AO/5').setDefault(4.64);
-    sq.analog(7).setName('Keopsys FA','AO/6','3.5V MAXIMUM').setDefault(0).setBounds([0,3.5]);
+    sq.analog(7).setName('Raycus CW','AO/6','3.0V MAXIMUM').setDefault(0).setBounds([-0.1,3.5]);
     sq.analog(8).setName('85 imag freq','AO/7').setDefault(8.354);
-    sq.analog(9).setName('RedPower CW','B0/0').setDefault(0).setBounds([0,7.5]);
+    sq.analog(9).setName('RedPower CW','B0/0').setDefault(-0.1).setBounds([-0.1,7]); %was setBounds([-0.1,2.6])
     sq.analog(10).setName('3DMOT amp','BO/1').setDefault(7);
     sq.analog(11).setName('87 repump amp','BO/2').setDefault(8);
-    sq.analog(12).setName('MOT Bias Coil','BO/3').setDefault(0);
+    sq.analog(12).setName('MOT bias coil','BO/3').setDefault(0);
     sq.analog(13).setName('87 imag amp','BO/4').setDefault(8);
-    sq.analog(14).setName('85 repump amp','BO/5').setDefault(8);
+    sq.analog(14).setName('Earth Bias 1','BO/5').setDefault(0);
     sq.analog(15).setName('Variable Wave Plate','BO/6').setDefault(-3.4);
     sq.analog(16).setName('85 imag amp','BO/7').setDefault(8);
     sq.analog(17).setName('CD3','CO/0').setDefault(0);
     sq.analog(18).setName('CD2','CO/1').setDefault(0.8);
-    sq.analog(19).setName('CD1','CO/2').setDefault(0.314);
+    sq.analog(19).setName('CD1','CO/2').setDefault(0);
     sq.analog(20).setName('CD0 Fast','CO/3').setDefault(0);
     sq.analog(21).setName('CD Fine/Fast','CO/4').setDefault(0);
-    sq.analog(22).setName('CO/5 - N/C','CO/5').setDefault(0);
-    sq.analog(23).setName('CO/6 - N/C','CO/6').setDefault(0);
-    sq.analog(24).setName('CO/7 - N/C','CO/7').setDefault(0);
+    sq.analog(22).setName('Earth Bias 2','CO/5').setDefault(0);
+    sq.analog(23).setName('Earth Bias 3','CO/6').setDefault(0);
+    sq.analog(24).setName('DKC Power','CO/7').setDefault(0).setBounds([0,3.9]);
 
     %% DDS channels
 %     sq.dds(1).rfscale = 3;

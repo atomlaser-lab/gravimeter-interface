@@ -21,7 +21,7 @@ elseif r.isSet()
     %
     % Read input file.  Run only starts when there is an input file
     %
-    max_read_attempts = 10;
+    max_read_attempts = 100;
     read_wait_time = 1;
     mm = 1;
     while ~isfile(r.data.constants.input_file)
@@ -42,7 +42,7 @@ elseif r.isSet()
     %
     % Parse parameters
     %
-    opt = r.data.opt;
+%     opt = r.devices.opt;
     opt.mot.trap.freq = 20;
     opt.mot.trap.amp = 6;
     opt.mot.repump.freq = 58;
@@ -52,20 +52,20 @@ elseif r.isSet()
     opt.cmot.time = new_params(1);
     opt.cmot.gradient = new_params(2);
     opt.cmot.trap.freq = new_params(3);
-    opt.cmot.trap.amp = new_params(4);
+    opt.cmot.trap.power = new_params(4);
     opt.cmot.repump.freq = new_params(5);
-    opt.cmot.repump.amp = new_params(6);
+    opt.cmot.repump.power = new_params(6);
 
     opt.pgc.time = new_params(7);
     opt.pgc.gradient = new_params(8);
     opt.pgc.trap.freq = new_params(9);
-    opt.pgc.trap.amp = new_params(10);
+    opt.pgc.trap.power = new_params(10);
     opt.pgc.repump.freq = new_params(11);
-    opt.pgc.repump.amp = new_params(12);
+    opt.pgc.repump.power = new_params(12);
     %
     % Upload and print parameters
     %
-    r.make(opt).upload;
+    r.make(r.devices.opt,'params',opt).upload;
     fprintf('Run %d/%d, Parameters =',r.c.now,r.c.total);
     fprintf(' %.5f',new_params);
     fprintf('\n');
@@ -111,7 +111,7 @@ elseif r.isAnalyze()
     subplot(1,2,2);
     errorbar(1:i1,r.data.PSD(1:i1),0.05*r.data.PSD(1:i1),'o');
     plot_format('Run','PSD','',12);
-    ylim([0,1e-5]);
+    ylim([0,1e-4]);
     grid on;
     %
     % Write new output file. Remember - M-LOOP MINIMIZES the cost, so it
@@ -121,13 +121,13 @@ elseif r.isAnalyze()
         cost = 10;
         uncer = 0;
         bad = false;
-    elseif r.data.N(i1,1) < 1e7 || r.data.T(i1,1) > 200e-6
+    elseif r.data.N(i1,1) < 1e6 || r.data.T(i1,1) > 200e-6
         cost = 10;
         uncer = 0;
         bad = false;
     else
-        cost = -r.data.PSD(i1,1)*1e6;
-        uncer = 0.05*r.data.PSD(i1,1)*1e6;
+        cost = -r.data.N(i1,1)/1e6;
+        uncer = 0.05*r.data.N(i1,1)/1e6;
         bad = false;
     end
     save(r.data.constants.output_file,'cost','uncer','bad');

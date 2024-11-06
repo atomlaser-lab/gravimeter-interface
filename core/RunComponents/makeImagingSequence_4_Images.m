@@ -62,13 +62,15 @@ else
     end
 end
 
-%save curenbt time as drop time again
+%save curennt time as drop time again
 timeAtDrop = sq.time;
 
 % Set imaging parameters BEFORE you take the image
-%sq.find('CD0 Fast').set(0); %zero mag field
+sq.find('CD0 Fast').set(0); %zero mag field
 sq.find('MOT bias coil').set(imaging_field); %turn on the imaging coil (to align the axis of atoms)
-sq.find('MOT bias').set(1); %ttl on imaging coil
+% sq.find('MOT bias coil').after(tof,imaging_field); %turn on the imaging coil (to align the axis of atoms)
+% sq.find('MOT bias').after(tof-6e-3,1); %ttl on imaging coil %tof-12.5e-3
+
 %
 % Preamble - set the imaging frequency
 %
@@ -101,7 +103,15 @@ sq.anchor(timeAtDrop);
 sq.find('87 imag').after(imageF2_time,1).after(pulseTime,0); %Turn on after TOF, then turn off after pulse time
 sq.find(cam_trig).after(imageF2_time - pulse_delay,1).after(camTime,0);    %Turn on after TOF, then turn off after camera time
 
-sq.find('87 imag').after(1e-3,1).after(2e-3,0); %get rif of f=2 atoms
+% %blow away F=2 atoms (set up on 28/05/2024)
+% Tblow = 10e-6;
+% sq.find('3DMOT').after(tof+1e-3,1);
+% sq.delay(Tblow);
+% sq.find('3DMOT').after(tof+1e-3+Tblow,0);
+
+%old way to blow away F=2 atoms (up until 28/05/2024)
+sq.find('87 imag').after(1e-3,1).after(1e-3,0); %get rid of f=2 atoms
+
 % sq.waitFromLatest(cycleTime);                       %Delay
 %
 % Set repump values to pump F = 1 atoms into F = 2

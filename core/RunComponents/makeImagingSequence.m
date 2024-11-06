@@ -4,7 +4,7 @@ function makeImagingSequence(sq,varargin)
 % Define default parameters
 %
 pulseTime = 30e-6;
-pulse_delay = 10e-6;
+pulse_delay = 15e-6; % was 10 us before. I (yosri) increased it to 75 us half the exposure time! and now to 15 us
 repumpTime = 100e-6;
 repumpDelay = 00e-6;
 fibreSwitchDelay = 20e-3;
@@ -98,8 +98,6 @@ elseif strcmpi(image_type , 'vertical')
     cam_trig = 'vertical cam trig';
 elseif strcmpi(image_type,'85')
     cam_trig = 'ND cam trig';
-elseif strcmpi(image_type,'MOT')
-    cam_trig = '87 cam trig';
 else
     warning('incompatible cam trig input')
 end

@@ -216,14 +216,14 @@ classdef TimingSequence < handle
                     error('H-Bridge Helm and H-Bridge Quad CANNOT be on at the same time!');
                 end
             end
-            
-            ch_fa = self.find('Keopsys FA');
-            ch_mo = self.find('Keopsys MO');
-            for nn = 1:numel(ch_fa.times)
-                if ch_fa.values(nn) > 0 && ch_mo.get(ch_fa.times(nn)) < 3
-                    error('Keopsys MO must be at least 3 V before FA is turned on!');
+            ch_ttl = self.find('Redpower TTL');
+            ch_pow = self.find('Redpower CW');
+            for nn = 1:numel(ch_ttl.times)
+                if ch_ttl.values(nn) == 0
+                    ch_pow.at(ch_ttl.times(nn),-0.1);
                 end
             end
+            
         end
 
         function r = compile(self)

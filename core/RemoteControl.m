@@ -19,6 +19,7 @@ classdef RemoteControl < handle
     properties(SetAccess = protected)
         remoteAddress = 'localhost';  %Connect to local host
         remotePort = 6666;            %Remote port to use
+        % remotePort = 6667;            %Remote port to use
 
     end %end constant properties
     
@@ -262,6 +263,7 @@ classdef RemoteControl < handle
         function run(self,cb)
             %RUN Starts a single client run by sending the start word
             self.open;
+            self.conn.flush;
             if nargin > 1
                 self.conn.configureCallback('terminator',@(~,~) cb());
             end
@@ -308,7 +310,10 @@ classdef RemoteControl < handle
                     % Analyze
                     self.analyze;
                     % Stop
-                    self.stop;
+                    pause(0.1);
+                    self.conn.flush;
+                    self.status = self.STOPPED;
+                    fprintf(1,'Run finished\n');
                 else
                     % Analyze
                     self.analyze;
