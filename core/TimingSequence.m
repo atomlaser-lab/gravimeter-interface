@@ -58,6 +58,9 @@ classdef TimingSequence < handle
 
             self.camDelay = 0;
             
+            self.data.t = [];
+            self.data.d = [];
+            self.data.a = [];
             self.time = 0;
             
             self.directory = 'run-archive';
@@ -218,11 +221,11 @@ classdef TimingSequence < handle
             end
             ch_ttl = self.find('Redpower TTL');
             ch_pow = self.find('Redpower CW');
-            for nn = 1:numel(ch_ttl.times)
-                if ch_ttl.values(nn) == 0
-                    ch_pow.at(ch_ttl.times(nn),-0.1);
-                end
-            end
+%             for nn = 1:numel(ch_ttl.times)
+%                 if ch_ttl.values(nn) == 0
+%                     ch_pow.at(ch_ttl.times(nn),-0.1);
+%                 end
+%             end
             
         end
 

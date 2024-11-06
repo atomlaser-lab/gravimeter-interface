@@ -7,7 +7,7 @@ classdef AnalogChannel < TimingControllerChannel
     methods
         function ch = AnalogChannel
             ch = ch@TimingControllerChannel;
-            ch.setBounds([-10,10]);
+            ch.setBounds([-Inf,Inf]);
             ch.IS_ANALOG = true;
         end
     end

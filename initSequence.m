@@ -36,40 +36,64 @@ function sq = initSequence
     sq.channels(32).setName('n/c','D7','DO NOT USE').setDefault(0);
     
     %% Name analog channels
-    sq.analog(1).setName('RF Frequency','AO/0').setDefault(RFtoV(20));
-    sq.analog(2).setName('3DMOT Freq','AO/1').setDefault(7.1);
-    sq.analog(3).setName('87 repump freq','AO/2').setDefault(4.565);
-    sq.analog(4).setName('Feedback laser power','AO/3').setDefault(0).setBounds([0,1.2]);
-    sq.analog(5).setName('87 imag freq','AO/4').setDefault(8.498);
-    sq.analog(6).setName('85 Repump freq','AO/5').setDefault(4.64);
-    sq.analog(7).setName('Raycus CW','AO/6','3.0V MAXIMUM').setDefault(0).setBounds([-0.1,3.5]);
-    sq.analog(8).setName('85 imag freq','AO/7').setDefault(8.354);
-    sq.analog(9).setName('RedPower CW','B0/0').setDefault(-0.1).setBounds([-0.1,7]); %was setBounds([-0.1,2.6])
-    sq.analog(10).setName('3DMOT amp','BO/1').setDefault(7);
-    sq.analog(11).setName('87 repump amp','BO/2').setDefault(8);
-    sq.analog(12).setName('MOT bias coil','BO/3').setDefault(0);
-    sq.analog(13).setName('87 imag amp','BO/4').setDefault(8);
-    sq.analog(14).setName('Earth Bias 1','BO/5').setDefault(0);
-    sq.analog(15).setName('Variable Wave Plate','BO/6').setDefault(-3.4);
-    sq.analog(16).setName('85 imag amp','BO/7').setDefault(8);
-    sq.analog(17).setName('CD3','CO/0').setDefault(0);
-    sq.analog(18).setName('CD2','CO/1').setDefault(0.8);
-    sq.analog(19).setName('CD1','CO/2').setDefault(0);
-    sq.analog(20).setName('CD0 Fast','CO/3').setDefault(0);
-    sq.analog(21).setName('CD Fine/Fast','CO/4').setDefault(0);
-    sq.analog(22).setName('Earth Bias 2','CO/5').setDefault(0);
-    sq.analog(23).setName('Earth Bias 3','CO/6').setDefault(0);
-    sq.analog(24).setName('DKC Power','CO/7').setDefault(0).setBounds([0,3.9]);
+    sq.analog(1).setName('RF Frequency','AO/0')...
+        .setConversionFunction(@RFtoV,'MHz').setDefault(20);
+    sq.analog(2).setName('3DMOT Freq','AO/1')...
+        .setConversionFunction(@(x) FtoV('trap',x),'MHz').setDefault(19);
+    sq.analog(3).setName('87 repump freq','AO/2')...
+        .setConversionFunction(@(x) FtoV('repump',x),'MHz').setDefault(0);
+    sq.analog(4).setName('Feedback laser power','AO/3')...
+        .setDefault(0).setBounds([0,1.2]);
+    sq.analog(5).setName('87 imag freq','AO/4')...
+        .setConversionFunction(@(x) FtoV('image',x),'MHz').setDefault(0);
+    sq.analog(6).setName('85 Repump freq','AO/5','Unused?')...
+        .setDefault(4.64);
+    sq.analog(7).setName('Raycus CW','AO/6','3.0V MAXIMUM')...
+        .setDefault(0).setBounds([-0.1,3.5]);
+    sq.analog(8).setName('ND image freq','AO/7')...
+        .setConversionFunction(@(x) FtoV('image',x),'MHz').setDefault(0);
+    sq.analog(9).setName('RedPower CW','B0/0')...
+        .setDefault(-0.1).setBounds([-0.1,7]); %was setBounds([-0.1,2.6])
+    sq.analog(10).setName('3DMOT amp','BO/1')...
+        .setConversionFunction(@(x) TrapPtoV('trap',x),'').setDefault(1);
+    sq.analog(11).setName('87 repump amp','BO/2')...
+        .setConversionFunction(@(x) TrapPtoV('repump',x),'').setDefault(1);
+    sq.analog(12).setName('MOT bias coil','BO/3')...
+        .setDefault(0);
+    sq.analog(13).setName('87 imag amp','BO/4')...
+        .setConversionFunction(@(x) TrapPtoV('image',x),'').setDefault(0);
+    sq.analog(14).setName('Earth Bias 1','BO/5')...
+        .setDefault(0);
+    sq.analog(15).setName('Variable Wave Plate','BO/6')...
+        .setDefault(-3.4);
+    sq.analog(16).setName('85 imag amp','BO/7')...
+        .setConversionFunction(@(x) TrapPtoV('image',x),'').setDefault(0);
+    sq.analog(17).setName('CD3','CO/0')...
+        .setConversionFunction(@(x) dBtoV('normal',x),'G/cm').setDefault(0);
+    sq.analog(18).setName('CD2','CO/1')...
+        .setConversionFunction(@(x) dBtoV('normal',x),'G/cm').setDefault(11);
+    sq.analog(19).setName('CD1','CO/2')...
+        .setConversionFunction(@(x) dBtoV('normal',x),'G/cm').setDefault(0);
+    sq.analog(20).setName('CD0 Fast','CO/3')...
+        .setConversionFunction(@(x) dBtoV('normal',x),'G/cm').setDefault(0);
+    sq.analog(21).setName('CD Fine/Fast','CO/4')...
+        .setConversionFunction(@(x) dBtoV('fine',x),'G/cm').setDefault(0);
+    sq.analog(22).setName('Earth Bias 2','CO/5')...
+        .setDefault(0);
+    sq.analog(23).setName('Earth Bias 3','CO/6')...
+        .setDefault(0);
+    sq.analog(24).setName('DKC Power','CO/7')...
+        .setDefault(0).setBounds([0,3.9]);
 
     %% DDS channels
 %     sq.dds(1).rfscale = 3;
-%     sq.dds(2).rfscale = 3;
-    calib_data = load('C:\Users\admin\Desktop\matlab-control\raman-aom-data.mat');
-    sq.dds(1).calibrationData = calib_data.data(1);
-    sq.dds(2).calibrationData = calib_data.data(2);
-    sq.dds(1).powunits = DDSChannel.POW_UNITS_HEX;
-    sq.dds(2).powunits = DDSChannel.POW_UNITS_HEX;
-    sq.dds(1).setName('DDS 1').setDefault([110,0,0]);
-    sq.dds(2).setName('DDS 2').setDefault([110,0,0]);
+% %     sq.dds(2).rfscale = 3;
+%     calib_data = load('C:\Users\admin\Desktop\matlab-control\raman-aom-data.mat');
+%     sq.dds(1).calibrationData = calib_data.data(1);
+%     sq.dds(2).calibrationData = calib_data.data(2);
+%     sq.dds(1).powunits = DDSChannel.POW_UNITS_HEX;
+%     sq.dds(2).powunits = DDSChannel.POW_UNITS_HEX;
+%     sq.dds(1).setName('DDS 1').setDefault([110,0,0]);
+%     sq.dds(2).setName('DDS 2').setDefault([110,0,0]);
         
 end

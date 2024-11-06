@@ -6,11 +6,12 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
     %   The matlab.mixin.Heterogeneous is needed to allow for arrays
     %   of different subclasses of this base class
     properties
-        name        %Name of the channel
-        port        %Fixed port of the channel
-        description %Description of the channel
-        
-        manual      %Manual value
+        name                        %Name of the channel
+        port                        %Fixed port of the channel
+        description                 %Description of the channel
+        conversion_function         %Function handle converting "real" values to volts
+        units                       %The "real" units for this channel
+        manual                      %Manual value
     end
     
     properties(SetAccess = protected)
@@ -45,6 +46,7 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
             ch.description = '';
             ch.times = [];
             ch.values = [];
+            ch.setConversionFunction(@(x) x,'V');
         end
         
         function ch = setName(ch,name,port,description)
@@ -56,10 +58,10 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
             %   ch = setName(ch,NAME,PORT,DESC) sets the name property to NAME
             %   and the description property to DESC
             ch.name = name;
-            if nargin == 3
+            if nargin >= 3
                 ch.port = port;
             end
-            if nargin == 4
+            if nargin >= 4
                 ch.description = description;
             end
         end
@@ -109,6 +111,7 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
                 t = [0;ch.times];
                 v = [ch.default;ch.values];
             end
+            v = ch.convert(v);
 %             ch.numValues = numel(t);
         end
         
@@ -127,6 +130,27 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
             %   array BOUNDS.  BOUNDS can be in any order
             ch.bounds(1) = min(bounds);
             ch.bounds(2) = max(bounds);
+        end
+
+        function ch = setConversionFunction(ch,func_in,units)
+            %SETCONVERSIONFUNCTION Sets the conversion function from "real"
+            %values (MHz, G/cm, etc) to volts
+            %
+            %   CH = setConversionFunction(CH,FUNC_IN,UNITS) sets
+            %   conversion function to FUNC_IN associated with conversion
+            %   from UNITS to Volts
+            ch.conversion_function = func_in;
+            if nargin > 2
+                ch.units = units;
+            end
+        end
+
+        function values_out = convert(ch,values_in)
+            %CONVERT Converts "real" values (like MHz, G/cm, etc) to volts
+            %
+            %   VALUES_OUT = convert(CH,VALUES_IN) converts "reaL'VALUES_IN
+            %   to VALUES_OUT in volts using CH.CONVERSION_FUNCTION
+            values_out = ch.conversion_function(values_in);
         end
         
         function ch = at(ch,time,value,varargin)
@@ -398,7 +422,7 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
                 idx = 1:numel(ch.times);
             end
             for nn = idx
-                fprintf(1,['Time: % 12.6f, Value: ',repmat('% 12.3f ',1,size(ch.values,2)),'\n'],ch.times(nn),ch.values(nn,:));
+                fprintf(1,['Time: % 12.6f, Value: ',repmat('% 12.3f ',1,size(ch.values,2)),'%s','\n'],ch.times(nn),ch.values(nn,:),ch.units);
             end 
         end
 
