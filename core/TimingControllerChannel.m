@@ -91,7 +91,7 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
             ch.numValues = numel(ch.times);
         end
         
-        function [t,v] = getEvents(ch)
+        function [t,v] = getEvents(ch,get_volts)
             %getEvents Returns the times and values as separate Nx1 arrays.
             % 
             %   Events are checked for errors and sorted before being
@@ -99,6 +99,9 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
             %   [t,v] = ch.getEvents returns times t and values v
             %   Events are always returned starting at time 0 - if no 
             %   value at time 0 is specified, the default value is used
+            if nargin < 2
+                get_volts = 0;
+            end
             ch.check;
             ch.sort;
             if isempty(ch.numValues) || (ch.numValues == 0)
@@ -111,8 +114,9 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
                 t = [0;ch.times];
                 v = [ch.default;ch.values];
             end
-            v = ch.convert(v);
-%             ch.numValues = numel(t);
+            if get_volts
+                v = ch.convert(v);
+            end
         end
         
         function r = exists(ch)
@@ -501,6 +505,7 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
                 finalTime = [];
                 returnHandle = false;
                 plotIdx = 1:size(ch.values,2);
+                plot_volts = 0;
                 for nn = 1:2:numel(varargin)
                     v = varargin{nn+1};
                     switch lower(varargin{nn})
@@ -512,10 +517,12 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
                             returnHandle = v;
                         case 'plotidx'
                             plotIdx = v;
+                        case 'plotvolts'
+                            plot_volts = 1;
                     end
                 end
             end
-            [t,v] = ch.getEvents;
+            [t,v] = ch.getEvents(plot_volts);
             if ~ch.exists && ~returnHandle
                 tplot = [];
                 vplot = [];

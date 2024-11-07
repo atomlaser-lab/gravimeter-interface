@@ -87,13 +87,13 @@ function sq = initSequence
 
     %% DDS channels
 %     sq.dds(1).rfscale = 3;
-% %     sq.dds(2).rfscale = 3;
-%     calib_data = load('C:\Users\admin\Desktop\matlab-control\raman-aom-data.mat');
-%     sq.dds(1).calibrationData = calib_data.data(1);
-%     sq.dds(2).calibrationData = calib_data.data(2);
-%     sq.dds(1).powunits = DDSChannel.POW_UNITS_HEX;
-%     sq.dds(2).powunits = DDSChannel.POW_UNITS_HEX;
-%     sq.dds(1).setName('DDS 1').setDefault([110,0,0]);
-%     sq.dds(2).setName('DDS 2').setDefault([110,0,0]);
+%     sq.dds(2).rfscale = 3;
+    calib_data = load('C:\Users\admin\Desktop\matlab-control\raman-aom-data.mat');
+    sq.dds(1).calibrationData = calib_data.data(1);
+    sq.dds(2).calibrationData = calib_data.data(2);
+    sq.dds(1).powunits = DDSChannel.POW_UNITS_HEX;
+    sq.dds(2).powunits = DDSChannel.POW_UNITS_HEX;
+    sq.dds(1).setName('DDS 1').setDefault([110,0,0]);
+    sq.dds(2).setName('DDS 2').setDefault([110,0,0]);
         
 end

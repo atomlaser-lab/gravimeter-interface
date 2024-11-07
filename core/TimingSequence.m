@@ -246,7 +246,7 @@ classdef TimingSequence < handle
             v = [];
             for nn = 1:self.numChannels
                 self.channels(nn).check.sort;
-                [t2,v2] = self.channels(nn).getEvents;
+                [t2,v2] = self.channels(nn).getEvents(true);
                 t = [t;t2];   %#ok
                 vtmp = NaN(numel(v2),self.numChannels);
                 vtmp(:,nn) = v2;
