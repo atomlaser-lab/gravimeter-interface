@@ -149,12 +149,21 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
             end
         end
 
+        function s = label_with_units(ch)
+            %LABEL_WITH_UNITS Creates a channel label with the set units
+            if ~isempty(ch.units)
+                s = sprintf('%s (%s)',ch.name,ch.units);
+            else
+                s = ch.name;
+            end
+        end
+
         function values_out = convert(ch,values_in)
             %CONVERT Converts "real" values (like MHz, G/cm, etc) to volts
             %
             %   VALUES_OUT = convert(CH,VALUES_IN) converts "reaL'VALUES_IN
             %   to VALUES_OUT in volts using CH.CONVERSION_FUNCTION
-            values_out = ch.conversion_function(values_in);
+            values_out = double(ch.conversion_function(values_in));
         end
         
         function ch = at(ch,time,value,varargin)
@@ -518,7 +527,7 @@ classdef TimingControllerChannel < handle & matlab.mixin.Heterogeneous
                         case 'plotidx'
                             plotIdx = v;
                         case 'plotvolts'
-                            plot_volts = 1;
+                            plot_volts = v;
                     end
                 end
             end

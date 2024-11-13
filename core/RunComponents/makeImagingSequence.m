@@ -10,8 +10,8 @@ repumpDelay = 00e-6;
 fibreSwitchDelay = 20e-3;
 camTime = 100e-6;
 cycleTime = 40e-3;
-repumpFreq = 4.58;
-repumpAmplitude = 8;
+repumpFreq = 0;
+repumpAmplitude = 1;
 imgFreq = 8.5;
 imgAmplitude = 10;
 manifold = 1;
@@ -99,7 +99,7 @@ elseif strcmpi(image_type , 'vertical')
 elseif strcmpi(image_type,'85')
     cam_trig = 'ND cam trig';
 else
-    warning('incompatible cam trig input')
+    warning('incompatible cam trig input');
 end
 
 %

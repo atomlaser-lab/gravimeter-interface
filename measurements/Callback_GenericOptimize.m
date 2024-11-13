@@ -1,24 +1,21 @@
 function Callback_GenericOptimize(r)
 xAxis = 'Load (s)';
 title = 'MOT Load Rate';
-% For Temperature scans, param must be the time of flight
 
 if r.isInit()
     %Initialize run
 
     %scan these variables (scans through param then param2)
-    r.data.param = 1:1:1000;
-%     r.data.param = [0.1,0.2,0.3,0.4,0.5,1,1.5,2,3,4,5,6,10,15];
-%     r.data.param2 = 6; %this is varargin{2}  
-%     r.data.param = 1e-3:1e-3:25e-3; %this is varargin{1}
-    r.data.counter = 1; %Number of varargins (1 or 2)
+    r.data.freq = 10:5:35;
+    r.data.power = [2:0.2:4,4.5,5,6];
 
+    r.c.setup('var',r.data.power,r.data.freq);
 
-    if r.data.counter == 1
-        r.c.setup('var',r.data.param);
-    elseif r.data.counter == 2
-        r.c.setup('var',r.data.param,r.data.param2); %note the order here determines what varargin{i} is
-    end
+%     if r.data.counter == 1
+%         r.c.setup('var',r.data.param);
+%     elseif r.data.counter == 2
+%         r.c.setup('var',r.data.param,r.data.param2); %note the order here determines what varargin{i} is
+%     end
 
 elseif r.isSet()
     %print parameters after each run

@@ -121,7 +121,7 @@ classdef TimingSequence < handle
             %   ch = self.find(NAME) finds channel ch with name NAME
             ch = [];
             for nn = 1:self.numChannels
-                if strcmpi(self.channels(nn).name,name)
+                if strcmpi(self.channels(nn).name,name) || strcmpi(self.channels(nn).label_with_units,name)
                     ch = self.channels(nn);
                     break;
                 end

@@ -1,10 +1,11 @@
 function BasicCallback(r)
 
 if r.isInit()
-    r.data.param = 1:200; % Detuning
+%     r.data.param = [0.25,0.5,1:10,20:10:60]; % Detuning
+    r.data.param = 10:5:35;
     r.c.setup('var',r.data.param);
 elseif r.isSet()
-%     r.make(r.devices.opt,'params',r.data.param(r.c(1))).upload;
+    r.make(r.devices.opt,'params',r.data.param(r.c(1))).upload;
 %     r.make(r.devices.opt).upload;
     fprintf(1,'Run %d/%d, Param = %.3f\n',r.c.now,r.c.total,r.data.param(r.c(1)));
 elseif r.isAnalyze()
@@ -32,15 +33,15 @@ elseif r.isAnalyze()
 %     r.data.pos(i1,:) = img.get('pos');
 
     figure(98);clf;
-    subplot(1,2,1);
+%     subplot(1,2,1);
     plot(r.data.param(1:i1),r.data.N,'o');
     ylim([0,Inf]);
     grid on
-    subplot(1,2,2);
+%     subplot(1,2,2);
 %     plot(r.data.param(1:i1),r.data.T,'o');
 %     ylim([0,250e-9]);
-    plot(r.data.param(1:i1),r.data.N(:,1)./sum(r.data.N,2),'o-');
-    grid on
+%     plot(r.data.param(1:i1),r.data.N(:,1)./sum(r.data.N,2),'o-');
+%     grid on
 %     subplot(1,2,3);
 %     plot(r.data.param(1:i1),r.data.becFrac,'o');
 %     ylim([0,Inf]);

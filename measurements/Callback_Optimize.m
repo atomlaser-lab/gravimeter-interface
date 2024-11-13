@@ -1,17 +1,18 @@
 function Callback_Optimize(r)
 
 if r.isInit()
-    r.data.param1 = const.randomize(7:0.5:10.5);
-    r.data.param2 = const.randomize(5:15);
-    r.c.setup('var',r.data.param1,r.data.param2);
+    r.data.freq = 10:5:35;
+    r.data.current = 10:5:35;
+
+    r.c.setup('var',r.data.current,r.data.freq);
 elseif r.isSet()
-    r.make(r.devices.opt,'params',[r.data.param1(r.c(1)),r.data.param2(r.c(2))]).upload;
-    fprintf(1,'Run %d/%d, Param1 = %.3f, Param2 = %.3f\n',r.c.now,r.c.total,r.data.param1(r.c(1)),r.data.param2(r.c(2)));
+    r.make(r.devices.opt,'params',[r.data.current(r.c(1)),r.data.freq(r.c(2))]).upload;
+    fprintf(1,'Run %d/%d, Param1 = %.3f, Param2 = %.3f\n',r.c.now,r.c.total,r.data.current(r.c(1)),r.data.freq(r.c(2)));
 elseif r.isAnalyze()
     i1 = r.c(1);
     i2 = r.c(2);
     pause(0.25);
-    img = Abs_Analysis_FB('last',1);
+    img = Abs_Analysis('last',1);
     if ~img(1).raw.status.ok()
         %
         % Checks for an error in loading the files (caused by a missed
@@ -33,37 +34,37 @@ elseif r.isAnalyze()
         clf;
     end
     subplot(2,2,[1,3]);
-    errorbar(r.data.param1(1:i1),r.data.N(1:i1,i2),0.05*r.data.N(1:i1,i2),'o');
-    plot_format('Param 1','Number','',12);
+    plot(r.data.current(1:i1),r.data.N(1:i1,i2),'o');
+    plot_format('Detuning','Number','',12);
     ylim([0,Inf]);
     grid on;
 
     if r.c.done(1)
-        subplot(2,2,2);
+        subplot(2,2,[2,4]);
         cla;
         s = {};
         for nn = 1:i2
-            errorbar(r.data.param1(1:i1),r.data.T(1:i1,nn),0.05*r.data.T(1:i1,nn),'o');
-            s{nn} = sprintf('Param 2 = %.2f',r.data.param2(nn));
-            hold on
-        end
-        plot_format('Param 1','T','',12);
-        ylim([0,Inf]);
-        grid on;
-        legend(s);
-
-        subplot(2,2,4);
-        cla;
-        s = {};
-        for nn = 1:i2
-            errorbar(r.data.param1(1:i1),r.data.N(1:i1,nn),0.05*r.data.N(1:i1,nn),'o');
-            s{nn} = sprintf('Param 2 = %.2f',r.data.param2(nn));
+            plot(r.data.current(1:i1),r.data.N(1:i1,nn),'o');
+            s{nn} = sprintf('Param 2 = %.2f',r.data.freq(nn));
             hold on
         end
         plot_format('Param 1','N','',12);
         ylim([0,Inf]);
         grid on;
         legend(s);
+
+%         subplot(2,2,[2,4]);
+%         cla;
+%         s = {};
+%         for nn = 1:i2
+%             plot(r.data.power(1:i1),r.data.N(1:i1,nn),'o');
+%             s{nn} = sprintf('Param 2 = %.2f',r.data.freq(nn));
+%             hold on
+%         end
+%         plot_format('Param 1','N','',12);
+%         ylim([0,Inf]);
+%         grid on;
+%         legend(s);
 
         %%% Added this section -- JM on 20230331
 %         subplot(2,2,6);

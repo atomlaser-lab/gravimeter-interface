@@ -1,7 +1,7 @@
 function Callback_MeasureImagingFrequency(r)
 
 if r.isInit()
-    r.data.detuning = const.randomize(-7:1:7);
+    r.data.detuning = const.randomize(-15:1:15);
     r.data.param = 5;
     r.c.setup('var',r.data.detuning,r.data.param);
 elseif r.isSet()
@@ -37,7 +37,7 @@ elseif r.isAnalyze()
     grid on;
     ylim([0,Inf]);
 
-    if r.c.done(1) || i1 > 10
+    if r.c.done(1) || i1 > 4
 %         nlf = nonlinfit(r.data.detuning(1:i1),r.data.N(1:i1)/1e6,0.05);
 %         nlf.setFitFunc(@(A1,w1,x1,A2,w2,x2,x) A1./(1 + 4*(x-x1).^2/w1^2) + A2./(1 + 4*(x-x2).^2/w2^2));
 %         [~,idx] = max(nlf.y);
@@ -52,6 +52,16 @@ elseif r.isAnalyze()
 %         xplot = linspace(min(nlf.x),max(nlf.x),1e2);
 %         plot(xplot,nlf.f(xplot)*1e6,'--','linewidth',2);
 %         r.data.nlf = nlf;
+
+        nlf = nonlinfit(r.data.detuning(1:i1),r.data.N(1:i1)/1e6,0.05);
+        nlf.setFitFunc(@(A,w,x0,x) A./(1 + 4*(x - x0).^2/w^2));
+        nlf.bounds2('A',[0,2*max(nlf.y),max(nlf.y)],'w',[0,10,6],'x0',[-3,3,0]);
+        nlf.fit;
+        hold on
+        xplot = linspace(min(nlf.x),max(nlf.x),1e2);
+        plot(xplot,nlf.f(xplot)*1e6,'--','linewidth',2);
+        title(sprintf('Resonance = %.1f MHz, Width = %.1f MHz',nlf.get('x0',1),nlf.get('w',1)));
+
     end
 end
 
