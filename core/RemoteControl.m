@@ -104,6 +104,7 @@ classdef RemoteControl < handle
             end
             function internal_callback(~,~)
                 self.read;
+                pause(0.5);
                 if ~isempty(cb)
                     cb();
                 end

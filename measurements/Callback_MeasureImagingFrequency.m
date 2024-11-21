@@ -1,11 +1,12 @@
 function Callback_MeasureImagingFrequency(r)
 
 if r.isInit()
-    r.data.detuning = const.randomize(-15:1:15);
+    r.data.detuning = const.randomize([-16:2:16,-5:2:5]);
+%     r.data.detuning = const.randomize(repmat([-20:1:20,-6.5:1:6.5],4,1));
     r.data.param = 5;
     r.c.setup('var',r.data.detuning,r.data.param);
 elseif r.isSet()
-    r.make(r.devices.opt,'detuning',r.data.detuning(r.c(1)),'params',r.data.param(r.c(2))).upload;
+    r.make(r.devices.opt,'detuning',r.data.detuning(r.c(1))).upload;
     fprintf(1,'Run %d/%d, Detuning = %.3f MHz, Param = %.3f\n',r.c.now,r.c.total,r.data.detuning(r.c(1)),r.data.param(r.c(2)));
 elseif r.isAnalyze()
     i1 = r.c(1);
@@ -37,23 +38,28 @@ elseif r.isAnalyze()
     grid on;
     ylim([0,Inf]);
 
-    if r.c.done(1) || i1 > 4
+    if r.c.done(1) || i1 > 6
 %         nlf = nonlinfit(r.data.detuning(1:i1),r.data.N(1:i1)/1e6,0.05);
 %         nlf.setFitFunc(@(A1,w1,x1,A2,w2,x2,x) A1./(1 + 4*(x-x1).^2/w1^2) + A2./(1 + 4*(x-x2).^2/w2^2));
 %         [~,idx] = max(nlf.y);
 %         nlf.bounds2('A1',[0,1e3,max(nlf.y)],'w1',[1,12,6],'x1',[min(nlf.x),max(nlf.x),nlf.x(idx)],...
 %             'A2',[0,1e3,max(nlf.y)],'w2',[1,12,6],'x2',[min(nlf.x),max(nlf.x),nlf.x(idx) - 5]);
-% %         nlf.setFitFunc(@(A1,w1,x1,A2,x2,x) A1./(1 + 4*(x-x1).^2/w1^2) + A2./(1 + 4*(x-x2).^2/w1^2));
-% %         [~,idx] = max(nlf.y);
-% %         nlf.bounds2('A1',[0,1e3,max(nlf.y)],'w1',[1,12,6],'x1',[min(nlf.x),max(nlf.x),nlf.x(idx)],...
-% %             'A2',[0,1e3,max(nlf.y)],'x2',[min(nlf.x),max(nlf.x),nlf.x(idx) - 5]);
-%         nlf.fit
+% % %         nlf.setFitFunc(@(A1,w1,x1,A2,x2,x) A1./(1 + 4*(x-x1).^2/w1^2) + A2./(1 + 4*(x-x2).^2/w1^2));
+% % %         [~,idx] = max(nlf.y);
+% % %         nlf.bounds2('A1',[0,1e3,max(nlf.y)],'w1',[1,12,6],'x1',[min(nlf.x),max(nlf.x),nlf.x(idx)],...
+% % %             'A2',[0,1e3,max(nlf.y)],'x2',[min(nlf.x),max(nlf.x),nlf.x(idx) - 5]);
+%         nlf.ex = (nlf.y == 0) | (nlf.x == 10);
+%         nlf.fit;
 %         hold on;
 %         xplot = linspace(min(nlf.x),max(nlf.x),1e2);
 %         plot(xplot,nlf.f(xplot)*1e6,'--','linewidth',2);
 %         r.data.nlf = nlf;
+%         s1 = sprintf('A1 = %.1f, x1 = %.1f MHz, w1 = %.1f MHz\n',nlf.get('A1',1),nlf.get('x1',1),nlf.get('w1',1));
+%         s2 = sprintf('A2 = %.1f, x2 = %.1f MHz, w2 = %.1f MHz',nlf.get('A2',1),nlf.get('x2',1),nlf.get('w2',1));
+%         text(0.05,0.9,[s1,s2],'units','normalized');
 
         nlf = nonlinfit(r.data.detuning(1:i1),r.data.N(1:i1)/1e6,0.05);
+        nlf.ex = (nlf.y == 0) | (nlf.x == 10);
         nlf.setFitFunc(@(A,w,x0,x) A./(1 + 4*(x - x0).^2/w^2));
         nlf.bounds2('A',[0,2*max(nlf.y),max(nlf.y)],'w',[0,10,6],'x0',[-3,3,0]);
         nlf.fit;

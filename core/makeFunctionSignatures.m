@@ -14,11 +14,11 @@ for nn = 1:numel(names)
 end
 choices = sprintf('choices={%s}',choices(1:end-1));
 
-s = fileread('functionSignatures.json');
+s = fileread('core/functionSignatures.json');
 
 r = regexprep(s,'choices\=\{.*?\}',choices,'dotexceptnewline');
 
-fid = fopen('functionSignatures.json','w');
+fid = fopen('core/functionSignatures.json','w');
 fprintf(fid,r);
 fclose(fid);
 

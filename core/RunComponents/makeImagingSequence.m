@@ -4,19 +4,19 @@ function makeImagingSequence(sq,varargin)
 % Define default parameters
 %
 pulseTime = 30e-6;
-pulse_delay = 15e-6; % was 10 us before. I (yosri) increased it to 75 us half the exposure time! and now to 15 us
+pulse_delay = 15e-6;
 repumpTime = 100e-6;
 repumpDelay = 00e-6;
-fibreSwitchDelay = 20e-3;
+repumpShutterDelay = 5e-3;
 camTime = 100e-6;
 cycleTime = 40e-3;
 repumpFreq = 0;
 repumpAmplitude = 1;
 imgFreq = 8.5;
-imgAmplitude = 10;
+imgAmplitude = 1;
 manifold = 1;
 take_dark_image = true;
-imaging_field = 2.95;
+imaging_field = 1;
 image_type = 'horizontal';
 %
 % Parse input arguments as name/value pairs
@@ -50,8 +50,8 @@ else
                 imgFreq = v;
             case 'imaging amplitude'
                 imgAmplitude = v;
-            case 'fibre switch delay'
-                fibreSwitchDelay = v;
+            case 'repump shutter delay'
+                repumpShutterDelay = v;
             case 'manifold'
                 manifold = v;
             case 'take dark image'
@@ -87,9 +87,9 @@ if manifold == 1
     % Set repump amplitude and frequency
     sq.find('87 repump freq').set(repumpFreq);
     sq.find('87 repump amp').set(repumpAmplitude);
-    %Turn on the repump TTL and the fiber switch (inverted!)
-    sq.find('87 repump').after(tof-repumpTime-repumpDelay,1).after(repumpTime,0);
-    sq.find('Repump Switch').after(tof - fibreSwitchDelay,0);
+    sq.find('Repump shutter').after(tof - repumpShutterDelay,1);
+    sq.find('87 repump').after(tof - repumpShutterDelay,0)...
+        .after(repumpShutterDelay - (repumpTime + repumpDelay),1).after(repumpTime,0);
 end
 
 if strcmpi(image_type,'horizontal')
@@ -113,8 +113,8 @@ sq.waitFromLatest(cycleTime);                       %Delay
 %
 sq.find('87 imag').set(1).after(pulseTime,0);       %Turn on after TOF, then turn off after pulse time
 sq.find(cam_trig).before(pulse_delay,1).after(camTime,0);          %Turn on after TOF, then turn off after pulse time
+% sq.find('Repump shutter').set(0);
 sq.waitFromLatest(cycleTime);                       %Delay
-sq.find('Repump Switch').before(50e-6,1);    %Turn off fiber switch
 
 %
 % Take a dark image

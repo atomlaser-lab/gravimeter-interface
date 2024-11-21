@@ -42,7 +42,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
             self.param2 = [];
             self.param3 = [];
            
-
+            self.stage = StageSequenceOptions;
             self.nd = FeedbackOptions;
             self.dkc = DKC_Options;
         end

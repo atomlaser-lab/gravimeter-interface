@@ -1,16 +1,8 @@
 {
-"codebuild":
-{
-    "inputs":
-    [
-        {"name":"buildInfo", "kind":"required",
-         "type":[["file=*buildInfo.mat"], ["folder"]]},
-        
-        {"name":"BuildMethod", "kind":"namevalue",
-         "type":["choices=coder.make.internal.codebuildCompletions('BuildMethod')"]},
-        
-        {"name":"BuildVariant", "kind":"namevalue",
-         "type":["choices=coder.make.internal.codebuildCompletions('BuildVariant')"]}
-    ]
-}
+    "TimingSequence.find" : {
+        "inputs" : [
+            {"name":"self", "kind":"required", "type":"TimingSequence"},
+            {"name":"name", "kind":"required", "type":["char","choices={'2DMOT','3DMOT','87 repump','87 push','87 imag','85 repump','85 push','85 imag','CD bit 0','CD bit 1','RF atten','Repump shutter','87 cam trig','ND cam trig','RedPower TTL','Probe','MW Switch','H-Bridge Quad','H-Bridge Helm','MOT Bias','Repump Switch','LG Shutter','C6 - N/C','RF Switch','2D MOT Coils','DDS TTL','Feedback Laser TTL','Raycus TTL','DKC TTL','vertical cam trig','n/c','n/c','RF Frequency','3DMOT Freq','87 repump freq','Push amp','87 imag freq','2DMOT Freq','Raycus CW','Push Freq','RedPower CW','3DMOT amp','87 repump amp','MOT bias coil','87 imag amp','Bias E/W','Variable Wave Plate','85 imag amp','CD3','CD2','CD1','CD0 Fast','CD Fine/Fast','Bias N/S','DPAOM Waveplate','Bias U/D'}"]}
+        ]
+    }       
 }

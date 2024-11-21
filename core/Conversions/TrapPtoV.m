@@ -59,6 +59,26 @@ elseif strcmpi(light_type,'nd')
     data(:,2) = data(:,2)/max(data(:,2));
     V = interp1(data(:,2),data(:,1),relative_power,'pchip');
     V(relative_power == 0) = 0;
+elseif strcmpi(light_type,'image')
+    data = [8,1.24;
+            7,1.39;
+            6,1.42;
+            5,1.18;
+            4.5,0.96;
+            4,0.72;
+            3.5,0.47;
+            3,0.25;
+            2.75,0.16;
+            2.5,0.1;
+            2.25,0.052;
+            2,0.026;
+            1.5,0.014;
+            0,0.014];
+    data = data - data(end,2);
+    data = data(data(:,1) <= 6 & data(:,1) > 0,:);
+    data(:,2) = data(:,2)./max(data(:,2));
+    V = interp1(data(:,2),data(:,1),relative_power,'pchip');
+    V(relative_power == 0) = 0;
 end
 
 end

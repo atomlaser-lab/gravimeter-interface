@@ -5,5 +5,7 @@ for nn = 1:sq.numChannels
 end
 
 sq.find('2D MOT coils').set(1);
+sq.find('87 repump').set(1);
+sq.find('87 repump amp').set(1);
 
 % sq.find('DDS TTL').set(1);
