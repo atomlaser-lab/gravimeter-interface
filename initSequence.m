@@ -7,9 +7,9 @@ function sq = initSequence
     sq.channels(3).setName('87 repump','A2').setDefault(1);
     sq.channels(4).setName('87 push','A3').setDefault(1);
     sq.channels(5).setName('87 imag','A4').setDefault(0);
-    sq.channels(6).setName('85 repump','A5').setDefault(0);
-    sq.channels(7).setName('85 push','A6').setDefault(0);
-    sq.channels(8).setName('85 imag','A7').setDefault(0);
+    sq.channels(6).setName('A5 - N/C','A5').setDefault(0);
+    sq.channels(7).setName('A6 - N/C','A6').setDefault(0);
+    sq.channels(8).setName('ND imag','A7').setDefault(0);
     sq.channels(9).setName('CD bit 0','B0').setDefault(0);
     sq.channels(10).setName('CD bit 1','B1').setDefault(0);
     sq.channels(11).setName('RF atten','B2').setDefault(0);
@@ -22,7 +22,7 @@ function sq = initSequence
     sq.channels(18).setName('H-Bridge Quad','C1').setDefault(1);
     sq.channels(19).setName('H-Bridge Helm','C2').setDefault(0);
     sq.channels(20).setName('MOT Bias','C3').setDefault(0);
-    sq.channels(21).setName('Repump Switch','C4','Inverted').setDefault(0);
+    sq.channels(21).setName('C4 - N/C','C4').setDefault(0);
     sq.channels(22).setName('LG Shutter','C5').setDefault(0);
     sq.channels(23).setName('C6 - N/C','C6').setDefault(0);
     sq.channels(24).setName('RF Switch','C7').setDefault(0);
@@ -43,8 +43,8 @@ function sq = initSequence
         .setConversionFunction(@(x) FtoV('trap',x),'MHz').setDefault(18);
     sq.analog(3).setName('87 repump freq','AO/2')...
         .setConversionFunction(@(x) FtoV('repump',x),'MHz').setDefault(0);
-    sq.analog(4).setName('Push amp','AO/3')...
-        .setConversionFunction(@(x) x,'V').setDefault(0);
+    sq.analog(4).setName('Feedback laser power','AO/3')...
+        .setConversionFunction(@(x) DipolePtoV('feedback',x),'W').setDefault(0);
     sq.analog(5).setName('87 imag freq','AO/4')...
         .setConversionFunction(@(x) FtoV('image',x),'MHz').setDefault(0);
     sq.analog(6).setName('2DMOT Freq','AO/5','')...
@@ -67,8 +67,8 @@ function sq = initSequence
         .setConversionFunction(@(x) x,'V').setDefault(0.4);
     sq.analog(15).setName('Variable Wave Plate','BO/6')...
         .setDefault(-3.4);
-    sq.analog(16).setName('85 imag amp','BO/7')...
-        .setConversionFunction(@(x) x,'V').setDefault(0);
+    sq.analog(16).setName('ND imag amp','BO/7')...
+        .setConversionFunction(@(x) TrapPtoV('nd',x),'V').setDefault(0);
     sq.analog(17).setName('CD3','CO/0')...
         .setConversionFunction(@(x) dBtoV('normal',x),'G/cm').setDefault(0);
     sq.analog(18).setName('CD2','CO/1')...

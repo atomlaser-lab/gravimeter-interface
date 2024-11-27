@@ -1,12 +1,10 @@
 function BasicCallback(r)
 
 if r.isInit()
-%     r.data.param = [0.25,0.5,1:10,20:10:60]; % Detuning
-    r.data.param = 10:5:35;
+    r.data.param = 1:7;
     r.c.setup('var',r.data.param);
 elseif r.isSet()
     r.make(r.devices.opt,'params',r.data.param(r.c(1))).upload;
-%     r.make(r.devices.opt).upload;
     fprintf(1,'Run %d/%d, Param = %.3f\n',r.c.now,r.c.total,r.data.param(r.c(1)));
 elseif r.isAnalyze()
     i1 = r.c(1);
@@ -29,8 +27,8 @@ elseif r.isAnalyze()
     r.data.Nsum(i1,:) = img.get('Nsum');
     r.data.becFrac(i1,:) = img.get('becFrac');
     r.data.OD(i1,:) = img.get('peakOD');
-%     r.data.T(i1,:) = prod(squeeze(img.get('T')))^0.5;
-%     r.data.pos(i1,:) = img.get('pos');
+    r.data.T(i1,:) = prod(squeeze(img.get('T')))^0.5;
+    r.data.pos(i1,:) = img.get('pos');
 
     figure(98);clf;
 %     subplot(1,2,1);

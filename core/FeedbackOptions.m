@@ -1,16 +1,17 @@
 classdef FeedbackOptions < SequenceOptionsAbstract
     
     properties
+        enable_ndi
         pulse_power
         pulse_time
         pulse_delay
         cycle_time
 
-        enable_fb_laser
-        fb_laser_power
-
         num_images
         ref_images
+
+        enable_fb_laser
+        fb_laser_power
     end
 
     methods
@@ -20,8 +21,9 @@ classdef FeedbackOptions < SequenceOptionsAbstract
         end
 
         function self = setDefaults(self)
-            self.pulse_power = 1e-3;
-            self.pulse_time = 20e-6;
+            self.enable_ndi = 1;
+            self.pulse_power = 0.1;
+            self.pulse_time = 5e-6;
             self.pulse_delay = 50e-6;
             self.cycle_time = 2e-3;
             self.num_images = 0;

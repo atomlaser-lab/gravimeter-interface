@@ -43,22 +43,28 @@ elseif strcmpi(light_type,'repump')
             1.5 0.03];
     data(:,2) = data(:,2)./max(data(:,2));
     V = interp1(data(:,2),data(:,1),relative_power,'pchip');
-elseif strcmpi(light_type,'nd')
-    data = [8.0000    1.5000;
-            7.0000    1.4570;
-            6.0000    1.1930;
-            5.0000    0.8100;
-            4.0000    0.4200;
-            3.0000    0.1190;
-            2.0000    0.0046;
-            3.5000    0.2450;
-            4.5000    0.6090;
-            5.5000    1.0000];
-    [~,k] = sort(data(:,1));
-    data = data(k,:);
-    data(:,2) = data(:,2)/max(data(:,2));
+elseif strcmpi(light_type,'nd')   
+    data = [1.8, 180.0;
+            1.9, 253.0;
+            2.0, 337.0;
+            2.1, 430.0;
+            2.2, 525.0;
+            2.3, 625.0;
+            2.4, 728.0;
+            2.5, 837.0;
+            2.6, 940.0;
+            2.7, 1044.0;
+            2.8, 1143.0;
+            2.9, 1240.0;
+            3.0, 1336.0;
+            4.0, 2070.0;
+            1.7, 115.0;
+            1.6, 66.0;
+            1.5, 30.0;
+            1.4, 10.0;
+            0.0, 1.0];
+    data(:,2) = data(:,2)./max(data(:,2));
     V = interp1(data(:,2),data(:,1),relative_power,'pchip');
-    V(relative_power == 0) = 0;
 elseif strcmpi(light_type,'image')
     data = [8,1.24;
             7,1.39;

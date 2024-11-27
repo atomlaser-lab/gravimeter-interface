@@ -47,14 +47,13 @@ elseif strcmpi(DipoleType,'DKC')
     end
 
 elseif strcmpi(DipoleType,'Feedback')
-    if DesiredPower > 1.5
-        error('Power must be less than 1.5 W');
+    if DesiredPower > 12
+        error('Power must be less than 1.2 W');
     elseif DesiredPower < 0
         error('Power must be larger than 0 W');
     else
         x = DesiredPower;
-        % NeededVoltage = (x + 0.338)/1.1562;
-        NeededVoltage = (x + 0.6273)/2.1042;
+        NeededVoltage = (x + 1.23)/3.73;
         if NeededVoltage < 0
             NeededVoltage = 0;
         end

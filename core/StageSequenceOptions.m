@@ -82,7 +82,7 @@ classdef StageSequenceOptions < SequenceOptionsAbstract
         end
 
         function r = use_dipoles(self)
-            r = self.dipoles & (self.evap_mag | self.override);
+            r = self.dipoles & (self.use_evap_mag | self.override);
         end
 
         function r = use_evap_dipoles(self)

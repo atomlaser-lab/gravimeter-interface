@@ -48,18 +48,21 @@ elseif r.isAnalyze()
 % % %         [~,idx] = max(nlf.y);
 % % %         nlf.bounds2('A1',[0,1e3,max(nlf.y)],'w1',[1,12,6],'x1',[min(nlf.x),max(nlf.x),nlf.x(idx)],...
 % % %             'A2',[0,1e3,max(nlf.y)],'x2',[min(nlf.x),max(nlf.x),nlf.x(idx) - 5]);
-%         nlf.ex = (nlf.y == 0) | (nlf.x == 10);
+%         nlf.ex = (nlf.y == 0);
 %         nlf.fit;
 %         hold on;
 %         xplot = linspace(min(nlf.x),max(nlf.x),1e2);
 %         plot(xplot,nlf.f(xplot)*1e6,'--','linewidth',2);
 %         r.data.nlf = nlf;
 %         s1 = sprintf('A1 = %.1f, x1 = %.1f MHz, w1 = %.1f MHz\n',nlf.get('A1',1),nlf.get('x1',1),nlf.get('w1',1));
-%         s2 = sprintf('A2 = %.1f, x2 = %.1f MHz, w2 = %.1f MHz',nlf.get('A2',1),nlf.get('x2',1),nlf.get('w2',1));
-%         text(0.05,0.9,[s1,s2],'units','normalized');
+%         s2 = sprintf('A2 = %.1f, x2 = %.1f MHz, w2 = %.1f MHz\n',nlf.get('A2',1),nlf.get('x2',1),nlf.get('w2',1));
+%         xmax = fminbnd(@(x) -nlf.f(x),min(nlf.x),max(nlf.x));
+%         fmax = nlf.f(xmax);
+%         s3 = sprintf('Max response is %.3f at %.3f MHz',fmax,xmax);
+%         text(0.05,0.9,[s1,s2,s3],'units','normalized');
 
         nlf = nonlinfit(r.data.detuning(1:i1),r.data.N(1:i1)/1e6,0.05);
-        nlf.ex = (nlf.y == 0) | (nlf.x == 10);
+        nlf.ex = (nlf.y == 0);% | (nlf.x == 10);
         nlf.setFitFunc(@(A,w,x0,x) A./(1 + 4*(x - x0).^2/w^2));
         nlf.bounds2('A',[0,2*max(nlf.y),max(nlf.y)],'w',[0,10,6],'x0',[-3,3,0]);
         nlf.fit;
@@ -67,7 +70,7 @@ elseif r.isAnalyze()
         xplot = linspace(min(nlf.x),max(nlf.x),1e2);
         plot(xplot,nlf.f(xplot)*1e6,'--','linewidth',2);
         title(sprintf('Resonance = %.1f MHz, Width = %.1f MHz',nlf.get('x0',1),nlf.get('w',1)));
-
+        r.data.nlf = nlf;
     end
 end
 

@@ -1,4 +1,4 @@
-function varargout = makeSequence(varargin)   
+function varargout = makeSequenceRyan_ND(varargin)   
 %% Parse input arguments
 opt = SequenceOptions('load_time',15,'detuning',0,'tof',20e-3,'redpower',2,...
     'raycus',2);
@@ -17,11 +17,9 @@ else
     error('Either supply a single SequenceOptions argument, or supply a set of name/value pairs, or supply a SequenceOptions argument followed by name/value pairs');
 end
 
-% ImageFreq = opt.detuning;
-% ImageFreq = opt.detuning + 2.3; %For laser cooling stages
-ImageFreq = opt.detuning + 0.5; %Low intensity after dipole evaporation
+ImageFreq = opt.detuning + 1.0784;
 dipole_field = 1; %In Gauss
-ImageAmp = 0.01;
+ImageAmp = 0.1;
 %% Initialize sequence
 sq = initSequence;  %load default values (OLD MOT values are default) 
 sq.find('87 imag freq').set(ImageFreq);
@@ -32,6 +30,11 @@ if opt.stage.use_dipoles
     sq.find('Raycus CW').set(200e-3);
     sq.find('RedPower TTL').set(1);
     sq.find('RedPower CW').set(100e-3);
+end
+
+if opt.nd.enable_fb_laser
+    sq.find('Feedback Laser TTL').set(1);
+    sq.find('Feedback laser power').set(200e-3);
 end
 
 %% MOT loading
@@ -126,9 +129,10 @@ if opt.stage.use_pump
     Tdepump = 3e-3;
     sq.find('Repump shutter').set(0);
     sq.find('87 repump').set(0).after(5e-3,1);
-%     sq.find('87 repump').set(0);
-    sq.find('87 repump freq').set(20);
+%     sq.find('87 repump amp').set(0).after(5e-3,1);
+    sq.find('87 repump freq').set(0);
     sq.find('3DMOT freq').set(75);
+%     sq.find('MOT bias coil').before(1e-3,3);
     sq.delay(Tdepump);
     sq.find('3DMOT').set(0);
 end
@@ -141,6 +145,9 @@ end
 if opt.stage.use_mag
     Tmagload = 150e-3;
     t = 0:10e-3:Tmagload;
+%     sq.find('Bias E/W').set(0);
+%     sq.find('Bias N/S').set(0);
+%     sq.find('Bias U/D').set(0);
     dBmax = 110;
     dBLoad = 55;
     sq.find('CD0 Fast').after(t,sq.linramp(t,dBLoad,dBmax));
@@ -152,8 +159,12 @@ if opt.stage.use_mag
         t = 0:20e-3:Toptload;
         sq.find('Raycus TTL').set(1);
         sq.find('Redpower TTL').set(1);
-        sq.find('Raycus CW').after(t,sq.linramp(t,0,4));
-        sq.find('Redpower CW').after(t,sq.linramp(t,0,12));
+        sq.find('Raycus CW').after(t,sq.linramp(t,sq.find('Raycus CW').values(end),4));
+        sq.find('Redpower CW').after(t,sq.linramp(t,sq.find('Redpower CW').values(end),12));
+        if opt.nd.enable_fb_laser
+            sq.find('Feedback Laser TTL').set(1);
+            sq.find('Feedback laser power').after(t,sq.linramp(t,sq.find('Feedback laser power').values(end),opt.nd.fb_laser_power));
+        end
         sq.delay(max(Toptload - Tmagload,0));
     end
 
@@ -171,7 +182,6 @@ end
 if opt.stage.use_evap_mag
     rf_start = 16;
     rf_end = 0.75;
-%     rf_end = 4;
     rf_rate = 3;    %MHz/s
     Tevap = (rf_start - rf_end)/rf_rate;
     t = linspace(0,Tevap,50);
@@ -186,9 +196,26 @@ if opt.stage.use_evap_mag
     sq.find('RF Frequency').set(20);
 end
 
+%% Take dummy images for NDI
+%
+% This takes 2 images for NDI, where the first is a "dummy" image to get
+% the camera to properly time its acquisition, and the second is a
+% reference for NDI.  These images are taken 3 seconds before evaporation
+% ends.  Sequence time is re-anchored to the time at which evaporation ends
+%
+if opt.stage.use_dipoles && opt.nd.enable_ndi && opt.nd.ref_images > 0
+    time_at_evap_end = sq.time;
+    sq.anchor(sq.time - 3);
+    sq.camDelay = sq.time - 2;
+    makeNDImagingSequence(sq,'pulse time',opt.nd.pulse_time,'cam time',opt.nd.pulse_time,'cycle time',500e-3,...
+        'imaging amplitude',opt.nd.pulse_power,'num_images',opt.nd.ref_images,...
+        'pulse delay',opt.nd.pulse_delay);
+    sq.anchor(time_at_evap_end);
+end
+
 %% Test loading atoms into magnetic trap
 % sq.find('CD0 Fast').set(0);
-% sq.delay(35e-3 - opt.tof);
+% sq.delay(30e-3 - opt.tof);
 % sq.find('Raycus CW').set(0);
 % sq.find('Raycus TTL').set(0);
 % sq.find('RedPower CW').set(0);
@@ -215,8 +242,63 @@ if opt.stage.use_evap_dipoles
     sq.delay(Tevap);
 end
 
+%% Non-destructive imaging/feedback
+if opt.nd.enable_ndi
+%     t = 0:5e-3:250e-3;
+%     sq.find('Raycus CW').after(t,sq.find('Raycus CW').values(end) + sq.linramp(t,0,0.2));
+%     sq.find('RedPower CW').after(t,sq.find('Redpower CW').values(end) + sq.linramp(t,0,0.2));
+    sq.delay(250e-3);
+    
+%     quad_amp = 0.25;%*opt.params(1);
+%     quadrupole_freq = opt.params(1);
+%     num_cycles = 10;
+%     dt = 0.1/quadrupole_freq;
+%     T = num_cycles/quadrupole_freq;
+%     t = 0:dt:T;
+%     ch = sq.find('Feedback laser power');
+% %     ch = sq.find('RedPower CW');
+%     quad_driving_signal = ch.values(end) + quad_amp*sin(2*pi*quadrupole_freq*t);
+%     ch.after(t,quad_driving_signal);
+%     sq.delay(T);
+
+    sq.find('Feedback laser power').after(50e-3,1);
+
+    makeNDImagingSequence(sq,'pulse time',opt.nd.pulse_time,'cam time',opt.nd.pulse_time,'cycle time',opt.nd.cycle_time,...
+        'imaging amplitude',opt.nd.pulse_power,'num_images',opt.nd.num_images(1),'pulse delay',opt.nd.pulse_delay);
+
+%     sq.delay(1);
+%     makeNDImagingSequence(sq,'pulse time',opt.nd.pulse_time,'cam time',opt.nd.pulse_time,'cycle time',opt.nd.cycle_time,...
+%         'imaging amplitude',opt.nd.pulse_power,'num_images',opt.nd.num_images(2),'pulse delay',opt.nd.pulse_delay);
+end
+
 %%
-% sq.delay(0.1);
+% t = 0:5e-3:250e-3;
+% sq.find('Raycus CW').after(t,sq.find('Raycus CW').values(end) + sq.linramp(t,0,0.2));
+% sq.find('RedPower CW').after(t,sq.find('Redpower CW').values(end) + sq.linramp(t,0,0.2));
+% sq.delay(250e-3);
+% 
+% quad_amp = 0.25*opt.params(1);
+% quadrupole_freq = 33;
+% % quadrupole_freq = opt.params(1);
+% num_cycles = 10;
+% dt = 0.1/quadrupole_freq;
+% T = num_cycles/quadrupole_freq;
+% t = 0:dt:T;
+% ch = sq.find('Feedback laser power');
+% % ch = sq.find('RedPower CW');
+% quad_driving_signal = ch.values(end) + quad_amp*sin(2*pi*quadrupole_freq*t);
+% ch.after(t,quad_driving_signal);
+% sq.delay(T);
+% 
+% sq.delay(500e-3);
+
+% sq.delay(0.5);
+% sq.find('CD0 Fast').set(0);
+% sq.find('Feedback Laser TTL').before(1.5,1);
+% sq.find('Feedback laser power').before(1.5,10);
+% sq.delay(30e-3 - opt.tof);
+% sq.find('Feedback Laser TTL').set(0);
+% % sq.delay(1);
 
 %% Drop atoms
 timeAtDrop = sq.time;
@@ -234,18 +316,22 @@ sq.find('Raycus CW').set(0);
 sq.find('Raycus TTL').set(0);
 sq.find('RedPower CW').set(0);
 sq.find('RedPower TTL').set(0);
+sq.find('Feedback laser power').set(0);
+sq.find('Feedback Laser TTL').set(0);
 
 %% Stern-Gerlach
-% sq.delay(10e-3);
-% sq.find('CD0 Fast').set(100);
-% sq.delay(10e-3);
-% sq.find('CD0 Fast').set(0);
+sq.delay(15e-3);
+sq.find('CD0 Fast').set(75);
+sq.delay(5e-3);
+sq.find('CD0 Fast').set(0);
 
 %% Take Absorption Image
 sq.anchor(timeAtDrop);
-sq.camDelay = timeAtDrop - 3;
-
-makeImagingSequence(sq,'tof',opt.tof,'pulse time',4*40e-6,'repump delay',100e-6,...
+if opt.nd.ref_images == 0 || opt.nd.enable_ndi == 0
+    sq.camDelay = timeAtDrop - 3;
+end
+sq.find('ND imag amp').set(1);
+makeImagingSequence(sq,'tof',opt.tof,'pulse time',40e-6,'repump delay',100e-6,...
     'repump time',200e-6,'cam time',5e-6,'cycle time',100e-3,...
     'manifold',1,'imaging freq',ImageFreq,'imaging amplitude',ImageAmp,...
     'repump shutter delay',2e-3,'imaging_field',dipole_field,'image type','horizontal');

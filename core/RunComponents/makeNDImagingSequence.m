@@ -6,12 +6,8 @@ function makeNDImagingSequence(sq,varargin)
 pulseTime = 30e-6;
 camTime = 5e-6; 
 cycleTime = 5e-3; 
-imgFreq = 8.5;
-imgAmplitude = 1e-3; % 1mW of power 
-imgPower   = imgAmplitude; %% addition
-imgVoltage = TrapPtoV_NDI(imgPower);
+imgAmplitude = 0.1;
 num_images = 1;
-species = 85;
 pulse_delay = 0;
 %
 % Parse input arguments as name/value pairs
@@ -32,14 +28,9 @@ else
             case 'imaging freq'
                 imgFreq = v;
             case 'imaging amplitude'
-                % imgAmplitude = v;
-                imgPower = v;
-            case 'imaging voltage' % ADDED
-                imgVoltage = v;
+                imgAmplitude = v;
             case 'num_images'
                 num_images = v;
-            case 'species'
-                species = v;
             case 'pulse delay'
                 pulse_delay = v;
             otherwise
@@ -54,26 +45,16 @@ if num_images == 0
     return
 end
 %
-% Preamble - set the imaging frequency
+% Preamble - set the imaging frequency and power
 %
-if species == 87
-    sq.find('87 imag freq').set(imgFreq);
-    sq.find('87 imag amp').set(TrapPtoV('nd',imgAmplitude));
-    ch = sq.find('87 imag');
-elseif species == 85
-    sq.find('85 imag freq').set(imgFreq);
-    sq.find('85 imag amp').set(TrapPtoV_NDI(imgPower)); % power in W
-    % sq.find('85 imag amp').set(imgVoltage); % Voltage sent to VVA
-    ch = sq.find('85 imag');
-end
-
+sq.find('ND imag amp').before(10e-3,imgAmplitude); % Voltage sent to VVA
 
 %
 % Imaging beam and camera trigger for image with atoms
 %
 for nn = 1:num_images
-    ch.after(pulse_delay,1).after(pulseTime,0);     %Turn on after TOF, then turn off after pulse time
-    sq.find('ND cam trig').set(1).after(camTime,0);   %Turn on after TOF, then turn off after camera time
+    sq.find('ND imag').after(pulse_delay,1).after(pulseTime,0);     
+    sq.find('ND cam trig').set(1).after(camTime,0);                 
     sq.delay(cycleTime);
 end
 % sq.anchor(sq.latest);   %Re-anchor the sequence to the latest value

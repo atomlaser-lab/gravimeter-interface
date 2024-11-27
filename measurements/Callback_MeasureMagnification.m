@@ -24,12 +24,13 @@ elseif r.isAnalyze()
     r.data.pos(i1,:) = squeeze(img.get('pos'))/(img.constants.pixelSize/img.constants.magnification);
     r.data.width(i1,:) = squeeze(img.get('gaussWidth'));
     figure(123);clf;
-    plot(r.data.tof(1:i1)*1e3,r.data.pos,'o-');
+    plot(r.data.tof(1:i1)*1e3,r.data.pos,'o');
     plot_format('Time of flight [ms]','Position [m]','',12);
 
     if r.c.done(1) || i1 >= 4
         lf = linfit(r.data.tof(1:size(r.data.pos,1)),r.data.pos(:,2),5);
         lf.setFitFunc('poly',[0,2]);
+        lf.ex = lf.x == 5e-3 | lf.x == 27.5e-3;
         lf.fit;
         hold on;
         plot(lf.x*1e3,lf.f(lf.x),'--','linewidth',2);

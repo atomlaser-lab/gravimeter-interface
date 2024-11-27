@@ -93,11 +93,14 @@ if manifold == 1
 end
 
 if strcmpi(image_type,'horizontal')
-    cam_trig = '87 cam trig';
+    cam_ch = sq.find('87 cam trig');
+    img_ch = sq.find('87 imag');
 elseif strcmpi(image_type , 'vertical')
-    cam_trig = 'vertical cam trig';
-elseif strcmpi(image_type,'85')
-    cam_trig = 'ND cam trig';
+    cam_ch = sq.find('vertical cam trig');
+%     img_ch = sq.find('87 imag');
+elseif strcmpi(image_type,'nd')
+    cam_ch = sq.find('ND cam trig');
+    img_ch = sq.find('ND imag');
 else
     warning('incompatible cam trig input');
 end
@@ -105,14 +108,14 @@ end
 %
 % Imaging beam and camera trigger for image with atoms
 %
-sq.find('87 imag').after(tof,1).after(pulseTime,0); %Turn on after TOF, then turn off after pulse time
-sq.find(cam_trig).after(tof - pulse_delay,1).after(camTime,0);    %Turn on after TOF, then turn off after camera time
+img_ch.after(tof,1).after(pulseTime,0); %Turn on after TOF, then turn off after pulse time
+cam_ch.after(tof - pulse_delay,1).after(camTime,0);    %Turn on after TOF, then turn off after camera time
 sq.waitFromLatest(cycleTime);                       %Delay
 %
 % Take image without atoms
 %
-sq.find('87 imag').set(1).after(pulseTime,0);       %Turn on after TOF, then turn off after pulse time
-sq.find(cam_trig).before(pulse_delay,1).after(camTime,0);          %Turn on after TOF, then turn off after pulse time
+img_ch.set(1).after(pulseTime,0);       %Turn on after TOF, then turn off after pulse time
+cam_ch.before(pulse_delay,1).after(camTime,0);          %Turn on after TOF, then turn off after pulse time
 % sq.find('Repump shutter').set(0);
 sq.waitFromLatest(cycleTime);                       %Delay
 
@@ -120,14 +123,14 @@ sq.waitFromLatest(cycleTime);                       %Delay
 % Take a dark image
 %
 if take_dark_image
-    sq.find(cam_trig).set(1).after(camTime,0);   %Turn on after TOF, then turn off after camera time
+    cam_ch.set(1).after(camTime,0);   %Turn on after TOF, then turn off after camera time
     sq.anchor(sq.latest);   %Re-anchor the sequence to the latest value
 end
 %
 % Need a last instruction so that the run ends properly!
 %
 sq.delay(100e-3);
-sq.find('87 imag').set(0);
+img_ch.set(0);
 sq.find('87 repump').set(0);
 sq.find('MOT bias').set(0); %ttl on imaging coil
 

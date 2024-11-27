@@ -33,7 +33,7 @@ classdef SequenceOptions < SequenceOptionsAbstract
         function self = setDefaults(self)
             self.load_time = 7.5;
             self.detuning = 0;
-            self.raycus = 2;
+            self.redpower = 2;
             self.raycus = 2;
             self.tof = 20e-3;
             self.params = [];
