@@ -48,11 +48,17 @@ Remembering the index of each channel is inconvenient, so channels can be given 
 ```
 sq.channels(14).setName('Cam Trig','B5','The camera trigger');
 ```
-where the second string is a port number that is not used internally but may be useful for matching up the named channels to labels on breakout boards.  The last string is a description that can be useful for understanding what the channel does.  Upper and lower bounds can be set using the `setBounds()` function, invoked as
+where the second string is a port number that is not used internally but may be useful for matching up the named channels to labels on breakout boards.  The last string is a description that can be useful for understanding what the channel does.  
+
+Although the actual outputs of the channels are in volts, it is often more useful to have the channel outputs specified in terms of the physical things they change in the apparatus.  For instance, one analog voltage might change the detuning of the 3D MOT beams, while another sets the gradient of the MOT coils.  We define these values (detuning, gradients, relative powers, etc) as the "semantic" values, while the output voltages are the "physical" values.  To allow users to specify the sequence in terms of semantic values instead of physical values, channels have a conversion function that converts semantic values to physical values.  These can be specified using
+```
+sq.channels(14).setConversionFunction(@(x) x*1.6/8,'G/cm');
+```
+where the first argument is a function handle that does the conversion, and the second argument gives the unit.  Upper and lower bounds can be set using the `setBounds()` function, invoked as
 ```
 sq.channels(14).setBounds([minBound,maxBound]);
 ```
-The `setBounds()` function can be appended after the `setName()` function to form a single line
+where the bounds are in semantic units.  The `setBounds()` function can be appended after the `setName()` function to form a single line
 ```
 sq.channels(37).setName('Some amplitude','AO/5','An amplifier amplitude').setBounds([minBound,maxBound]);
 ```
@@ -507,6 +513,11 @@ else
 end
 ```
 
+`SequenceOptions` is a subclass of the abstract superclass `SequenceOptionsAbstract`, which has common methods for setting, replacing, and printing values.  You can instantiate other subclasses of `SequenceOptionsAbstract` as properties in the main `SequenceOptions` class in order to better organize more complex option handling.  For instance, options related to non-destructive imaging are combined under the `FeedbackOptions` class and instantiated as `SequenceOptions.nd`.  
+
+### StageSequenceOptions
+
+One particularly useful subclass is the `SequenceOptions.stage` property, which can be used to control which stages of the sequence are activated.  This is also a subclass of `SequenceOptionsAbstract` called `StageSequenceOptions`.  This class has the properties `mot`, `cmot`, `pgc`, `pump`, `mag`, `evap_map`, `dipoles`, and `evap_dipoles`, along with an `override` property.  Set these properties, and then in your particular make sequence property use the functions `use_mot()`, `use_cmot`, etc to determine if those sequences are activated.  Since the later stages invariably require the earlier stages, the output of `use_dipoles()` is only true if `mot`, `cmot`, `pgc`, `pump`, `mag`, `evap_mag`, and `dipoles` are true.  See the default function `makeSequence` for how to use the `StageSequenceOptions`.
 
 
 
