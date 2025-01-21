@@ -258,6 +258,8 @@ Compiled data is stored in the `TimingSequence` property `TimingSequence.data` w
 
 DDS channels do not run through the same hardware as the digital and analog channels, so their compilation process is a little different.  First off, the DDS will start only when it receives a falling edge trigger from the National Instruments box, so a property of the `TimingSequence` called `TimingSequence.ddsTrigDelay` has to be set to the time at which this edge occurs.  This property is used to shift the times of the `DDSChannel` objects from being referenced to when the whole sequence starts to being referenced to when the falling edge occurs.  DDS channel data is stored in the field `TimingSequence.data.dds`.
 
+There are two additional properties in the `TimingSequence` class that interface with our LabVIEW control systems.  The first is the `camDelay` property, which is used to tell the LabVIEW camera VI when to start waiting for an image.  This is necessary because otherwise it will always time out, or one needs ridiculously long timeout values.  Typically, set this value to 1-3 s before you expect the first image to occur.  The second property is the `waitForImage` property, which tells the LabVIEW control interface to report the recorded image number before it tells MATLAB that the run is done.  This is used for saving copies of the run builder file and the sequence options, so that an image (or other data) file can be associated with the exact sequence and parameters used for its generation.  These flags are copied in the `TimingSeqence.data` structure.
+
 The compiled data can be easily stored in a MATLAB data file and opened on a computer that does not have the interface classes and functions installed.  Additionally, the method `TimingSequence.loadCompiledData(data)` can convert a compiled data structure into a `TimingSequence`.
 
 # Uploading and running a single sequence
@@ -269,7 +271,7 @@ The `RemoteControl` class has the property `sq` which is used for storing a sequ
 r = RemoteControl;  %Create RemoteControl object
 r.make(varargin);
 ```
-which internally calls the function stored in `RemoteControl.makerCallback` as `r.sq = r.makerCallback(varargin)`.  If there is no callback specified in `makerCallback` then it reverts to the default function `makeSequence`.  If you wanted to specify a different function, say `myfunc`, then set it using
+which internally calls the function stored in `RemoteControl.makerCallback` as `r.sq = r.makerCallback(varargin)`.  If there is no callback specified in `makerCallback` then it throws an error.  If you wanted to specify a different function, say `myfunc`, then set it using
 ```
 r.makerSequence = @myfunc;
 ```
@@ -295,6 +297,10 @@ r.make(varargin).upload.loop(@Abs_Analysis);
 which will create, upload, and then run that sequence forever while calling the analysis function after every run.  Stop the infinite loop using `r.stop`.
 
 Data destined for the National Instruments box is sent the LabVIEW control interface VI over TCP/IP.  Data for the DDS is converted into a series of commands for the MOGLabs ARF box and sent asynchronously.  This is necessary because MOGLabs designed a very stupid controller in the box itself which cannot handle more than one command at a time.  As a result, a set of commands cannot be sent together as a single block of text, which would cut done enormously on I/O time; instead, each command has to be sent separately.  To upload 1000 instructions (total) for two channels takes about 7 s.  If this uploading is done synchronously, in that it blocks the command line and prevents the sequence from running, then the cycle time of the experiment takes an extra 7 s.  Instead, the data is sent asynchronously and a message is printed on the command line when the upload is finished.  The user needs to ensure that the upload is complete before the DDS is triggered.
+
+## Storing run builder files and options
+
+If your sequence has set the `TimingSequence.waitForImage` property to `true`, then our current LabVIEW and MATLAB functions will save a copy of the run builder stored in `makerCallback` as well as the options used to create that sequence.  A copy of the run builder, with options embedded, is stored in the `RemoteControl.MAKER_STORAGE_DIRECTORY` as a `.m` file, and the sequence options are stored in the same directory as a MATLAB data file `.mat`.  This needs to wait for images to be saved so that it stores the files with the appropriate image number.
 
 # Visualizing sequences
 
@@ -491,29 +497,11 @@ r.make(opt).urun;
 r.make(opt,'tof',30e-3).urun; %TOF is updated to be 30 ms, all other parameters are kept the same
 ```
 
-The header of a sequence builder file that uses `SequenceOptions` looks like:
-```
-function varargout = makeSequenceRyan(varargin)   
-%% Parse input arguments
-opt = SequenceOptions('load_time',7.5,'detuning',0,'tof',20e-3,'redpower',2,...
-    'keopsys',2);
-
-if nargin == 1
-    if ~isa(varargin{1},'SequenceOptions')
-        error('If using only one argument it must of type SequenceOptions');
-    end
-    opt.replace(varargin{1});
-elseif mod(nargin,2) == 0
-    opt.set(varargin{:});
-elseif mod(nargin - 1,2) == 0 && isa(varargin{1},'SequenceOptions')
-    opt.replace(varargin{1});
-    opt.set(varargin{2:end});
-else
-    error('Either supply a single SequenceOptions argument, or supply a set of name/value pairs, or supply a SequenceOptions argument followed by name/value pairs');
-end
-```
+Use the function `parse_maker_variable_argument_list(varargin{:})` to parse the variable argument list.
 
 `SequenceOptions` is a subclass of the abstract superclass `SequenceOptionsAbstract`, which has common methods for setting, replacing, and printing values.  You can instantiate other subclasses of `SequenceOptionsAbstract` as properties in the main `SequenceOptions` class in order to better organize more complex option handling.  For instance, options related to non-destructive imaging are combined under the `FeedbackOptions` class and instantiated as `SequenceOptions.nd`.  
+
+`SequenceOptions` are stored in the `RemoteControl.MAKER_STORAGE_LOCATION` directory as `.mat` files, labelled by the image number they generated.
 
 ### StageSequenceOptions
 
