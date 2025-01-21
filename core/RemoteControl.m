@@ -1,64 +1,90 @@
 classdef RemoteControl < handle
+    %REMOTECONTROL Class for handling remote connections to the Quantum
+    %Sensors group's LabVIEW control interface.
     properties
-        %% TCPIP properties
+        % TCPIP properties
         conn            %TCPIP connection
         connected       %Is LabVIEW client connected?
-        %% Sequence properties
+        % Sequence properties
         status          %Current status of run: RUNNING or STOPPED
         sq              %Sequence object representing current sequence
         makerCallback   %Callback function for creating a TimingSequence object
-        %% Data properties
+        % Data properties
         mode            %Mode of callback function: SET, ANALYZE, or INIT
         devices         %Structure listing MATLAB devices used in callback
         data            %Data structure to use in callback function
         callback        %Callback function, takes argument of Rebeka object
-        %% DDS properties
+        % DDS properties
         mog             %MOGLabs parent object
     end
     
     properties(SetAccess = protected)
-        remoteAddress = 'localhost';  %Connect to local host
-        remotePort = 6666;            %Remote port to use
-        % remotePort = 6667;            %Remote port to use
+        remoteAddress = 'localhost';        %Connect to local host
+        remotePort = 6666;                  %Remote port to use
+    end
 
-    end %end constant properties
+    properties(Access = protected)
+        run_callback                        %Callback to use for run() and loop()
+        wait_for_image                      %Flag to indicate that we need to wait for imaging to be done
+        maker_copy                          %Copy of the maker callback function with arguments
+    end
     
     properties(SetAccess = immutable)
-        c               %Rollover counter object, keeps track of runs
+        c                                   %Rollover counter object, keeps track of runs
     end
     
     properties(Constant, Hidden=true)
-        readyWord = 'ready';          %Word indicating that client is ready
-        startWord = 'start';          %Word telling host to start
-        endWord = 'end';              %Word telling host to stop TCP loop
-        uploadDWord = 'uploadD';      %Word telling host to upload digital (uint32) data
-        uploadAWord = 'uploadA';      %Word telling host to upload analog (float) data
-        uploadDelayWord = 'camDelay'; %Word telling host to store camera acquisition delay
+        CMD_READY = 'ready';                %Word indicating that client is ready
+        CMD_START = 'start';                %Word telling host to start
+        CMD_END = 'end';                    %Word telling host to stop TCP loop
+        CMD_UPLOAD_DIGITAL = 'uploadD';     %Word telling host to upload digital (uint32) data
+        CMD_UPLOAD_ANALOG = 'uploadA';      %Word telling host to upload analog (float) data
+        CMD_CAM_DELAY = 'camDelay';         %Word telling host to store camera acquisition delay
+        CMD_WAIT_FOR_IMAGE = 'waitForImage';%Word telling host to wait for image before sending end word
 
-        SET = 'set/check';
-        ANALYZE = 'analyze';
-        INIT = 'init';
+        CAM_STATUS_FMT = 'status: %d, image: %d';   %Format for camera status information
+        CAM_STATUS_NO_ERR = 0;
+        CAM_STATUS_TIMEOUT = -1;
+
+        MODE_SET = 'set/check';             %Indicates that the callback mode is to set parameters
+        MODE_ANALYZE = 'analyze';           %Indicates that the callback mode is to analyze data
+        MODE_INIT = 'init';                 %Indicates that the callback mode is to initialize the run
         
-        RUNNING = 'running';
-        STOPPED = 'stopped';
+        STATUS_AUTO = 'auto';               %Indicates that an automated sequence is running
+        STATUS_LOOP = 'loop';               %Indicates that an automated loop is running
+        STATUS_STOPPED = 'stopped';         %Indicates that an automated sequence is not running
+
+        MAKER_STORAGE_DIRECTORY = 'storage';    %Directory for storing copies of maker functions
     end    
     
     events
-        sequenceChanged
+        sequenceChanged                     %Event for notifying that a sequence has changed
     end
     
     methods
         function self = RemoteControl(varargin)
+            %REMOTECONTROL Constructs a RemoteControl object
+            %
+            %   SELF = REMOTECONTROL(ADDRESS) Constructs an object that
+            %   will connect to the control VI at ADDRESS on the default
+            %   port
+            %
+            %   SELF = REMOTECONTROL(ADDRESS,PORT) object will connect
+            %   using given address and port.
             self.setRemoteProperties(varargin{:});
             self.connected = false;
-            self.mode = self.INIT;
-            self.status = self.STOPPED;
+            self.mode = self.MODE_INIT;
+            self.status = self.STATUS_STOPPED;
             self.makerCallback = @makeSequenceGinger;
             self.c = RolloverCounter();
             self.reset;
-        end %end constructor
+        end
         
         function self = setRemoteProperties(self,varargin)
+            %SETREMOTEPROPERTIES Sets the remote address and port
+            %
+            %   SELF = SETREMOTEPROPERTIES(ADDRESS,PORT) sets the remote
+            %   address and (optional) port
             if numel(varargin) >= 1
                 self.remoteAddress = varargin{1};
             end
@@ -68,13 +94,15 @@ classdef RemoteControl < handle
         end
         
         function open(self)
-            %OPEN Opens a tcpip port           
-            %open Creates and opens a TCP conn.  Waits for ready word
+            %OPEN Opens a tcpip port
+            %
+            %   OPEN() Creates and opens a TCP connection, sets connected
+            %   property to TRUE
             if isempty(self.conn)
                 fprintf(1,'Attempting connection...\n');
                 self.conn = tcpclient(self.remoteAddress,self.remotePort);
                 self.conn.configureTerminator('CR/LF');
-                self.conn.configureCallback('terminator',@(src,event) self.resp(src,event))
+                self.conn.configureCallback('terminator',@(src,event) self.internal_callback(src,event))
                 R = version('-release');
                 release_year = regexp(R,'\d+','match');
                 release_year = str2double(release_year{1});
@@ -88,7 +116,7 @@ classdef RemoteControl < handle
         end %end open
         
         function setFunc(self)
-            %SETFUNC Sets the BytesAvailableFcn to self.resp()
+            %SETFUNC Sets the BytesAvailableFcn to self.internal_callback()
             self.open;
             self.conn.configureCallback('terminator',@(src,event) self.resp(src,event))
         end
@@ -100,31 +128,25 @@ classdef RemoteControl < handle
             %   the function handle CB on every run.
             self.open;
             if nargin < 2
-                cb = [];
+                self.run_callback = cb;
             end
-            function internal_callback(~,~)
-                self.read;
-                pause(0.5);
-                if ~isempty(cb)
-                    cb();
-                end
-                self.run;
-            end
-            self.conn.configureCallback('terminator',@(src,event) internal_callback);
+            self.status = self.STATUS_LOOP;
+            self.setFunc;
             self.run;
         end
         
         function r = read(self)
             %READ Reads available data from TCP connection
             r = self.conn.readline();
-        end %end read
+        end
         
         function stop(self)
-            %STOP Releases client from remote control and closes TCP conn
+            %STOP Releases client from remote control and closes TCP
+            %connection
             self.conn = [];
             fprintf(1,'Remote control session terminated\n');
             self.connected = false;
-            self.status = self.STOPPED;
+            self.status = self.STATUS_STOPPED;
         end
         
         function delete(self)
@@ -138,26 +160,36 @@ classdef RemoteControl < handle
         function self = make(self,varargin)
             %MAKE Makes the sequence to be uploaded
             %
-            %   r = make(r,varargin) runs r.sq = r.makerCallback(varargin{:})
-            %   If r.makerCallback is empty, then uses default makeSequence() function
+            %   SELF = MAKE(SELF,VARARGIN) runs
+            %   SELF.MAKERCALLBACK(VARARGIN{:}) and stores the resulting
+            %   sequence in SELF.SQ.
+            %
+            %   Notifies listeners that the "sequenceChanged" event has
+            %   occurred.
+
             if isempty(self.makerCallback) || ~isa(self.makerCallback,'function_handle')
-                self.makerCallback = @makeSequence;
+                error('Provide a valid sequence creation function to makerCallback!');
             end
             self.sq = self.makerCallback(varargin{:});
             notify(self,'sequenceChanged');
+            [self.maker_copy.maker,self.maker_copy.opt] = copy_sequence(self.makerCallback,varargin{:});
         end
         
         function self = upload(self,data)
             %UPLOAD uploads data to host
             %
-            %   r = upload(r) uploads data to control interface using the 
-            %   current sequence stored in the r.sq field
+            %   SELF = UPLOAD uploads data to control interface using the 
+            %   current sequence stored in the SELF.SQ field
             %
-            %   r = upload(r,data) with r the RemoteControl object and data a
-            %   2D array with times in the first column, a 32 bit digital
-            %   value in the second column, and 24 analog values in the rest
+            %   SELF = UPLOAD(DATA) with uploads data structure DATA.  DATA
+            %   must be a 2D array with times in the first column, a 32 bit
+            %   digital value in the second column, and 24 analog values in
+            %   the rest
             if nargin < 2
                 data = self.sq.compile;
+                self.wait_for_image = self.sq.waitForImage;
+            else
+                self.wait_for_image = false;
             end
 
             if isnumeric(data)
@@ -179,21 +211,27 @@ classdef RemoteControl < handle
             %% Upload DDS data
             self.uploadDDSData(data.dds);
             
-            %% Open connection with LabVIEW VI and set acquisition delay
+            %% Open connection with LabVIEW VI and set options
             self.open;
-            self.conn.writeline(self.uploadDelayWord);
+            % This does the camera delay value
+            self.conn.writeline(self.CMD_CAM_DELAY);
             s = sprintf('%.1f',data.camDelay);
+            pause(0.1);
+            self.conn.writeline(s);
+            % This does the waitForImage flag
+            self.conn.writeline(self.CMD_WAIT_FOR_IMAGE);
+            s = sprintf('%.0f',data.waitForImage);
             pause(0.1);
             self.conn.writeline(s);
             
             %% Upload analog data
-            self.conn.writeline(self.uploadAWord);
+            self.conn.writeline(self.CMD_UPLOAD_ANALOG);
             s = sprintf(['%.6f',repmat(',%.6f',1,24),'%%'],a');
             pause(0.1);
             self.conn.writeline(s);
             
             %% Upload digital data
-            self.conn.writeline(self.uploadDWord);
+            self.conn.writeline(self.CMD_UPLOAD_DIGITAL);
             s = sprintf('%d,%%',d);
             s = s(1:end-2);
             pause(0.1);
@@ -202,6 +240,9 @@ classdef RemoteControl < handle
         end
         
         function uploadDDSData(self,dds)
+            %UPLOADDDSDATA Uploads the DDS data via the MOGLABS interface
+            %
+            %   UPLOADDDSDATA(DDS) uploads DDS data stored in DDS
             if isempty(self.mog)
                 return
             end
@@ -266,9 +307,9 @@ classdef RemoteControl < handle
             self.open;
             self.conn.flush;
             if nargin > 1
-                self.conn.configureCallback('terminator',@(~,~) cb());
+                self.run_callback = cb;
             end
-            self.conn.writeline(self.startWord);
+            self.conn.writeline(self.CMD_START);
             %====================================SAM HACK HERE===================================
 %             addpath('C:\Program Files\Meadowlark Optics\Blink OverDrive Plus\SDK');
 %             pause(18)
@@ -284,7 +325,7 @@ classdef RemoteControl < handle
         
         function start(self)
             %START Starts a full run through the sequence of numRuns
-            self.status = self.RUNNING;
+            self.status = self.STATUS_AUTO;
             self.init;
             self.set;
             self.run;
@@ -292,7 +333,7 @@ classdef RemoteControl < handle
         
         function resume(self)
             %RESUME sets and runs a sequence
-            self.status = self.RUNNING;
+            self.status = self.STATUS_AUTO;
             self.set;
             self.run;
         end
@@ -301,26 +342,66 @@ classdef RemoteControl < handle
             %RESP responds to the arrival a new word over TCPIP
             %   Controls the next run of the sequence, either ending it or
             %   analyzing the results and stepping forward
+            
+            %
+            % First, we grab the camera error information and image number,
+            % if present
+            %
             s = self.read;
-            if ~self.connected && strcmpi(s,self.readyWord)
-                fprintf(1,'Interface connected!\n');
-                self.connected = true;
-                self.status = self.STOPPED;
-            elseif strcmpi(s,self.readyWord) && strcmpi(self.status,self.RUNNING)
-                if self.c.done()
-                    % Analyze
-                    self.analyze;
-                    % Stop
-                    pause(0.1);
-                    self.conn.flush;
-                    self.status = self.STOPPED;
-                    fprintf(1,'Run finished\n');
-                else
-                    % Analyze
-                    self.analyze;
-                    % Run again
-                    self.c.increment();
-                    self.set;
+            if self.wait_for_image && ~strcmpi(s,self.CMD_READY)
+                % This executes if we need to wait for image acquisition to
+                % complete, and what is sent by the control VI is not the
+                % ready word
+                r = sscanf(s,self.CAM_STATUS_FMT);
+                % Check camera error codes
+                if r(1) == self.CAM_STATUS_TIMEOUT
+                    error('Camera acquisition timed out');
+                elseif r(1) ~= self.CAM_STATUS_NO_ERR
+                    error('Unknown camera error');
+                end
+                % If no error, grab the image number
+                image_number = r(2);
+                % Save a copy of the maker function with the associated
+                % image number
+                fname = sprintf('%s_Image%d.m',func2str(self.makerCallback),image_number);
+                fid = fopen(fullfile(self.MAKER_STORAGE_DIRECTORY,fname),'w');
+                fprintf(self.maker_copy.maker);
+                fclose(fid);
+                % Save a copy of the standard sequence options as a MAT
+                % file
+                fname = sprintf('options_Image%d.mat',image_number);
+                file_path = fullfile(self.MAKER_STORAGE_DIRECTORY,fname);
+                opt = self.maker_copy.opt;
+                save(file_path,'opt');
+            elseif strcmpi(s,self.CMD_READY)
+                % If the Control VI sends CMD_READY, execute the
+                % appropriate callback function
+                if strcmpi(self.status,self.STATUS_AUTO)
+                    % Status is AUTO only for automated sequences
+                    if self.c.done()
+                        % Analyze
+                        self.analyze;
+                        % Stop
+                        pause(0.1);
+                        self.conn.flush;
+                        self.status = self.STATUS_STOPPED;
+                        fprintf(1,'Run finished\n');
+                    else
+                        % Analyze
+                        self.analyze;
+                        % Run again
+                        self.c.increment();
+                        self.set;
+                        self.run;
+                    end
+                elseif ~isempty(self.run_callback) && isa(self.run_callback,'function_handle')
+                    % If not an automated sequence, and a run_callback
+                    % function is present, run that callback
+                    self.run_callback();
+                end
+                % If we are looping, then start another run. This occurs
+                % even if no run_callback is present
+                if strcmpi(self.status,self.STATUS_LOOP)
                     self.run;
                 end
             end
@@ -331,46 +412,46 @@ classdef RemoteControl < handle
             %currentRun is 1
             self.setFunc;
             if self.c.current() == 1
-                self.mode = self.INIT;
+                self.mode = self.MODE_INIT;
                 self.callback(self);
             end
         end
         
         function self = set(self)
             %SET Sets the mode to SET and calls the callback function
-            self.mode = self.SET;
+            self.mode = self.MODE_SET;
             self.callback(self);
         end
         
         function self = analyze(self)
             %ANALYZE Sets the mode to ANALYZE and calls the callback
             %function
-            self.mode = self.ANALYZE;
+            self.mode = self.MODE_ANALYZE;
             self.callback(self);
         end
         
         function r = isInit(self)
             %ISSET Returns true if the mode is INIT
-            r = strcmpi(self.mode,self.INIT);
+            r = strcmpi(self.mode,self.MODE_INIT);
         end
         
         function r = isSet(self)
             %ISSET Returns true if the mode is SET
-            r = strcmpi(self.mode,self.SET);
+            r = strcmpi(self.mode,self.MODE_SET);
         end
         
         function r = isAnalyze(self)
             %ISANALYZE Returns true if the mode is ANALYZE
-            r = strcmpi(self.mode,self.ANALYZE);
+            r = strcmpi(self.mode,self.MODE_ANALYZE);
         end
         
         function reset(self)
             %RESET Resets currentRun to 1, data to [], mode to INIT
             self.c.reset;
             self.data = [];
-            self.mode = self.INIT;
+            self.mode = self.MODE_INIT;
         end
         
-    end %end methods
+    end
 
-end %end classdef
+end

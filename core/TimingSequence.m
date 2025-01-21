@@ -7,6 +7,7 @@ classdef TimingSequence < handle
         dds             %Array of DDS objects
         ddsTrigDelay    %Offset time between start of sequence and start of DDS
         camDelay        %Time at which to trigger the camera acquisition VI
+        waitForImage    %Boolean flag telling the control VI to wait for image acquistion to be finished
         
         directory       %Directory where to save sequence builder files
     end

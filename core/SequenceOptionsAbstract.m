@@ -47,11 +47,16 @@ classdef SequenceOptionsAbstract < matlab.mixin.Copyable
                     sargs{nn} = sprintf('''%s'',%s',p{nn},'[]'); %#ok<*AGROW> 
                 elseif ischar(v) || isstring(v)
                     sargs{nn} = sprintf('''%s'',''%s''',p{nn},v);
+                elseif isa(v,'SequenceOptionsAbstract')
+                    sargs{nn} = v.print;
+                    sargs{nn}(end) = '';
+                    sargs{nn} = regexprep(sargs{nn},'\n','\n    ');
+                    sargs{nn} = sprintf('''%s'',%s',p{nn},sargs{nn});
                 else
                     sargs{nn} = sprintf('''%s'',%.6g',p{nn},v);
                 end
             end
-            s = strjoin(sargs,',');
+            s = strjoin(sargs,',...\n    ');
             s = sprintf('%s(%s);',class(self),s);
         end
         
