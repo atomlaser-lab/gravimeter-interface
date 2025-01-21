@@ -1,5 +1,6 @@
 function makeImagingSequence(sq,varargin)
 
+sq.waitForImage = true;
 %
 % Define default parameters
 %

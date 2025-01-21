@@ -300,6 +300,7 @@ classdef TimingSequence < handle
             end
 
             self.data.camDelay = self.camDelay;
+            self.data.waitForImage = self.waitForImage;
             
             r = self.data;
         end

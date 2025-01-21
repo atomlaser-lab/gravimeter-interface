@@ -54,7 +54,9 @@ classdef RemoteControl < handle
         STATUS_LOOP = 'loop';               %Indicates that an automated loop is running
         STATUS_STOPPED = 'stopped';         %Indicates that an automated sequence is not running
 
-        MAKER_STORAGE_DIRECTORY = 'storage';    %Directory for storing copies of maker functions
+        MAKER_STORAGE_DIRECTORY = 'D:\run-files';           %Directory for storing copies of maker functions
+        MAKER_FILENAME_FORMAT = '%s_Image%d.m';             %String format for maker function copies
+        OPTIONS_FILENAME_FORMAT = 'options_Image%d.mat';    %String format for options filenames
     end    
     
     events
@@ -102,7 +104,8 @@ classdef RemoteControl < handle
                 fprintf(1,'Attempting connection...\n');
                 self.conn = tcpclient(self.remoteAddress,self.remotePort);
                 self.conn.configureTerminator('CR/LF');
-                self.conn.configureCallback('terminator',@(src,event) self.internal_callback(src,event))
+                self.conn.configureCallback('terminator',@(src,event) self.resp(src,event));
+                self.conn.ErrorOccurredFcn = @(src,event) RemoteControl.error_handler(src,event);
                 R = version('-release');
                 release_year = regexp(R,'\d+','match');
                 release_year = str2double(release_year{1});
@@ -116,7 +119,7 @@ classdef RemoteControl < handle
         end %end open
         
         function setFunc(self)
-            %SETFUNC Sets the BytesAvailableFcn to self.internal_callback()
+            %SETFUNC Sets the BytesAvailableFcn to self.resp()
             self.open;
             self.conn.configureCallback('terminator',@(src,event) self.resp(src,event))
         end
@@ -187,9 +190,9 @@ classdef RemoteControl < handle
             %   the rest
             if nargin < 2
                 data = self.sq.compile;
-                self.wait_for_image = self.sq.waitForImage;
+                self.wait_for_image = data.waitForImage;
             else
-                self.wait_for_image = false;
+                self.wait_for_image = data.waitForImage;
             end
 
             if isnumeric(data)
@@ -363,16 +366,13 @@ classdef RemoteControl < handle
                 image_number = r(2);
                 % Save a copy of the maker function with the associated
                 % image number
-                fname = sprintf('%s_Image%d.m',func2str(self.makerCallback),image_number);
-                fid = fopen(fullfile(self.MAKER_STORAGE_DIRECTORY,fname),'w');
-                fprintf(self.maker_copy.maker);
+                fid = fopen(self.get_maker_filename(func2str(self.makerCallback),image_number),'w');
+                fprintf(fid,'%s',self.maker_copy.maker);
                 fclose(fid);
                 % Save a copy of the standard sequence options as a MAT
                 % file
-                fname = sprintf('options_Image%d.mat',image_number);
-                file_path = fullfile(self.MAKER_STORAGE_DIRECTORY,fname);
                 opt = self.maker_copy.opt;
-                save(file_path,'opt');
+                save(self.get_options_filename(image_number),'opt');
             elseif strcmpi(s,self.CMD_READY)
                 % If the Control VI sends CMD_READY, execute the
                 % appropriate callback function
@@ -404,6 +404,10 @@ classdef RemoteControl < handle
                 if strcmpi(self.status,self.STATUS_LOOP)
                     self.run;
                 end
+            end
+            % Call resp() again if there are still data to be read
+            if self.conn.BytesAvailable
+                self.resp();
             end
         end
         
@@ -452,6 +456,22 @@ classdef RemoteControl < handle
             self.mode = self.MODE_INIT;
         end
         
+    end
+
+    methods(Static)
+        function fname = get_maker_filename(maker_filename,image_number)
+            fname = sprintf(RemoteControl.MAKER_FILENAME_FORMAT,maker_filename,image_number);
+            fname = fullfile(RemoteControl.MAKER_STORAGE_DIRECTORY,fname);
+        end
+
+        function fname = get_options_filename(image_number)
+            fname = fullfile(RemoteControl.MAKER_STORAGE_DIRECTORY,sprintf(RemoteControl.OPTIONS_FILENAME_FORMAT,image_number));
+        end
+
+        function error_handler(src,event)
+            src
+            event
+        end
     end
 
 end
