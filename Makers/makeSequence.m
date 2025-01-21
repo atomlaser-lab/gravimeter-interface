@@ -21,7 +21,7 @@ end
 % ImageFreq = opt.detuning + 2.3; %For laser cooling stages
 ImageFreq = opt.detuning + 0.5; %Low intensity after dipole evaporation
 dipole_field = 1; %In Gauss
-ImageAmp = 0.01;
+ImageAmp = 0.1;
 %% Initialize sequence
 sq = initSequence;  %load default values (OLD MOT values are default) 
 sq.find('87 imag freq').set(ImageFreq);
@@ -55,6 +55,7 @@ if opt.stage.use_mot
     sq.find('87 repump amp').set(1);
     % 3D coil settings
     sq.find('H-Bridge Quad').set(1);
+    sq.find('H-Bridge Helm').set(0);
     sq.find('CD bit 0').set(0);
     sq.find('CD bit 1').set(0);
     sq.find('CD0 Fast').set(14); %Coarse control of 3D coils
@@ -68,7 +69,7 @@ if opt.stage.use_mot
     %
     % Turn off the 2D MOT and coils as well as the push beam
     %
-    sq.find('2D MOT Coils').before(10e-3,0);
+    sq.find('2D MOT Coils').before(10e-3,0); %active low
     sq.find('2DMOT').before(10e-3,0);
     sq.find('87 push').before(10e-3,0);
 end
@@ -157,7 +158,7 @@ if opt.stage.use_mag
         sq.delay(max(Toptload - Tmagload,0));
     end
 
-    if ~opt.stage.use_evap_mag
+    if ~opt.stage.evap_mag
         sq.delay(1);
     end
 end
@@ -169,20 +170,20 @@ end
 % frequencies are in MHz
 %
 if opt.stage.use_evap_mag
-    rf_start = 16;
+    rf_start = 16; %16
     rf_end = 0.75;
 %     rf_end = 4;
-    rf_rate = 3;    %MHz/s
+    rf_rate = 3;    %MHz/s 3
     Tevap = (rf_start - rf_end)/rf_rate;
     t = linspace(0,Tevap,50);
     
-    sq.find('RF atten').set(1);
+    sq.find('RF switch').set(1); %NOTE: FG/DDS is set to 1 in initSequence, so FG is the default RF source
     sq.find('RF frequency').set(rf_start);
     sq.delay(0.25);
     sq.find('RF frequency').after(t,sq.linramp(t,rf_start,rf_end));
     sq.delay(Tevap);
     
-    sq.find('RF atten').set(0);
+    sq.find('RF switch').set(0);
     sq.find('RF Frequency').set(20);
 end
 
@@ -228,7 +229,9 @@ sq.find('CD2').set(0);
 sq.find('CD Fine/Fast').set(0);
 sq.find('CD bit 0').set(0);
 sq.find('CD bit 1').set(0);
-sq.find('RF atten').set(0);
+% sq.find('H-Bridge Quad').set(0);
+% sq.find('H-Bridge Helm').set(0);
+sq.find('RF switch').set(0);
 sq.find('RF Frequency').set(20);
 sq.find('Raycus CW').set(0);
 sq.find('Raycus TTL').set(0);
