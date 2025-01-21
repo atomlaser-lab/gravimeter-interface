@@ -12,14 +12,14 @@ function sq = initSequence
     sq.channels(8).setName('ND imag','A7').setDefault(0);
     sq.channels(9).setName('CD bit 0','B0').setDefault(0);
     sq.channels(10).setName('CD bit 1','B1').setDefault(0);
-    sq.channels(11).setName('RF atten','B2').setDefault(0);
+    sq.channels(11).setName('FG/DDS','B2').setDefault(1);
     sq.channels(12).setName('Repump shutter','B3').setDefault(1);
     sq.channels(13).setName('87 cam trig','B4').setDefault(0);
     sq.channels(14).setName('ND cam trig','B5').setDefault(0);
     sq.channels(15).setName('RedPower TTL','B6').setDefault(0);
     sq.channels(16).setName('Probe','B7').setDefault(0);
-    sq.channels(17).setName('MW Switch','C0').setDefault(0);
-    sq.channels(18).setName('H-Bridge Quad','C1').setDefault(1);
+    sq.channels(17).setName('DDS Switch','C0').setDefault(0);
+    sq.channels(18).setName('H-Bridge Quad','C1').setDefault(0);
     sq.channels(19).setName('H-Bridge Helm','C2').setDefault(0);
     sq.channels(20).setName('MOT Bias','C3').setDefault(0);
     sq.channels(21).setName('C4 - N/C','C4').setDefault(0);
