@@ -14,8 +14,6 @@ classdef RemoteControl < handle
         devices         %Structure listing MATLAB devices used in callback
         data            %Data structure to use in callback function
         callback        %Callback function, takes argument of Rebeka object
-        % DDS properties
-        mog             %MOGLabs parent object
     end
     
     properties(SetAccess = protected)
@@ -211,6 +209,11 @@ classdef RemoteControl < handle
                 end
             end
             
+            %% Check TA status, turn on TA if necessary
+            ldd = self.get_devices('mogldd');
+            for nn = 1:numel(ldd)
+                ldd{nn}.turn_on;
+            end
             %% Upload DDS data
             self.uploadDDSData(data.dds);
             
@@ -246,16 +249,21 @@ classdef RemoteControl < handle
             %UPLOADDDSDATA Uploads the DDS data via the MOGLABS interface
             %
             %   UPLOADDDSDATA(DDS) uploads DDS data stored in DDS
-            if isempty(self.mog)
+            mog = self.get_devices('mogrf');
+            if isempty(mog)
                 return
+            elseif numel(mog) > 1
+                error('More than one MOGRF object is not supported when uploading DDS data!');
+            else
+                mog = mog{1};
             end
             
-            if isempty(self.mog.cx)
+            if isempty(mog.cx)
                 error('Connect to MOGLabs ARF box first!');
             end
             % Create mogtable objects
-            tb = mogtable(self.mog,1);
-            tb(2) = mogtable(self.mog,2);
+            tb = mogtable(mog,1);
+            tb(2) = mogtable(mog,2);
             tb(1).pow_units = 'hex';
             tb(2).pow_units = 'hex';
             
@@ -281,14 +289,14 @@ classdef RemoteControl < handle
             
             % Send commands to device
             for nn = 1:numel(tb)
-                self.mog.cmd('mode,%d,%s',tb(nn).channel,tb(nn).MODE);
-                self.mog.cmd('table,stop,%d',tb(nn).channel);
+                mog.cmd('mode,%d,%s',tb(nn).channel,tb(nn).MODE);
+                mog.cmd('table,stop,%d',tb(nn).channel);
             end
             num_tries = 10;
             current_try = 1;
             while 1
                 try
-                    self.mog.cmd('table,sync,1');
+                    mog.cmd('table,sync,1');
                     break;
                 catch err
                     if current_try < num_tries
@@ -454,6 +462,18 @@ classdef RemoteControl < handle
             self.c.reset;
             self.data = [];
             self.mode = self.MODE_INIT;
+        end
+
+        function particular_devices = get_devices(self,device_class)
+            %GET_DEVICE Returns all instances of a particular device class
+            all_names = fieldnames(self.devices);
+            particular_devices = {};
+            for nn = 1:numel(all_names)
+                current_device = self.devices.(all_names{nn});
+                if isa(current_device,device_class)
+                    particular_devices{end + 1} = current_device; %#ok<AGROW> 
+                end
+            end
         end
         
     end

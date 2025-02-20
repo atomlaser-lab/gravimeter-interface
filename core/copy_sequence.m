@@ -11,17 +11,19 @@ s1 = s(1:r(1));
 s2 = s((r(1) + 1):end);
 %Create new string to insert
 sinsert = ['%% These were the input arguments',sprintf('\r\n')];
-if numel(varargin) == 1 && isa(varargin{1},'SequenceOptions')
-    sinsert = [sinsert,sprintf('varargin{1} = %s\r\n',varargin{1}.print)];
-else
+% if numel(varargin) == 1 && isa(varargin{1},'SequenceOptions')
+%     sinsert = [sinsert,sprintf('varargin{1} = %s\r\n',varargin{1}.print)];
+% else
     for nn = 1:numel(varargin)
-        if ischar(args(nn)) || isstring(args(nn))
+        if isa(varargin{nn},'SequenceOptions')
+            sinsert = [sinsert,sprintf('varargin{%d} = %s\r\n',varargin{1}.print)];
+        elseif ischar(varargin{nn}) || isstring(varargin{nn})
             sinsert = [sinsert,sprintf('varargin{%d} = %s;\r\n',nn,varargin{nn})];
         else
             sinsert = [sinsert,sprintf('varargin{%d} = %.6g;\r\n',nn,varargin{nn})]; %#ok<*AGROW>
         end
     end
-end
+% end
 %Insert string into file
 snew = [s1,sinsert,s2];
 
