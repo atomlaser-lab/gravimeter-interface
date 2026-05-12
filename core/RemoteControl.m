@@ -210,7 +210,7 @@ classdef RemoteControl < handle
             end
             
             %% Check TA status, turn on TA if necessary
-            ldd = self.get_devices('mogldd');
+            ldd = self.get_devices('mog');
             for nn = 1:numel(ldd)
                 ldd{nn}.turn_on;
             end
@@ -358,6 +358,7 @@ classdef RemoteControl < handle
             % First, we grab the camera error information and image number,
             % if present
             %
+
             s = self.read;
             if self.wait_for_image && ~strcmpi(s,self.CMD_READY)
                 % This executes if we need to wait for image acquisition to

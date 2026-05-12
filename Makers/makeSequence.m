@@ -2,6 +2,23 @@ function varargout = makeSequence(varargin)
 %% Parse input arguments
 opt = parse_maker_variable_argument_list(varargin{:});
 
+% opt = SequenceOptions('load_time',15,'detuning',0,'tof',20e-3,'redpower',2,...
+%     'raycus',2);
+% 
+% if nargin == 1
+%     if ~isa(varargin{1},'SequenceOptions')
+%         error('If using only one argument it must of type SequenceOptions');
+%     end
+%     opt.replace(varargin{1});
+% elseif mod(nargin,2) == 0
+%     opt.set(varargin{:});
+% elseif mod(nargin - 1,2) == 0 && isa(varargin{1},'SequenceOptions')
+%     opt.replace(varargin{1});
+%     opt.set(varargin{2:end});
+% else
+%     error('Either supply a single SequenceOptions argument, or supply a set of name/value pairs, or supply a SequenceOptions argument followed by name/value pairs');
+% end
+
 % ImageFreq = opt.detuning;
 % ImageFreq = opt.detuning + 2.3; %For laser cooling stages
 ImageFreq = opt.detuning + 0.5; %Low intensity after dipole evaporation
@@ -39,11 +56,10 @@ if opt.stage.use_mot
     sq.find('87 repump freq').set(0);
     sq.find('87 repump amp').set(1);
     % 3D coil settings
-    sq.find('H-Bridge Quad').set(1);
-    sq.find('H-Bridge Helm').set(0);
+    sq.find('H-Bridge Helm').set(0); %Quad is the default setting
     sq.find('CD bit 0').set(0);
     sq.find('CD bit 1').set(0);
-    sq.find('CD0 Fast').set(14); %Coarse control of 3D coils
+    sq.find('CD0 Fast').set(14); %Coarse control of 3D coils %14
     sq.find('CD Fine/Fast').set(0); % fine control of 3D coils
     % Bias coil settings
     sq.find('Bias E/W').set(0.4);
@@ -127,7 +143,7 @@ end
 if opt.stage.use_mag
     Tmagload = 150e-3;
     t = 0:10e-3:Tmagload;
-    dBmax = 110;
+    dBmax = 110; %110
     dBLoad = 55;
     sq.find('CD0 Fast').after(t,sq.linramp(t,dBLoad,dBmax));
     sq.find('CD Fine/Fast').set(0);
@@ -156,13 +172,13 @@ end
 %
 if opt.stage.use_evap_mag
     rf_start = 16; %16
-    rf_end = 0.75;
+    rf_end = 0.75; %0.75
 %     rf_end = 4;
     rf_rate = 3;    %MHz/s 3
     Tevap = (rf_start - rf_end)/rf_rate;
     t = linspace(0,Tevap,50);
     
-    sq.find('RF switch').set(1); %NOTE: FG/DDS is set to 1 in initSequence, so FG is the default RF source
+    sq.find('RF switch').set(1);
     sq.find('RF frequency').set(rf_start);
     sq.delay(0.25);
     sq.find('RF frequency').after(t,sq.linramp(t,rf_start,rf_end));
@@ -214,8 +230,7 @@ sq.find('CD2').set(0);
 sq.find('CD Fine/Fast').set(0);
 sq.find('CD bit 0').set(0);
 sq.find('CD bit 1').set(0);
-% sq.find('H-Bridge Quad').set(0);
-% sq.find('H-Bridge Helm').set(0);
+sq.find('H-Bridge Helm').set(0);
 sq.find('RF switch').set(0);
 sq.find('RF Frequency').set(20);
 sq.find('Raycus CW').set(0);

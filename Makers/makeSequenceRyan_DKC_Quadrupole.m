@@ -1,25 +1,12 @@
 function varargout = makeSequenceRyan_DKC_Quadrupole(varargin)   
 %% Parse input arguments
-opt = SequenceOptions('load_time',15,'detuning',0,'tof',20e-3,'redpower',2,...
-    'raycus',2);
+opt = parse_maker_variable_argument_list(varargin{:});
 
-if nargin == 1
-    if ~isa(varargin{1},'SequenceOptions')
-        error('If using only one argument it must of type SequenceOptions');
-    end
-    opt.replace(varargin{1});
-elseif mod(nargin,2) == 0
-    opt.set(varargin{:});
-elseif mod(nargin - 1,2) == 0 && isa(varargin{1},'SequenceOptions')
-    opt.replace(varargin{1});
-    opt.set(varargin{2:end});
-else
-    error('Either supply a single SequenceOptions argument, or supply a set of name/value pairs, or supply a SequenceOptions argument followed by name/value pairs');
-end
-
-ImageFreq = opt.detuning + 1.0784;
+% ImageFreq = opt.detuning;
+ImageFreq = opt.detuning + 2.3; %For laser cooling stages
+% ImageFreq = opt.detuning + 0.5; %Low intensity after dipole evaporation
 dipole_field = 1; %In Gauss
-ImageAmp = 0.2;
+ImageAmp = 0.1;
 %% Initialize sequence
 sq = initSequence;  %load default values (OLD MOT values are default) 
 sq.find('87 imag freq').set(ImageFreq);
@@ -31,7 +18,7 @@ if opt.stage.use_mot
     sq.delay(0.5);
     sq.find('2DMOT Freq').set(18);
     sq.find('Push Freq').set(5);
-    sq.find('Push amp').set(3.75);
+%     sq.find('Push amp').set(3.75);
     sq.find('2DMOT').set(1);
     sq.find('3DMOT').set(1);
     sq.find('87 push').set(1);
@@ -41,14 +28,14 @@ if opt.stage.use_mot
     % 3D repump beam settings
     sq.find('87 repump').set(1);
     sq.find('Repump shutter').set(1);
-    sq.find('Repump Switch').set(0);
+%     sq.find('Repump Switch').set(0);
     sq.find('87 repump freq').set(0);
     sq.find('87 repump amp').set(1);
     % 3D coil settings
-    sq.find('H-Bridge Quad').set(1);
+    sq.find('H-Bridge Helm').set(0); %Quad is the default setting
     sq.find('CD bit 0').set(0);
     sq.find('CD bit 1').set(0);
-    sq.find('CD0 Fast').set(14); %Coarse control of 3D coils
+    sq.find('CD0 Fast').set(30); %Coarse control of 3D coils
     sq.find('CD Fine/Fast').set(0); % fine control of 3D coils
     % Bias coil settings
     sq.find('Bias E/W').set(0.4);
@@ -81,7 +68,7 @@ if opt.stage.use_cmot
     sq.find('3DMOT freq').after(t,sq.linramp(t,sq.find('3DMOT freq').values(end),55));
     sq.find('3DMOT amp').set(1);
     %Repump
-    sq.find('87 repump freq').set(2.5); %-7
+    sq.find('87 repump freq').set(7.5); %-7
     sq.find('87 repump amp').set(1);
     
     sq.delay(Tcmot);
@@ -120,10 +107,19 @@ if opt.stage.use_pump
     sq.find('3DMOT freq').set(75);
     sq.delay(Tdepump);
     sq.find('3DMOT').set(0);
-end
 
-%%
-% sq.delay(0.1);
+%     Tdepump = 3e-3;
+%     sq.find('3DMOT').set(0);
+%     sq.find('87 repump freq').set(0);
+%     sq.find('87 repump amp').set(1);
+%     sq.find('87 repump').set(1);
+%     sq.find('87 imag').set(1);
+%     sq.find('87 imag freq').set(-16);
+%     sq.find('87 imag amp').set(0.1);
+%     sq.delay(Tdepump);
+%     sq.find('87 repump').set(0);
+%     sq.find('87 imag').set(0);
+end
 
 %% Drop atoms
 timeAtDrop = sq.time;
@@ -135,7 +131,8 @@ sq.find('CD2').set(0);
 sq.find('CD Fine/Fast').set(0);
 sq.find('CD bit 0').set(0);
 sq.find('CD bit 1').set(0);
-sq.find('RF atten').set(0);
+sq.find('H-Bridge Helm').set(0);
+sq.find('RF switch').set(0);
 sq.find('RF Frequency').set(20);
 sq.find('Raycus CW').set(0);
 sq.find('Raycus TTL').set(0);
@@ -143,16 +140,16 @@ sq.find('RedPower CW').set(0);
 sq.find('RedPower TTL').set(0);
 
 %% Stern-Gerlach
-% sq.delay(20e-3);
-% sq.find('CD0 Fast').set(130);
-% sq.delay(20e-3);
-% sq.find('CD0 Fast').set(0);
+sq.delay(20e-3);
+sq.find('CD0 Fast').set(130/2);
+sq.delay(20e-3);
+sq.find('CD0 Fast').set(0);
 
 %% Take Absorption Image
 sq.anchor(timeAtDrop);
 sq.camDelay = timeAtDrop - 3;
 
-makeImagingSequence(sq,'tof',opt.tof,'pulse time',40e-6,'repump delay',100e-6,...
+makeImagingSequence(sq,'tof',opt.tof,'pulse time',4*40e-6,'repump delay',100e-6,...
     'repump time',200e-6,'cam time',5e-6,'cycle time',100e-3,...
     'manifold',1,'imaging freq',ImageFreq,'imaging amplitude',ImageAmp,...
     'repump shutter delay',2e-3,'imaging_field',dipole_field,'image type','horizontal');

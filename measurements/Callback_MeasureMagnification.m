@@ -1,10 +1,10 @@
 function Callback_MeasureMagnification(r)
 
 if r.isInit()
-    r.data.tof = (5:5:40)*1e-3;
+    r.data.tof = (10:0.5:15)*1e-3;
     r.c.setup('var',r.data.tof);
 elseif r.isSet()
-    r.make(r.devices.opt,'load_time',2,'tof',r.data.tof(r.c(1))).upload;
+    r.make(r.devices.opt,'load_time',5,'tof',r.data.tof(r.c(1))).upload;
     fprintf(1,'Run %d/%d, TOF = %.3f\n',r.c.now,r.c.total,r.data.tof(r.c(1)));
 elseif r.isAnalyze()
     i1 = r.c(1);

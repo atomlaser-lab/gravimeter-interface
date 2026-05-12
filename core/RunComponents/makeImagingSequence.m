@@ -7,7 +7,7 @@ sq.waitForImage = true;
 pulseTime = 30e-6;
 pulse_delay = 15e-6;
 repumpTime = 100e-6;
-repumpDelay = 00e-6;
+repumpDelay = 0;
 repumpShutterDelay = 5e-3;
 camTime = 100e-6;
 cycleTime = 40e-3;
@@ -69,10 +69,14 @@ end
 
 
 % Set imaging parameters BEFORE you take the image
-sq.find('CD0 Fast').set(0); %zero mag field
-% sq.find('MOT bias coil').set(imaging_field); %turn on the imaging coil (to align the axis of atoms)
-sq.find('MOT bias coil').after(tof - 1e-3,imaging_field); %turn on the imaging coil (to align the axis of atoms)
-sq.find('MOT bias').set(1); %ttl on imaging coil
+if strcmpi(image_type , 'vertical')
+    sq.find('CD0 Fast').set(0.8); %zero mag field
+    sq.find('MOT bias').set(0); %ttl on imaging coil
+else
+    % sq.find('MOT bias coil').set(imaging_field); %turn on the imaging coil (to align the axis of atoms)
+    sq.find('MOT bias coil').after(tof - 1e-3,imaging_field); %turn on the imaging coil (to align the axis of atoms)
+    sq.find('MOT bias').set(1); %ttl on imaging coil
+end
 
 
 %
@@ -97,8 +101,10 @@ if strcmpi(image_type,'horizontal')
     cam_ch = sq.find('87 cam trig');
     img_ch = sq.find('87 imag');
 elseif strcmpi(image_type , 'vertical')
-    cam_ch = sq.find('vertical cam trig');
-%     img_ch = sq.find('87 imag');
+    cam_ch = sq.find('ND cam trig');
+    img_ch = sq.find('ND imag');
+    %     cam_ch = sq.find('vertical cam trig');
+    % %     img_ch = sq.find('87 imag');
 elseif strcmpi(image_type,'nd')
     cam_ch = sq.find('ND cam trig');
     img_ch = sq.find('ND imag');

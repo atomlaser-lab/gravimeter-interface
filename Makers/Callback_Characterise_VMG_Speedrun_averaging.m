@@ -3,13 +3,13 @@ function Callback_Characterise_VMG_Speedrun_averaging(r)
 if r.isInit()
 
     r.data.no_averages = 5;
-    r.data.delta_param = 20;
-    r.data.delta = repmat(linspace(19.9,20.1,r.data.delta_param),1,r.data.no_averages); %linspace(19.95,20.1,r.data.delta_param)
+    r.data.delta_param = 21;
+    r.data.delta = repmat(linspace(19.8,20.2,r.data.delta_param),1,r.data.no_averages); %linspace(19.95,20.1,r.data.delta_param)
     r.data.delta_key = randperm(r.data.delta_param*r.data.no_averages); %getting random key
     r.data.delta = r.data.delta(r.data.delta_key); %randomising using key
-    r.data.time_for_delta = 12e-6;
+    r.data.time_for_delta = 5e-6;
     r.data.time_param = 21;
-    r.data.time = repmat(linspace(0,100,r.data.time_param)*1e-6,1,r.data.no_averages);
+    r.data.time = repmat(linspace(0,40,r.data.time_param)*1e-6,1,r.data.no_averages);
     r.data.time_key = randperm(r.data.time_param*r.data.no_averages); %getting random key
     r.data.time = r.data.time(r.data.time_key); %randomising using key
     r.data.phase_param = 10;
@@ -112,12 +112,12 @@ elseif r.isAnalyze()
         figure(41)
         clf
         hold on
-        r.data.N1_delta(r.data.delta_key(i1)) = r.data.Rsum(i1,1);
-        r.data.N2_delta(r.data.delta_key(i1)) = r.data.Rsum(i1,2);
+        r.data.N1_delta(r.data.delta_key(i1)) = r.data.R(i1,1);
+        r.data.N2_delta(r.data.delta_key(i1)) = r.data.R(i1,2);
         C2_mean = mean(r.data.N2_delta,2,"omitnan");
         C2_std = std(r.data.N2_delta,0,2,"omitnan");
         errorbar(x,C2_mean,C2_std,"o","MarkerSize",5,"MarkerEdgeColor","blue","MarkerFaceColor",[0.65 0.85 0.90],'linewidth',2,'Color','blue')
-        xlim([min(linspace(19.9,20.15,r.data.delta_param)) max(linspace(19.9,20.15,r.data.delta_param))])
+        xlim([min(x) max(x)])
         ylim([0 1])
         xlabel('Two Photon Detuning (MHz)')
         ylabel('N_2')
@@ -141,8 +141,8 @@ elseif r.isAnalyze()
         figure(42)
         clf
         hold on
-        r.data.N1_time(r.data.time_key(counter)) = r.data.Rsum(i1,1);
-        r.data.N2_time(r.data.time_key(counter)) = r.data.Rsum(i1,2);
+        r.data.N1_time(r.data.time_key(counter)) = r.data.R(i1,1);
+        r.data.N2_time(r.data.time_key(counter)) = r.data.R(i1,2);
         C2_mean = mean(r.data.N2_time,2,"omitnan");
         C2_std = std(r.data.N2_time,0,2,"omitnan");
         errorbar(x*1e6,C2_mean,C2_std,"o","MarkerSize",5,"MarkerEdgeColor","blue","MarkerFaceColor",[0.65 0.85 0.90],'linewidth',2,'Color','blue')
@@ -170,8 +170,8 @@ elseif r.isAnalyze()
         figure(43)
         clf
         hold on
-        r.data.N1_phase(r.data.phase_key(counter)) = r.data.Rsum(i1,1);
-        r.data.N2_phase(r.data.phase_key(counter)) = r.data.Rsum(i1,2);
+        r.data.N1_phase(r.data.phase_key(counter)) = r.data.R(i1,1);
+        r.data.N2_phase(r.data.phase_key(counter)) = r.data.R(i1,2);
         C1_mean = mean(r.data.N1_phase,2,"omitnan");
         C1_std = std(r.data.N1_phase,0,2,"omitnan");
         C2_mean = mean(r.data.N2_phase,2,"omitnan");
@@ -189,14 +189,14 @@ elseif r.isAnalyze()
         saveas(gcf,sprintf('D:\\data\\VMG_autosave\\Two Photon.fig'));
         save('D:\data\VMG_autosave\two_photon_data.mat','data');
         r.data.two_photon_opt = x(find(C2_mean == max(C2_mean)));
-        r.data.two_photon_opt =  20.0263;
+%         r.data.two_photon_opt = 19.99;
         r.data.counter = i1;
     elseif r.c(1) == r.data.no_averages*(r.data.delta_param + r.data.time_param)
         data = r.data;
         saveas(gcf,sprintf('D:\\data\\VMG_autosave\\Time.fig'));
         save('D:\data\VMG_autosave\time_data.mat','data');
         r.data.time_opt = x(find(C2_mean == max(C2_mean)));
-                r.data.time_opt = 20e-6;
+%         r.data.time_opt = 12e-6;
         r.data.counter = i1;
     elseif r.c(1) == r.data.no_averages*(r.data.delta_param + r.data.time_param + r.data.phase_param)
         %         [f,g] = createFit(x',(0.5*(1 + C1_mean - C2_mean))');

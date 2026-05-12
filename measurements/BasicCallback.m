@@ -1,14 +1,14 @@
 function BasicCallback(r)
 
 if r.isInit()
-    r.data.param = 1:7;
+    r.data.param = [0.5:0.5:25]*1e-3;
     r.c.setup('var',r.data.param);
 elseif r.isSet()
     r.make(r.devices.opt,'params',r.data.param(r.c(1))).upload;
     fprintf(1,'Run %d/%d, Param = %.3f\n',r.c.now,r.c.total,r.data.param(r.c(1)));
 elseif r.isAnalyze()
     i1 = r.c(1);
-    pause(0.5 + 0.25*rand);
+%     pause(0.5 + 0.25*rand);
     img = Abs_Analysis('last',1);
     if ~img(1).raw.status.ok()
         %
@@ -29,13 +29,17 @@ elseif r.isAnalyze()
     r.data.OD(i1,:) = img.get('peakOD');
     r.data.T(i1,:) = prod(squeeze(img.get('T')))^0.5;
     r.data.pos(i1,:) = img.get('pos');
+    r.data.xwidth(i1,:) = img.clouds.gaussWidth(1);
 
     figure(98);clf;
-%     subplot(1,2,1);
+    subplot(1,2,1);
     plot(r.data.param(1:i1),r.data.N,'o');
     ylim([0,Inf]);
     grid on
-%     subplot(1,2,2);
+    subplot(1,2,2);
+    plot(r.data.param(1:i1),r.data.OD,'o');
+    ylim([0,Inf]);
+    grid on
 %     plot(r.data.param(1:i1),r.data.T,'o');
 %     ylim([0,250e-9]);
 %     plot(r.data.param(1:i1),r.data.N(:,1)./sum(r.data.N,2),'o-');

@@ -7,19 +7,20 @@ function sq = initSequence
     sq.channels(3).setName('87 repump','A2').setDefault(1);
     sq.channels(4).setName('87 push','A3').setDefault(1);
     sq.channels(5).setName('87 imag','A4').setDefault(0);
-    sq.channels(6).setName('A5 - N/C','A5').setDefault(0);
+    sq.channels(6).setName('Vertical MOT Mirror','A5').setDefault(0);
     sq.channels(7).setName('A6 - N/C','A6').setDefault(0);
     sq.channels(8).setName('ND imag','A7').setDefault(0);
     sq.channels(9).setName('CD bit 0','B0').setDefault(0);
     sq.channels(10).setName('CD bit 1','B1').setDefault(0);
-    sq.channels(11).setName('FG/DDS','B2').setDefault(1);
+    sq.channels(11).setName('B2 - N/C','B2').setDefault(0);
     sq.channels(12).setName('Repump shutter','B3').setDefault(1);
     sq.channels(13).setName('87 cam trig','B4').setDefault(0);
     sq.channels(14).setName('ND cam trig','B5').setDefault(0);
     sq.channels(15).setName('RedPower TTL','B6').setDefault(0);
-    sq.channels(16).setName('Probe','B7').setDefault(0);
+    sq.channels(16).setName('DDS Trigger','B7').setDefault(0);
     sq.channels(17).setName('DDS Switch','C0').setDefault(0);
-    sq.channels(18).setName('H-Bridge Quad','C1').setDefault(0);
+     sq.channels(18).setName('H-Bridge Quad','C1').setDefault(0);
+%     sq.channels(18).setName('C1 - N/C','C1').setDefault(0);
     sq.channels(19).setName('H-Bridge Helm','C2').setDefault(0);
     sq.channels(20).setName('MOT Bias','C3').setDefault(0);
     sq.channels(21).setName('C4 - N/C','C4').setDefault(0);
@@ -27,7 +28,7 @@ function sq = initSequence
     sq.channels(23).setName('C6 - N/C','C6').setDefault(0);
     sq.channels(24).setName('RF Switch','C7').setDefault(0);
     sq.channels(25).setName('2D MOT Coils','D0','INVERTED').setConversionFunction(@(x) ~x).setDefault(1);
-    sq.channels(26).setName('DDS TTL','D1').setDefault(0);
+    sq.channels(26).setName('D1 - N/C','D1').setDefault(0);
     sq.channels(27).setName('Feedback Laser TTL','D2').setDefault(0);
     sq.channels(28).setName('Raycus TTL','D3').setDefault(0);
     sq.channels(29).setName('DKC TTL','D4').setDefault(1);
@@ -68,7 +69,7 @@ function sq = initSequence
     sq.analog(15).setName('Variable Wave Plate','BO/6')...
         .setDefault(-3.4);
     sq.analog(16).setName('ND imag amp','BO/7')...
-        .setConversionFunction(@(x) TrapPtoV('nd',x),'V').setDefault(0);
+        .setConversionFunction(@(x) TrapPtoV('nd',x),'V').setDefault(1);
     sq.analog(17).setName('CD3','CO/0')...
         .setConversionFunction(@(x) dBtoV('normal',x),'G/cm').setDefault(0);
     sq.analog(18).setName('CD2','CO/1')...
